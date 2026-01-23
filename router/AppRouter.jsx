@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Dashboards estructurales (YA EXISTEN)
-import DashboardAgenda from "../dashboards/DashboardAgenda";
-import DashboardPacientes from "../dashboards/DashboardPacientes";
-import DashboardAtencion from "../dashboards/DashboardAtencion";
-import DashboardDocumentos from "../dashboards/DashboardDocumentos";
-import DashboardAdministracion from "../dashboards/DashboardAdministracion";
+// Dashboards reales (ubicación y nombres EXACTOS)
+import DashboardAgenda from "../pages/dashboard-agenda.jsx";
+import DashboardPacientes from "../pages/dashboard-pacientes.jsx";
+import DashboardAtencion from "../pages/dashboard-atencion.jsx";
+import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
+import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 // Rol activo (frontend)
 import secretaria from "../roles/secretaria";
@@ -22,16 +22,16 @@ function RoleGuard({ role, route, children }) {
 }
 
 export default function AppRouter() {
-  // 🔒 Rol activo (más adelante viene de sesión/login)
+  // Rol activo (por ahora fijo, luego viene desde sesión)
   const activeRole = secretaria;
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Entrada por defecto según rol */}
+        {/* Entrada por defecto */}
         <Route path="/" element={<Navigate to={activeRole.entry} replace />} />
 
-        {/* ===== AGENDA ===== */}
+        {/* AGENDA */}
         <Route
           path="/agenda"
           element={
@@ -41,7 +41,7 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===== PACIENTES ===== */}
+        {/* PACIENTES */}
         <Route
           path="/pacientes"
           element={
@@ -51,7 +51,7 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===== ATENCIÓN CLÍNICA ===== */}
+        {/* ATENCIÓN */}
         <Route
           path="/atencion"
           element={
@@ -61,7 +61,7 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===== DOCUMENTOS ===== */}
+        {/* DOCUMENTOS */}
         <Route
           path="/documentos"
           element={
@@ -71,7 +71,7 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===== ADMINISTRACIÓN ===== */}
+        {/* ADMINISTRACIÓN */}
         <Route
           path="/administracion"
           element={
