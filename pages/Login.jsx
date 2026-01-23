@@ -1,14 +1,13 @@
 import { useState } from "react";
-import Secretaria from "./Secretaria";
 import "../styles/login.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+// ⚠️ usa URL directa o una sola variable limpia
+const API_URL = "https://ficha-clinica-backend.onrender.com";
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
-  const [role, setRole] = useState(null);
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -17,8 +16,10 @@ export default function Login() {
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario, clave }),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ usuario, clave })
       });
 
       const data = await res.json();
@@ -27,15 +28,15 @@ export default function Login() {
         throw new Error(data.detail || "Error de login");
       }
 
-      setRole(data.role);
+      // 🔑 DEVUELVE SESIÓN COMPLETA
+      onLogin({
+        usuario: data.usuario,
+        role: data.role
+      });
+
     } catch (err) {
       setError(err.message);
     }
-  }
-
-  // 🔑 activación por rol
-  if (role === "SECRETARIA") {
-    return <Secretaria />;
   }
 
   return (
@@ -47,7 +48,10 @@ export default function Login() {
         {error && <div className="error">{error}</div>}
 
         <label>Usuario</label>
-        <input value={usuario} onChange={e => setUsuario(e.target.value)} />
+        <input
+          value={usuario}
+          onChange={e => setUsuario(e.target.value)}
+        />
 
         <label>Contraseña</label>
         <input
