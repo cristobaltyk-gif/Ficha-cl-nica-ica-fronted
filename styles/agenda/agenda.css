@@ -1,107 +1,74 @@
-/* =========================
-   AGENDA - LAYOUT
-   ========================= */
+/* ===== CONTENEDOR GENERAL ===== */
 .agenda {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #f8fafc;
 }
 
+/* ===== COLUMNA PROFESIONAL ===== */
 .agenda-column {
   background: #ffffff;
-  border-radius: 14px;
-  padding: 14px 12px;
-  box-shadow:
-    0 6px 18px rgba(15, 23, 42, 0.06),
-    0 2px 6px rgba(15, 23, 42, 0.04);
-}
-
-.agenda-title {
-  margin: 0 0 12px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: #020617;
-}
-
-/* =========================
-   SLOT BASE
-   ========================= */
-.slot {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 10px;
-  margin-bottom: 8px;
   border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== HEADER PROFESIONAL ===== */
+.agenda-title {
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.agenda-title strong {
+  font-size: 15px;
+  color: #020617;
+  display: block;
+}
+
+.agenda-subtitle {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ===== ESTADOS GENERALES ===== */
+.agenda-state {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ===== SLOT BASE (si no existe override en Slot.css) ===== */
+.slot {
+  height: 36px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 13px;
-  font-weight: 500;
   cursor: pointer;
 }
 
-.slot:last-child {
-  margin-bottom: 0;
-}
-
-.slot-time {
-  pointer-events: none;
-}
-
-/* =========================
-   SLOT STATES (GENÉRICOS)
-   ========================= */
-.slot-free {
+/* ===== ESTADOS SLOT ===== */
+.slot.free {
   background: #ecfdf5;
   color: #065f46;
-  border: 1px solid #a7f3d0;
 }
 
-.slot-busy {
-  background: #eff6ff;
-  color: #1e3a8a;
-  border: 1px solid #bfdbfe;
+.slot.busy {
+  background: #fee2e2;
+  color: #7f1d1d;
 }
 
-.slot-blocked {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-/* =========================
-   PANEL DE ACCIONES
-   ========================= */
-.slot-actions {
-  margin-top: 16px;
-  padding: 14px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow:
-    0 10px 30px rgba(15, 23, 42, 0.08),
-    0 4px 12px rgba(15, 23, 42, 0.04);
-}
-
-.slot-actions strong {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.slot-actions button {
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  cursor: pointer;
-}
-
-.slot-actions button:hover {
-  background: #eef2ff;
-}
-
-.slot-actions .cancel {
-  background: #fef2f2;
-  border-color: #fecaca;
+.slot.blocked {
+  background: #f1f5f9;
+  color: #475569;
 }
