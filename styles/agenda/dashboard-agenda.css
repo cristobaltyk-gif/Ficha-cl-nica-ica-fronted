@@ -1,0 +1,7 @@
+.dashboard-agenda {
+  /* reservado para agenda */
+}
+
+.dashboard-agenda .dashboard-body {
+  padding: 0; /* agenda usa todo el espacio */
+}
