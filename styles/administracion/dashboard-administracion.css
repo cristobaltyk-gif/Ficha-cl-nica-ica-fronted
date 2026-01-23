@@ -1,0 +1,8 @@
+.dashboard-administracion {
+  background: #ffffff;
+}
+
+.dashboard-administracion .dashboard-body {
+  max-width: 1200px;
+  margin: 0 auto;
+}
