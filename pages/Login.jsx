@@ -1,41 +1,61 @@
 import { useState } from "react";
 import "../styles/login.css";
 
-// ⚠️ usa URL directa o una sola variable limpia
-const API_URL = "https://ficha-clinica-backend.onrender.com";
+// ✅ URL desde entorno (Vercel)
+// Debe existir: VITE_API_URL=https://ficha-cl-nica-backend.onrender.com
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login({ onLogin }) {
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
+
+    // ✅ Validación mínima
+    if (!usuario || !clave) {
+      setError("Ingresa usuario y contraseña");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Seguridad: si falta la variable
+    if (!API_URL) {
+      setError("Backend no configurado (VITE_API_URL faltante)");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ usuario, clave })
+        body: JSON.stringify({ usuario, clave }),
       });
 
-      const data = await res.json();
+      // ✅ Lee respuesta aunque sea error
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data.detail || "Error de login");
+        throw new Error(data.detail || "Credenciales incorrectas");
       }
 
-      // 🔑 DEVUELVE SESIÓN COMPLETA
+      // ✅ Login exitoso
       onLogin({
         usuario: data.usuario,
-        role: data.role
+        role: data.role,
       });
 
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Error de conexión");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -50,21 +70,23 @@ export default function Login({ onLogin }) {
         <label>Usuario</label>
         <input
           value={usuario}
-          onChange={e => setUsuario(e.target.value)}
+          onChange={(e) => setUsuario(e.target.value)}
+          autoComplete="username"
         />
 
         <label>Contraseña</label>
         <input
           type="password"
           value={clave}
-          onChange={e => setClave(e.target.value)}
+          onChange={(e) => setClave(e.target.value)}
+          autoComplete="current-password"
         />
 
-        <button type="submit">Ingresar</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Ingresando..." : "Ingresar"}
+        </button>
 
-        <div className="footer">
-          © Instituto de Cirugía Articular
-        </div>
+        <div className="footer">© Instituto de Cirugía Articular</div>
       </form>
     </div>
   );
