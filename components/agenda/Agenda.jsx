@@ -1,70 +1,93 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Slot from "./Slot";
 import "../../styles/agenda/agenda.css";
 
-const HOURS = [
-  "08:00","08:30","09:00","09:30",
-  "10:00","10:30","11:00","11:30",
-  "12:00","12:30"
-];
+/**
+ * Agenda (UI pura + estado local)
+ * - NO define profesionales/horarios/agenda dentro del archivo
+ * - Recibe todo por props (bien al tiro)
+ *
+ * props:
+ *  - professionals: [{ id, name }]
+ *  - hours: ["08:00", "08:30", ...]
+ *  - initialStatus: { [professionalName]: { [hour]: "free"|"busy"|"blocked" } }
+ *  - onChangeStatus?: (nextStatusMap) => void   // opcional (futuro backend)
+ */
+export default function Agenda({
+  professionals = [],
+  hours = [],
+  initialStatus = {},
+  onChangeStatus,
+}) {
+  const hasData = professionals.length > 0 && hours.length > 0;
 
-const PROFESSIONALS = [
-  { id: 1, name: "Dr. Huerta" },
-  { id: 2, name: "Dr. Espinoza" }
-];
-
-const INITIAL_STATUS = {
-  "Dr. Huerta": {
-    "08:00": "free",
-    "08:30": "blocked",
-    "09:00": "busy",
-    "09:30": "free"
-  },
-  "Dr. Espinoza": {
-    "08:00": "busy",
-    "08:30": "free",
-    "09:00": "free",
-    "09:30": "blocked"
-  }
-};
-
-export default function Agenda() {
-  const [statusMap, setStatusMap] = useState(INITIAL_STATUS);
+  // Estado local (para interacción). Se inicializa desde props.
+  const [statusMap, setStatusMap] = useState(initialStatus);
   const [selected, setSelected] = useState(null);
-  // selected = { professional, hour, status }
+  // selected = { professionalName, hour, status }
 
-  const handleSelect = (professional, hour) => {
+  // Si cambian los datos desde arriba (ej: cambias fecha/profesional),
+  // reiniciamos el mapa (sin mezclar estados antiguos).
+  useEffect(() => {
+    setStatusMap(initialStatus || {});
+    setSelected(null);
+  }, [initialStatus]);
+
+  const getStatus = (professionalName, hour) =>
+    statusMap?.[professionalName]?.[hour] || "free";
+
+  const handleSelect = (professionalName, hour) => {
     setSelected({
-      professional,
+      professionalName,
       hour,
-      status: statusMap[professional]?.[hour] || "free"
+      status: getStatus(professionalName, hour),
     });
   };
 
   const updateStatus = (newStatus) => {
-    setStatusMap((prev) => ({
-      ...prev,
-      [selected.professional]: {
-        ...prev[selected.professional],
-        [selected.hour]: newStatus
+    if (!selected) return;
+
+    setStatusMap((prev) => {
+      const next = {
+        ...prev,
+        [selected.professionalName]: {
+          ...(prev[selected.professionalName] || {}),
+          [selected.hour]: newStatus,
+        },
+      };
+
+      // hook opcional para persistir (backend después)
+      if (typeof onChangeStatus === "function") {
+        onChangeStatus(next);
       }
-    }));
+
+      return next;
+    });
+
     setSelected(null);
   };
+
+  if (!hasData) {
+    return (
+      <div className="agenda-empty">
+        Agenda sin datos (selecciona profesional y horario)
+      </div>
+    );
+  }
 
   return (
     <>
       <div className="agenda">
-        {PROFESSIONALS.map((p) => (
+        {professionals.map((p) => (
           <div key={p.id} className="agenda-column">
             <h3 className="agenda-title">{p.name}</h3>
 
-            {HOURS.map((h) => (
+            {hours.map((h) => (
               <Slot
                 key={`${p.id}-${h}`}
                 time={h}
-                status={statusMap[p.name]?.[h] || "free"}
-                onSelect={(hour) => handleSelect(p.name, hour)}
+                status={getStatus(p.name, h)}
+                onSelect={() => handleSelect(p.name, h)}
               />
             ))}
           </div>
@@ -74,7 +97,7 @@ export default function Agenda() {
       {selected && (
         <div className="slot-actions">
           <strong>
-            {selected.professional} · {selected.hour}
+            {selected.professionalName} · {selected.hour}
           </strong>
 
           {selected.status === "free" && (
@@ -96,8 +119,8 @@ export default function Agenda() {
 
           {selected.status === "busy" && (
             <>
-              <button>👁️ Ver atención</button>
-              <button>💳 Registrar pago</button>
+              <button type="button">👁️ Ver atención</button>
+              <button type="button">💳 Registrar pago</button>
             </>
           )}
 
