@@ -1,0 +1,73 @@
+/* =========================
+   AGENDA - LAYOUT
+   ========================= */
+.agenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.agenda-column {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 12px;
+  box-shadow:
+    0 6px 18px rgba(15, 23, 42, 0.06),
+    0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.agenda-title {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #020617;
+}
+
+/* =========================
+   SLOT BASE
+   ========================= */
+.slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: default;
+}
+
+.slot:last-child {
+  margin-bottom: 0;
+}
+
+.slot-time {
+  pointer-events: none;
+}
+
+/* =========================
+   SLOT STATES
+   ========================= */
+
+/* Libre */
+.slot-free {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+/* Ocupado */
+.slot-busy {
+  background: #eff6ff;
+  color: #1e3a8a;
+  border: 1px solid #bfdbfe;
+}
+
+/* Bloqueado */
+.slot-blocked {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
