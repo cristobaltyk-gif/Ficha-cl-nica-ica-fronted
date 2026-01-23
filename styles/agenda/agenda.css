@@ -36,7 +36,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  cursor: default;
+  cursor: pointer;
 }
 
 .slot:last-child {
@@ -48,26 +48,60 @@
 }
 
 /* =========================
-   SLOT STATES
+   SLOT STATES (GENÉRICOS)
    ========================= */
-
-/* Libre */
 .slot-free {
   background: #ecfdf5;
   color: #065f46;
   border: 1px solid #a7f3d0;
 }
 
-/* Ocupado */
 .slot-busy {
   background: #eff6ff;
   color: #1e3a8a;
   border: 1px solid #bfdbfe;
 }
 
-/* Bloqueado */
 .slot-blocked {
   background: #fef2f2;
   color: #991b1b;
   border: 1px solid #fecaca;
+}
+
+/* =========================
+   PANEL DE ACCIONES
+   ========================= */
+.slot-actions {
+  margin-top: 16px;
+  padding: 14px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.slot-actions strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.slot-actions button {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.slot-actions button:hover {
+  background: #eef2ff;
+}
+
+.slot-actions .cancel {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
