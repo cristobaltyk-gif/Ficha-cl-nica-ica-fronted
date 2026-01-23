@@ -1,0 +1,9 @@
+.dashboard-atencion {
+  background: #f1f5f9;
+}
+
+.dashboard-atencion .dashboard-body {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
