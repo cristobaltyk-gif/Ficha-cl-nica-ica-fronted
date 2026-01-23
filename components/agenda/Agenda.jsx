@@ -1,5 +1,5 @@
 import Slot from "./Slot";
-import "./agenda.css";
+import "../../styles/agenda/agenda.css";
 
 const HOURS = [
   "08:00","08:30","09:00","09:30",
@@ -13,7 +13,7 @@ const PROFESSIONALS = [
   { id: 2, name: "Dr. Espinoza" }
 ];
 
-// MOCK agenda
+// MOCK estados de agenda
 const MOCK_STATUS = {
   "Dr. Huerta": {
     "08:00": "free",
@@ -34,11 +34,11 @@ export default function Agenda() {
     <div className="agenda">
       {PROFESSIONALS.map((p) => (
         <div key={p.id} className="agenda-column">
-          <h3>{p.name}</h3>
+          <h3 className="agenda-title">{p.name}</h3>
 
           {HOURS.map((h) => (
             <Slot
-              key={h}
+              key={`${p.id}-${h}`}
               time={h}
               status={MOCK_STATUS[p.name]?.[h] || "free"}
             />
