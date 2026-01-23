@@ -1,134 +1,116 @@
-import { useEffect, useMemo, useState } from "react";
-import Slot from "./Slot";
 import "../../styles/agenda/agenda.css";
+import Slot from "./Slot";
 
-/**
- * Agenda (UI pura + estado local)
- * - NO define profesionales/horarios/agenda dentro del archivo
- * - Recibe todo por props (bien al tiro)
- *
- * props:
- *  - professionals: [{ id, name }]
- *  - hours: ["08:00", "08:30", ...]
- *  - initialStatus: { [professionalName]: { [hour]: "free"|"busy"|"blocked" } }
- *  - onChangeStatus?: (nextStatusMap) => void   // opcional (futuro backend)
- */
-export default function Agenda({
-  professionals = [],
-  hours = [],
-  initialStatus = {},
-  onChangeStatus,
-}) {
-  const hasData = professionals.length > 0 && hours.length > 0;
+/*
+CONTRATO REAL DE AGENDA (BACKEND-FIRST)
 
-  // Estado local (para interacción). Se inicializa desde props.
-  const [statusMap, setStatusMap] = useState(initialStatus);
-  const [selected, setSelected] = useState(null);
-  // selected = { professionalName, hour, status }
-
-  // Si cambian los datos desde arriba (ej: cambias fecha/profesional),
-  // reiniciamos el mapa (sin mezclar estados antiguos).
-  useEffect(() => {
-    setStatusMap(initialStatus || {});
-    setSelected(null);
-  }, [initialStatus]);
-
-  const getStatus = (professionalName, hour) =>
-    statusMap?.[professionalName]?.[hour] || "free";
-
-  const handleSelect = (professionalName, hour) => {
-    setSelected({
-      professionalName,
-      hour,
-      status: getStatus(professionalName, hour),
-    });
-  };
-
-  const updateStatus = (newStatus) => {
-    if (!selected) return;
-
-    setStatusMap((prev) => {
-      const next = {
-        ...prev,
-        [selected.professionalName]: {
-          ...(prev[selected.professionalName] || {}),
-          [selected.hour]: newStatus,
-        },
-      };
-
-      // hook opcional para persistir (backend después)
-      if (typeof onChangeStatus === "function") {
-        onChangeStatus(next);
+props:
+{
+  loading?: boolean,
+  context?: {
+    date: "YYYY-MM-DD",
+    professionals: [
+      {
+        id: string,
+        name: string,
+        specialty?: string,
+        schedule: {
+          start: "HH:MM",
+          end: "HH:MM",
+          slotMinutes: number
+        }
       }
+    ],
+    slots: {
+      [professionalId]: {
+        [time]: {
+          status: "free" | "busy" | "blocked",
+          attentionId?: string,
+          blockReason?: string
+        }
+      }
+    }
+  }
+}
+*/
 
-      return next;
-    });
+export default function Agenda({ loading = false, context = null }) {
+  // ===== estados reales del sistema =====
+  if (loading) {
+    return <div className="agenda-state">Cargando agenda…</div>;
+  }
 
-    setSelected(null);
-  };
-
-  if (!hasData) {
+  if (!context) {
     return (
-      <div className="agenda-empty">
-        Agenda sin datos (selecciona profesional y horario)
+      <div className="agenda-state">
+        Agenda sin contexto (fecha / profesionales)
       </div>
     );
   }
 
-  return (
-    <>
-      <div className="agenda">
-        {professionals.map((p) => (
-          <div key={p.id} className="agenda-column">
-            <h3 className="agenda-title">{p.name}</h3>
+  const { date, professionals = [], slots = {} } = context;
 
-            {hours.map((h) => (
-              <Slot
-                key={`${p.id}-${h}`}
-                time={h}
-                status={getStatus(p.name, h)}
-                onSelect={() => handleSelect(p.name, h)}
-              />
-            ))}
-          </div>
-        ))}
+  if (!professionals.length) {
+    return (
+      <div className="agenda-state">
+        No hay profesionales configurados para {date}
       </div>
+    );
+  }
 
-      {selected && (
-        <div className="slot-actions">
-          <strong>
-            {selected.professionalName} · {selected.hour}
-          </strong>
+  // ===== helpers =====
+  const buildHours = (schedule) => {
+    const hours = [];
+    const [sh, sm] = schedule.start.split(":").map(Number);
+    const [eh, em] = schedule.end.split(":").map(Number);
 
-          {selected.status === "free" && (
-            <>
-              <button onClick={() => updateStatus("blocked")}>
-                🚫 Bloquear horario
-              </button>
-              <button onClick={() => updateStatus("busy")}>
-                🩺 Crear atención
-              </button>
-            </>
-          )}
+    let current = sh * 60 + sm;
+    const end = eh * 60 + em;
 
-          {selected.status === "blocked" && (
-            <button onClick={() => updateStatus("free")}>
-              🔓 Liberar horario
-            </button>
-          )}
+    while (current < end) {
+      const h = String(Math.floor(current / 60)).padStart(2, "0");
+      const m = String(current % 60).padStart(2, "0");
+      hours.push(`${h}:${m}`);
+      current += schedule.slotMinutes;
+    }
+    return hours;
+  };
 
-          {selected.status === "busy" && (
-            <>
-              <button type="button">👁️ Ver atención</button>
-              <button type="button">💳 Registrar pago</button>
-            </>
-          )}
+  // ===== render operativo =====
+  return (
+    <div className="agenda">
+      {professionals.map((p) => {
+        const hours = buildHours(p.schedule);
+        const professionalSlots = slots[p.id] || {};
 
-          <button className="cancel" onClick={() => setSelected(null)}>
-            Cancelar
-          </button>
-        </div>
-      )}
-    </>
+        return (
+          <div key={p.id} className="agenda-column">
+            <div className="agenda-title">
+              <strong>{p.name}</strong>
+              {p.specialty && (
+                <span className="agenda-subtitle">{p.specialty}</span>
+              )}
+            </div>
+
+            {hours.map((time) => {
+              const slotData = professionalSlots[time];
+              const status = slotData?.status || "free";
+
+              return (
+                <Slot
+                  key={`${p.id}-${time}`}
+                  time={time}
+                  status={status}
+                  onSelect={() => {
+                    // interacción se conecta después
+                    // aquí NO se decide flujo clínico
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
   );
 }
