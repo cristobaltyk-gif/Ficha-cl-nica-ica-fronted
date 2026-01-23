@@ -10,10 +10,11 @@ export default function Secretaria() {
       <div className="content">
         <Card title="Pacientes">
           <button>➕ Registrar nuevo paciente</button>
-          <button>📋 Ver listado de pacientes</button>
+          <button>🔎 Buscar paciente</button>
+          <button>📋 Ver listado completo</button>
         </Card>
 
-        <Card title="Atenciones">
+        <Card title="Atenciones / Agenda">
           <button>🗓️ Crear nueva atención</button>
           <button>📆 Agenda del día</button>
         </Card>
@@ -21,6 +22,12 @@ export default function Secretaria() {
         <Card title="Documentos">
           <button>📄 Órdenes médicas</button>
           <button>🖨️ Imprimir documentos</button>
+          <button>📂 Historial de documentos</button>
+        </Card>
+
+        <Card title="Acciones rápidas">
+          <button>⭐ Último paciente atendido</button>
+          <button>⏱️ Próxima atención</button>
         </Card>
       </div>
     </div>
