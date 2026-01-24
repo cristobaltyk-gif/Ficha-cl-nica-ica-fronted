@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 /* ===============================
-   HOME EXISTENTE
+   HOME SECRETARÍA
    =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 
 /* ===============================
-   MÓDULOS EXISTENTES
+   DASHBOARDS
    =============================== */
 import DashboardAgenda from "../pages/dashboard-agenda.jsx";
 import DashboardPacientes from "../pages/dashboard-pacientes.jsx";
@@ -15,7 +15,7 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
-   ROL ACTIVO
+   ROL
    =============================== */
 import secretaria from "../roles/secretaria";
 
@@ -23,7 +23,7 @@ import secretaria from "../roles/secretaria";
    ROLE GUARD
    =============================== */
 function RoleGuard({ role, route, children }) {
-  if (!role.allow.includes(route)) {
+  if (!role || !role.allow.includes(route)) {
     return <Navigate to={role.entry} replace />;
   }
   return children;
@@ -33,18 +33,19 @@ function RoleGuard({ role, route, children }) {
    ROUTER PRINCIPAL
    =============================== */
 export default function AppRouter() {
-  const activeRole = secretaria; // luego vendrá desde sesión
+  const activeRole = secretaria;
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Entrada */}
+
+        {/* ROOT → HOME SECRETARIA */}
         <Route
           path="/"
-          element={<Navigate to={activeRole.entry} replace />}
+          element={<Navigate to="/secretaria" replace />}
         />
 
-        {/* HOME SECRETARÍA */}
+        {/* HOME SECRETARIA */}
         <Route
           path="/secretaria"
           element={<HomeSecretaria />}
@@ -74,3 +75,39 @@ export default function AppRouter() {
         <Route
           path="/atencion"
           element={
+            <RoleGuard role={activeRole} route="atencion">
+              <DashboardAtencion />
+            </RoleGuard>
+          }
+        />
+
+        {/* DOCUMENTOS */}
+        <Route
+          path="/documentos"
+          element={
+            <RoleGuard role={activeRole} route="documentos">
+              <DashboardDocumentos />
+            </RoleGuard>
+          }
+        />
+
+        {/* ADMINISTRACIÓN */}
+        <Route
+          path="/administracion"
+          element={
+            <RoleGuard role={activeRole} route="administracion">
+              <DashboardAdministracion />
+            </RoleGuard>
+          }
+        />
+
+        {/* FALLBACK */}
+        <Route
+          path="*"
+          element={<Navigate to="/secretaria" replace />}
+        />
+
+      </Routes>
+    </BrowserRouter>
+  );
+}
