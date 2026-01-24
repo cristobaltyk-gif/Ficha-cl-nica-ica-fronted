@@ -3,20 +3,26 @@ import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
 
+// API agenda (YA EXISTE)
+import {
+  createSlot,
+  cancelSlot,
+  rescheduleSlot
+} from "../../services/agendaApi";
+
 /*
-Agenda (ORQUESTADOR)
+Agenda (ORQUESTADOR REAL)
 
 - Muestra toolbar
-- Valida contexto
 - Renderiza columnas
-- Abre modal al seleccionar slot
+- Abre modal
+- Ejecuta backend
 */
 
 const TIMES_15_MIN = (() => {
   const out = [];
-  let cur = 9 * 60;   // 09:00
+  let cur = 9 * 60;    // 09:00
   const end = 18 * 60; // 18:00
-
   while (cur < end) {
     const hh = String(Math.floor(cur / 60)).padStart(2, "0");
     const mm = String(cur % 60).padStart(2, "0");
@@ -40,6 +46,18 @@ export default function Agenda({
   // ESTADO MODAL
   // =========================
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // =========================
+  // VALIDACIONES BASE
+  // =========================
+  const canRenderAgenda =
+    !loading &&
+    date &&
+    box &&
+    professionals.length > 0 &&
+    agendaData &&
+    agendaData.calendar;
 
   // =========================
   // RENDER
@@ -74,7 +92,7 @@ export default function Agenda({
       )}
 
       {/* ===== AGENDA ===== */}
-      {!loading && agendaData && agendaData.calendar && (
+      {canRenderAgenda && (
         <div className="agenda">
           {professionals.map((profId) => {
             const profCalendar =
@@ -100,24 +118,61 @@ export default function Agenda({
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
-        onClose={() => setSelectedSlot(null)}
-        onReserve={() => {
-          console.log("RESERVAR", selectedSlot);
-          setSelectedSlot(null);
+        onClose={() => {
+          if (!actionLoading) setSelectedSlot(null);
         }}
-        onConfirm={() => {
-          console.log("CONFIRMAR", selectedSlot);
-          setSelectedSlot(null);
+
+        onReserve={async () => {
+          try {
+            setActionLoading(true);
+            await createSlot({
+              date,
+              box,
+              professional: selectedSlot.professional,
+              time: selectedSlot.time,
+              rut: "PENDIENTE" // luego viene formulario
+            });
+          } finally {
+            setActionLoading(false);
+            setSelectedSlot(null);
+          }
         }}
-        onCancel={() => {
-          console.log("ANULAR", selectedSlot);
-          setSelectedSlot(null);
+
+        onConfirm={async () => {
+          try {
+            setActionLoading(true);
+            await createSlot({
+              date,
+              box,
+              professional: selectedSlot.professional,
+              time: selectedSlot.time,
+              rut: selectedSlot.slot?.rut
+            });
+          } finally {
+            setActionLoading(false);
+            setSelectedSlot(null);
+          }
         }}
-        onReschedule={() => {
-          console.log("CAMBIAR HORA", selectedSlot);
+
+        onCancel={async () => {
+          try {
+            setActionLoading(true);
+            await cancelSlot({
+              date,
+              professional: selectedSlot.professional,
+              time: selectedSlot.time
+            });
+          } finally {
+            setActionLoading(false);
+            setSelectedSlot(null);
+          }
+        }}
+
+        onReschedule={async () => {
+          alert("Reprogramación pendiente de UI");
           setSelectedSlot(null);
         }}
       />
     </div>
   );
-}
+                            }
