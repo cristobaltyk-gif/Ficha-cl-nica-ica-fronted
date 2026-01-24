@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isValidRut, normalizeRut } from "../../utils/rut";
 
 /*
 PatientForm (ADMINISTRATIVO – CANÓNICO)
@@ -40,20 +41,30 @@ export default function PatientForm({ onSubmit, onCancel }) {
   const handleSubmit = () => {
     setError(null);
 
-    // ===== validaciones mínimas =====
-    if (!form.rut || !form.nombre || !form.apellidoPaterno) {
-      setError("RUT, nombre y apellido paterno son obligatorios");
+    // ===== VALIDACIONES =====
+    if (!form.rut) {
+      setError("RUT es obligatorio");
       return;
     }
 
-    if (!form.edad || isNaN(form.edad)) {
+    if (!isValidRut(form.rut)) {
+      setError("RUT inválido");
+      return;
+    }
+
+    if (!form.nombre || !form.apellidoPaterno) {
+      setError("Nombre y apellido paterno son obligatorios");
+      return;
+    }
+
+    if (!form.edad || isNaN(form.edad) || Number(form.edad) <= 0) {
       setError("Edad inválida");
       return;
     }
 
-    // entrega datos normalizados
+    // ===== EMITIR DATOS CANÓNICOS =====
     onSubmit({
-      rut: form.rut.trim(),
+      rut: normalizeRut(form.rut),
       nombre: form.nombre.trim(),
       apellidoPaterno: form.apellidoPaterno.trim(),
       apellidoMaterno: form.apellidoMaterno.trim(),
@@ -135,4 +146,4 @@ export default function PatientForm({ onSubmit, onCancel }) {
       </div>
     </div>
   );
-}
+      }
