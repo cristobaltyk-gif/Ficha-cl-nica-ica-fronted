@@ -1,14 +1,15 @@
+import { useState } from "react";
 import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
+import AgendaSlotModal from "./AgendaSlotModal";
 
 /*
-Agenda (ORQUESTADOR VISUAL)
+Agenda (ORQUESTADOR)
 
-- Muestra toolbar de contexto
-- Valida contexto mínimo
-- Renderiza 1 o 2 columnas (profesionales)
-- NO decide acciones
-- NO toca backend
+- Muestra toolbar
+- Valida contexto
+- Renderiza columnas
+- Abre modal al seleccionar slot
 */
 
 const TIMES_15_MIN = (() => {
@@ -31,16 +32,21 @@ export default function Agenda({
   box,
   professionals,
   agendaData,
-
   onDateChange,
   onBoxChange,
   onProfessionalsChange
 }) {
+  // =========================
+  // ESTADO MODAL
+  // =========================
+  const [selectedSlot, setSelectedSlot] = useState(null);
+
+  // =========================
+  // RENDER
+  // =========================
   return (
     <div>
-      {/* =========================
-          CONTEXTO (OBLIGATORIO)
-         ========================= */}
+      {/* ===== CONTEXTO ===== */}
       <AgendaToolbar
         date={date}
         box={box}
@@ -50,9 +56,7 @@ export default function Agenda({
         onProfessionalsChange={onProfessionalsChange}
       />
 
-      {/* =========================
-          ESTADOS BLOQUEANTES
-         ========================= */}
+      {/* ===== ESTADOS ===== */}
       {loading && (
         <div className="agenda-state">Cargando agenda…</div>
       )}
@@ -69,9 +73,7 @@ export default function Agenda({
         </div>
       )}
 
-      {/* =========================
-          GRILLA
-         ========================= */}
+      {/* ===== AGENDA ===== */}
       {!loading && agendaData && agendaData.calendar && (
         <div className="agenda">
           {professionals.map((profId) => {
@@ -85,14 +87,37 @@ export default function Agenda({
                 box={box}
                 times={TIMES_15_MIN}
                 slots={profCalendar.slots}
-                onSelectSlot={() => {
-                  // acciones se conectan después (modal)
+                onSelectSlot={(slotInfo) => {
+                  setSelectedSlot(slotInfo);
                 }}
               />
             );
           })}
         </div>
       )}
+
+      {/* ===== MODAL ===== */}
+      <AgendaSlotModal
+        open={!!selectedSlot}
+        slot={selectedSlot}
+        onClose={() => setSelectedSlot(null)}
+        onReserve={() => {
+          console.log("RESERVAR", selectedSlot);
+          setSelectedSlot(null);
+        }}
+        onConfirm={() => {
+          console.log("CONFIRMAR", selectedSlot);
+          setSelectedSlot(null);
+        }}
+        onCancel={() => {
+          console.log("ANULAR", selectedSlot);
+          setSelectedSlot(null);
+        }}
+        onReschedule={() => {
+          console.log("CAMBIAR HORA", selectedSlot);
+          setSelectedSlot(null);
+        }}
+      />
     </div>
   );
 }
