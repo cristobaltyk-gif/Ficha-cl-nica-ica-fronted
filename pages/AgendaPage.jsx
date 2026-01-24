@@ -4,32 +4,55 @@ import Agenda from "../components/agenda/Agenda";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-Orquestador de Agenda
-- NO define sistema
-- NO define roles
-- NO define UI de acciones
-- SOLO arma contexto para Agenda
+Orquestador de Agenda (CANÓNICO)
+- NO define UI final
+- NO define reglas clínicas
+- SOLO:
+  - maneja contexto
+  - decide cuándo cargar
+  - pasa datos a Agenda
 */
 
-export default function AgendaPage({ user }) {
-  const [loading, setLoading] = useState(true);
-  const [context, setContext] = useState(null);
+export default function AgendaPage() {
+  // =========================
+  // CONTEXTO (OBLIGATORIO)
+  // =========================
+
+  const [date, setDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+
+  const [box, setBox] = useState(""); // "box1" | "box2" | "box3"
+  const [professionals, setProfessionals] = useState([]); // 1 o 2 ids
+
+  // =========================
+  // DATA
+  // =========================
+
+  const [loading, setLoading] = useState(false);
+  const [agendaData, setAgendaData] = useState(null);
   const [error, setError] = useState(null);
 
-  // user = { usuario, role }
-  // role se usa después para habilitar acciones, NO para estructura
+  // =========================
+  // CARGA DE AGENDA
+  // =========================
 
   useEffect(() => {
     let cancelled = false;
+
+    // 👉 regla dura: NO cargar sin contexto completo
+    if (!date || !box || professionals.length === 0) {
+      setAgendaData(null);
+      return;
+    }
 
     async function loadAgenda() {
       setLoading(true);
       setError(null);
 
       try {
-        // 👉 contrato FINAL (aunque hoy no exista el endpoint)
         const res = await fetch(
-          `${API_URL}/agenda?date=${new Date().toISOString().slice(0, 10)}`,
+          `${API_URL}/agenda?date=${date}`,
           { headers: { Accept: "application/json" } }
         );
 
@@ -40,12 +63,12 @@ export default function AgendaPage({ user }) {
         const data = await res.json();
 
         if (!cancelled) {
-          setContext(data);
+          setAgendaData(data);
         }
       } catch (err) {
         if (!cancelled) {
           setError(err.message);
-          setContext(null);
+          setAgendaData(null);
         }
       } finally {
         if (!cancelled) {
@@ -59,18 +82,32 @@ export default function AgendaPage({ user }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [date, box, professionals]);
 
-  // ===== estados reales =====
+  // =========================
+  // ERRORES
+  // =========================
 
   if (error) {
     return <div className="agenda-state">Error: {error}</div>;
   }
 
+  // =========================
+  // RENDER
+  // =========================
+
   return (
     <Agenda
       loading={loading}
-      context={context}
+      date={date}
+      box={box}
+      professionals={professionals}
+      agendaData={agendaData}
+
+      /* setters de contexto (toolbar vive dentro de Agenda) */
+      onDateChange={setDate}
+      onBoxChange={setBox}
+      onProfessionalsChange={setProfessionals}
     />
   );
 }
