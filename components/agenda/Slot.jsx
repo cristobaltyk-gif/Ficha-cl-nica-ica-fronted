@@ -1,5 +1,13 @@
-export default function Slot({ time, status = "free", onSelect }) {
+export default function Slot({
+  time,
+  status = "available",
+  onSelect
+}) {
+  const isClickable =
+    status === "available" || status === "reserved" || status === "confirmed";
+
   const handleClick = () => {
+    if (!isClickable) return;
     if (typeof onSelect === "function") {
       onSelect(time);
     }
@@ -7,16 +15,18 @@ export default function Slot({ time, status = "free", onSelect }) {
 
   return (
     <div
-      className={`slot slot-${status}`}
+      className={`slot ${status}`}
       onClick={handleClick}
-      role="button"
-      tabIndex={0}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : -1}
       onKeyDown={(e) => {
+        if (!isClickable) return;
         if (e.key === "Enter" || e.key === " ") {
           handleClick();
         }
       }}
-      aria-label={`Horario ${time} estado ${status}`}
+      aria-label={`Horario ${time}, estado ${status}`}
+      aria-disabled={!isClickable}
     >
       <span className="slot-time">{time}</span>
     </div>
