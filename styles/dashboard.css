@@ -1,13 +1,33 @@
-/* ===== DASHBOARD BASE (estructura canónica) ===== */
+/* =====================================================
+   RESET / BASE GLOBAL (CRÍTICO)
+   ===================================================== */
+
+/* 🔴 ESTO ERA LO QUE FALTABA */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* =====================================================
+   DASHBOARD BASE (estructura canónica)
+   ===================================================== */
 
 .dashboard {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100%;              /* ocupa TODO el alto disponible */
   background: #f8fafc;
 }
 
+/* =====================================================
+   HEADER
+   ===================================================== */
+
 .dashboard-header {
+  flex-shrink: 0;            /* no colapsa */
   padding: 16px 24px;
   border-bottom: 1px solid #e2e8f0;
   background: #ffffff;
@@ -20,8 +40,21 @@
   color: #020617;
 }
 
+/* =====================================================
+   BODY (CONTENEDOR REAL DE VISTAS)
+   ===================================================== */
+
 .dashboard-body {
-  flex: 1;
+  flex: 1;                   /* 🔴 ESTO habilita el render interno */
+  min-height: 0;             /* 🔴 CLAVE para scroll y grids */
   padding: 24px;
   overflow: auto;
+}
+
+/* =====================================================
+   UTILIDAD (opcional, futuro)
+   ===================================================== */
+
+.full-height {
+  height: 100%;
 }
