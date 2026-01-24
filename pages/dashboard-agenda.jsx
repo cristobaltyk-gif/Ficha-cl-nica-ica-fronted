@@ -1,4 +1,4 @@
-import AgendaPage from "../AgendaPage"; // AJUSTA PATH SI ES NECESARIO
+import AgendaPage from "./AgendaPage";
 import "../styles/agenda/dashboard-agenda.css";
 
 export default function DashboardAgenda() {
