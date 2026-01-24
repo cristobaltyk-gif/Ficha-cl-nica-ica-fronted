@@ -1,11 +1,17 @@
+/* =====================================================
+   AGENDA – ESTRUCTURA BASE (BACKEND-FIRST)
+   ===================================================== */
+
 /* ===== CONTENEDOR GENERAL ===== */
 .agenda {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   padding: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
+
+  height: 100%;        /* ✅ CLAVE: ocupa el alto del contenedor padre */
+  overflow: auto;      /* ✅ CLAVE: permite scroll */
+
   background: #f8fafc;
 }
 
@@ -15,8 +21,11 @@
   border-radius: 10px;
   padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
   display: flex;
   flex-direction: column;
+
+  min-width: 220px;    /* ✅ evita colapso en mobile */
 }
 
 /* ===== HEADER PROFESIONAL ===== */
@@ -45,14 +54,16 @@
   font-size: 14px;
 }
 
-/* ===== SLOT BASE (si no existe override en Slot.css) ===== */
+/* ===== SLOT BASE ===== */
 .slot {
   height: 36px;
   border-radius: 6px;
   margin-bottom: 6px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   font-size: 13px;
   cursor: pointer;
 }
