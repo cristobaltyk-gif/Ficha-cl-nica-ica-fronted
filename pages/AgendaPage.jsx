@@ -5,24 +5,20 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 Orquestador de Agenda (CANÓNICO)
-- NO define UI final
-- NO define reglas clínicas
-- SOLO:
-  - maneja contexto
-  - decide cuándo cargar
-  - pasa datos a Agenda
+- Maneja contexto
+- Decide cuándo cargar
+- Refresca agenda tras acciones
 */
 
 export default function AgendaPage() {
   // =========================
-  // CONTEXTO (OBLIGATORIO)
+  // CONTEXTO
   // =========================
 
   const [date, setDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
-
-  const [box, setBox] = useState(""); // "box1" | "box2" | "box3"
+  const [box, setBox] = useState(""); // box1 | box2 | box3
   const [professionals, setProfessionals] = useState([]); // 1 o 2 ids
 
   // =========================
@@ -33,6 +29,9 @@ export default function AgendaPage() {
   const [agendaData, setAgendaData] = useState(null);
   const [error, setError] = useState(null);
 
+  // 🔑 CLAVE: disparador de recarga
+  const [reloadKey, setReloadKey] = useState(0);
+
   // =========================
   // CARGA DE AGENDA
   // =========================
@@ -40,7 +39,7 @@ export default function AgendaPage() {
   useEffect(() => {
     let cancelled = false;
 
-    // 👉 regla dura: NO cargar sin contexto completo
+    // Regla dura: no cargar sin contexto completo
     if (!date || !box || professionals.length === 0) {
       setAgendaData(null);
       return;
@@ -82,7 +81,7 @@ export default function AgendaPage() {
     return () => {
       cancelled = true;
     };
-  }, [date, box, professionals]);
+  }, [date, box, professionals, reloadKey]); // 👈 AQUÍ ESTABA EL PROBLEMA
 
   // =========================
   // ERRORES
@@ -104,10 +103,15 @@ export default function AgendaPage() {
       professionals={professionals}
       agendaData={agendaData}
 
-      /* setters de contexto (toolbar vive dentro de Agenda) */
+      /* setters de contexto */
       onDateChange={setDate}
       onBoxChange={setBox}
       onProfessionalsChange={setProfessionals}
+
+      /* 🔁 REFRESH REAL */
+      onAgendaChanged={() => {
+        setReloadKey((k) => k + 1);
+      }}
     />
   );
 }
