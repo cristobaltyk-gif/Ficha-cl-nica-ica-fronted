@@ -1,6 +1,6 @@
 // roles/secretaria.js
 export default {
   id: "secretaria",
-  entry: "/agenda",
-  allow: ["agenda", "pacientes", "documentos"]
+  entry: "/secretaria",              // 🔑 HOME del rol
+  allow: ["agenda", "pacientes", "medicos", "administracion"]
 };
