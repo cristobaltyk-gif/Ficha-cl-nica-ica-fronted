@@ -1,3 +1,6 @@
+import { useState } from "react";
+import PatientForm from "../patient/PatientForm";
+
 export default function AgendaSlotModal({
   open,
   slot,
@@ -7,44 +10,88 @@ export default function AgendaSlotModal({
   onCancel,
   onReschedule
 }) {
+  const [mode, setMode] = useState("actions"); // actions | form
+
   if (!open || !slot) return null;
 
   const { professional, time, status } = slot;
 
+  const handlePatientSubmit = (patient) => {
+    // por ahora solo reserva
+    onReserve({
+      slot,
+      patient
+    });
+    setMode("actions");
+  };
+
+  const handleClose = () => {
+    setMode("actions");
+    onClose();
+  };
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h3>Hora {time}</h3>
 
+        {/* ======================
+            HEADER
+           ====================== */}
+        <h3>Hora {time}</h3>
         <p><strong>Profesional:</strong> {professional}</p>
         <p><strong>Estado:</strong> {status}</p>
 
-        <div className="modal-actions">
-          {status === "available" && (
-            <button onClick={onReserve}>Reservar</button>
-          )}
+        {/* ======================
+            FORMULARIO PACIENTE
+           ====================== */}
+        {mode === "form" && (
+          <PatientForm
+            onSubmit={handlePatientSubmit}
+            onCancel={() => setMode("actions")}
+          />
+        )}
 
-          {status === "reserved" && (
-            <>
-              <button onClick={onConfirm}>Confirmar</button>
-              <button onClick={onCancel}>Anular</button>
-            </>
-          )}
+        {/* ======================
+            ACCIONES
+           ====================== */}
+        {mode === "actions" && (
+          <div className="modal-actions">
 
-          {status === "confirmed" && (
-            <>
-              <button onClick={onReschedule}>Cambiar hora</button>
-              <button onClick={onCancel}>Anular</button>
-            </>
-          )}
+            {status === "available" && (
+              <button onClick={() => setMode("form")}>
+                Reservar
+              </button>
+            )}
 
-          {status === "blocked" && (
-            <button disabled>Horario bloqueado</button>
-          )}
-        </div>
+            {status === "reserved" && (
+              <>
+                <button onClick={() => setMode("form")}>
+                  Confirmar
+                </button>
+                <button onClick={onCancel}>Anular</button>
+              </>
+            )}
 
+            {status === "confirmed" && (
+              <>
+                <button onClick={onReschedule}>
+                  Cambiar hora
+                </button>
+                <button onClick={onCancel}>Anular</button>
+              </>
+            )}
+
+            {status === "blocked" && (
+              <button disabled>Horario bloqueado</button>
+            )}
+          </div>
+        )}
+
+        {/* ======================
+            FOOTER
+           ====================== */}
         <div className="modal-footer">
-          <button onClick={onClose}>Cerrar</button>
+          <button onClick={handleClose}>Cerrar</button>
         </div>
       </div>
     </div>
