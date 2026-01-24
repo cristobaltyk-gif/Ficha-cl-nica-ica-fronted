@@ -2,108 +2,107 @@ import "../../styles/agenda/agenda.css";
 import Slot from "./Slot";
 
 /*
-CONTRATO REAL DE AGENDA (BACKEND-FIRST)
+Agenda (RENDER PURO)
 
 props:
 {
-  loading?: boolean,
-  context?: {
-    date: "YYYY-MM-DD",
-    professionals: [
-      {
-        id: string,
-        name: string,
-        specialty?: string,
-        schedule: {
-          start: "HH:MM",
-          end: "HH:MM",
-          slotMinutes: number
-        }
-      }
-    ],
-    slots: {
+  loading: boolean,
+  date: "YYYY-MM-DD",
+  box: "box1" | "box2" | "box3",
+  professionals: string[], // 1 o 2 ids
+  agendaData: {
+    calendar: {
       [professionalId]: {
-        [time]: {
-          status: "free" | "busy" | "blocked",
-          attentionId?: string,
-          blockReason?: string
+        slots: {
+          [time]: { status: string, rut?: string }
         }
       }
     }
-  }
+  } | null,
+
+  // setters de contexto (toolbar vive aquí o arriba)
+  onDateChange: fn,
+  onBoxChange: fn,
+  onProfessionalsChange: fn
 }
 */
 
-export default function Agenda({ loading = false, context = null }) {
-  // ===== estados reales del sistema =====
+const TIMES_15_MIN = (() => {
+  // 09:00–18:00 fijo por ahora (15 min)
+  const out = [];
+  let cur = 9 * 60;
+  const end = 18 * 60;
+  while (cur < end) {
+    const hh = String(Math.floor(cur / 60)).padStart(2, "0");
+    const mm = String(cur % 60).padStart(2, "0");
+    out.push(`${hh}:${mm}`);
+    cur += 15;
+  }
+  return out;
+})();
+
+export default function Agenda({
+  loading,
+  date,
+  box,
+  professionals,
+  agendaData,
+  onDateChange,
+  onBoxChange,
+  onProfessionalsChange
+}) {
+  // =========================
+  // ESTADOS BLOQUEANTES
+  // =========================
+
   if (loading) {
     return <div className="agenda-state">Cargando agenda…</div>;
   }
 
-  if (!context) {
+  if (!date || !box || !professionals || professionals.length === 0) {
     return (
       <div className="agenda-state">
-        Agenda sin contexto (fecha / profesionales)
+        Selecciona fecha, box y profesional(es)
       </div>
     );
   }
 
-  const { date, professionals = [], slots = {} } = context;
-
-  if (!professionals.length) {
+  if (!agendaData || !agendaData.calendar) {
     return (
       <div className="agenda-state">
-        No hay profesionales configurados para {date}
+        Sin datos de agenda para el día seleccionado
       </div>
     );
   }
 
-  // ===== helpers =====
-  const buildHours = (schedule) => {
-    const hours = [];
-    const [sh, sm] = schedule.start.split(":").map(Number);
-    const [eh, em] = schedule.end.split(":").map(Number);
+  // =========================
+  // RENDER
+  // =========================
 
-    let current = sh * 60 + sm;
-    const end = eh * 60 + em;
-
-    while (current < end) {
-      const h = String(Math.floor(current / 60)).padStart(2, "0");
-      const m = String(current % 60).padStart(2, "0");
-      hours.push(`${h}:${m}`);
-      current += schedule.slotMinutes;
-    }
-    return hours;
-  };
-
-  // ===== render operativo =====
   return (
     <div className="agenda">
-      {professionals.map((p) => {
-        const hours = buildHours(p.schedule);
-        const professionalSlots = slots[p.id] || {};
+      {professionals.map((profId) => {
+        const profData = agendaData.calendar[profId] || { slots: {} };
+        const slots = profData.slots || {};
 
         return (
-          <div key={p.id} className="agenda-column">
+          <div key={profId} className="agenda-column">
             <div className="agenda-title">
-              <strong>{p.name}</strong>
-              {p.specialty && (
-                <span className="agenda-subtitle">{p.specialty}</span>
-              )}
+              <strong>{profId}</strong>
+              <span className="agenda-subtitle">Box {box.replace("box", "")}</span>
             </div>
 
-            {hours.map((time) => {
-              const slotData = professionalSlots[time];
-              const status = slotData?.status || "free";
+            {TIMES_15_MIN.map((time) => {
+              const slot = slots[time];
+              const status = slot?.status || "available";
 
               return (
                 <Slot
-                  key={`${p.id}-${time}`}
+                  key={`${profId}-${time}`}
                   time={time}
                   status={status}
                   onSelect={() => {
-                    // interacción se conecta después
-                    // aquí NO se decide flujo clínico
+                    // acciones (modal) se conectan después
                   }}
                 />
               );
