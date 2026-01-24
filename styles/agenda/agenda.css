@@ -1,5 +1,5 @@
 /* =====================================================
-   AGENDA – ESTRUCTURA BASE (BACKEND-FIRST)
+   AGENDA – ESTRUCTURA BASE (CANÓNICA)
    ===================================================== */
 
 /* ===== CONTENEDOR GENERAL ===== */
@@ -9,8 +9,8 @@
   gap: 16px;
   padding: 16px;
 
-  height: 100%;        /* ✅ CLAVE: ocupa el alto del contenedor padre */
-  overflow: auto;      /* ✅ CLAVE: permite scroll */
+  height: 100%;
+  overflow: auto;
 
   background: #f8fafc;
 }
@@ -24,11 +24,10 @@
 
   display: flex;
   flex-direction: column;
-
-  min-width: 220px;    /* ✅ evita colapso en mobile */
+  min-width: 220px;
 }
 
-/* ===== HEADER PROFESIONAL ===== */
+/* ===== HEADER COLUMNA ===== */
 .agenda-title {
   padding-bottom: 8px;
   margin-bottom: 8px;
@@ -65,21 +64,36 @@
   justify-content: center;
 
   font-size: 13px;
-  cursor: pointer;
 }
 
-/* ===== ESTADOS SLOT ===== */
-.slot.free {
+/* ===== ESTADOS SLOT (CANÓNICOS) ===== */
+
+/* Disponible */
+.slot.available {
   background: #ecfdf5;
   color: #065f46;
 }
 
-.slot.busy {
-  background: #fee2e2;
-  color: #7f1d1d;
+/* Reservada */
+.slot.reserved {
+  background: #fef3c7;
+  color: #92400e;
 }
 
+/* Confirmada */
+.slot.confirmed {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+/* Bloqueada */
 .slot.blocked {
   background: #f1f5f9;
   color: #475569;
+}
+
+/* Cancelada (si se muestra) */
+.slot.cancelled {
+  background: #f8fafc;
+  color: #94a3b8;
 }
