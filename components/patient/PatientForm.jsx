@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isValidRut, normalizeRut } from "../../utils/rut";
+import "../../styles/pacientes/patient-form.css";
 
 /*
 PatientForm (ADMINISTRATIVO – CANÓNICO)
@@ -27,10 +28,6 @@ export default function PatientForm({ onSubmit, onCancel }) {
 
   const [error, setError] = useState(null);
 
-  // =========================
-  // HANDLERS
-  // =========================
-
   const update = (field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -41,7 +38,6 @@ export default function PatientForm({ onSubmit, onCancel }) {
   const handleSubmit = () => {
     setError(null);
 
-    // ===== VALIDACIONES =====
     if (!form.rut) {
       setError("RUT es obligatorio");
       return;
@@ -62,7 +58,6 @@ export default function PatientForm({ onSubmit, onCancel }) {
       return;
     }
 
-    // ===== EMITIR DATOS CANÓNICOS =====
     onSubmit({
       rut: normalizeRut(form.rut),
       nombre: form.nombre.trim(),
@@ -76,74 +71,108 @@ export default function PatientForm({ onSubmit, onCancel }) {
     });
   };
 
-  // =========================
-  // RENDER
-  // =========================
-
   return (
-    <div>
+    <div className="patient-form">
       <h3>Datos del paciente</h3>
 
-      {error && <div>{error}</div>}
+      {error && (
+        <div className="patient-form-error">{error}</div>
+      )}
 
-      <input
-        placeholder="RUT"
-        value={form.rut}
-        onChange={(e) => update("rut", e.target.value)}
-      />
+      <div className="patient-form-group">
+        <label>RUT</label>
+        <input
+          value={form.rut}
+          onChange={(e) => update("rut", e.target.value)}
+        />
+      </div>
 
-      <input
-        placeholder="Nombre"
-        value={form.nombre}
-        onChange={(e) => update("nombre", e.target.value)}
-      />
+      <div className="patient-form-group">
+        <label>Nombre</label>
+        <input
+          value={form.nombre}
+          onChange={(e) => update("nombre", e.target.value)}
+        />
+      </div>
 
-      <input
-        placeholder="Apellido paterno"
-        value={form.apellidoPaterno}
-        onChange={(e) => update("apellidoPaterno", e.target.value)}
-      />
+      <div className="patient-form-row">
+        <div className="patient-form-group">
+          <label>Apellido paterno</label>
+          <input
+            value={form.apellidoPaterno}
+            onChange={(e) =>
+              update("apellidoPaterno", e.target.value)
+            }
+          />
+        </div>
 
-      <input
-        placeholder="Apellido materno"
-        value={form.apellidoMaterno}
-        onChange={(e) => update("apellidoMaterno", e.target.value)}
-      />
+        <div className="patient-form-group">
+          <label>Apellido materno</label>
+          <input
+            value={form.apellidoMaterno}
+            onChange={(e) =>
+              update("apellidoMaterno", e.target.value)
+            }
+          />
+        </div>
+      </div>
 
-      <input
-        placeholder="Edad"
-        value={form.edad}
-        onChange={(e) => update("edad", e.target.value)}
-      />
+      <div className="patient-form-group">
+        <label>Edad</label>
+        <input
+          value={form.edad}
+          onChange={(e) => update("edad", e.target.value)}
+        />
+      </div>
 
-      <input
-        placeholder="Dirección"
-        value={form.direccion}
-        onChange={(e) => update("direccion", e.target.value)}
-      />
+      <div className="patient-form-group">
+        <label>Dirección</label>
+        <input
+          value={form.direccion}
+          onChange={(e) =>
+            update("direccion", e.target.value)
+          }
+        />
+      </div>
 
-      <input
-        placeholder="Teléfono"
-        value={form.telefono}
-        onChange={(e) => update("telefono", e.target.value)}
-      />
+      <div className="patient-form-row">
+        <div className="patient-form-group">
+          <label>Teléfono</label>
+          <input
+            value={form.telefono}
+            onChange={(e) =>
+              update("telefono", e.target.value)
+            }
+          />
+        </div>
 
-      <input
-        placeholder="Correo electrónico"
-        value={form.email}
-        onChange={(e) => update("email", e.target.value)}
-      />
+        <div className="patient-form-group">
+          <label>Email</label>
+          <input
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+          />
+        </div>
+      </div>
 
-      <input
-        placeholder="Previsión (Fonasa / Isapre / Particular)"
-        value={form.prevision}
-        onChange={(e) => update("prevision", e.target.value)}
-      />
+      <div className="patient-form-group">
+        <label>Previsión</label>
+        <input
+          value={form.prevision}
+          onChange={(e) =>
+            update("prevision", e.target.value)
+          }
+        />
+      </div>
 
-      <div>
-        <button onClick={handleSubmit}>Guardar</button>
-        <button onClick={onCancel}>Cancelar</button>
+      <div className="patient-form-actions">
+        <button className="primary" onClick={handleSubmit}>
+          Guardar
+        </button>
+        <button className="secondary" onClick={onCancel}>
+          Cancelar
+        </button>
       </div>
     </div>
   );
-      }
+          }
