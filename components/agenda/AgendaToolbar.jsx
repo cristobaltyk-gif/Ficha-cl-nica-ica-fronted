@@ -1,3 +1,4 @@
+import "../../styles/agenda/toolbar.css";
 export default function AgendaToolbar({
   date,
   box,
