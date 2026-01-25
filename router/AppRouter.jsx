@@ -17,7 +17,7 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
-   AUTH GUARD
+   AUTH GUARD (SESIÓN)
    =============================== */
 function AuthGuard({ session, children }) {
   if (!session) {
@@ -27,7 +27,7 @@ function AuthGuard({ session, children }) {
 }
 
 /* ===============================
-   ROLE GUARD
+   ROLE GUARD (PERMISOS)
    =============================== */
 function RoleGuard({ role, route, children }) {
   if (!role || !role.allow?.includes(route)) {
@@ -37,22 +37,30 @@ function RoleGuard({ role, route, children }) {
 }
 
 /* ===============================
-   ROUTER PRINCIPAL
+   ROUTER PRINCIPAL (CANÓNICO)
    =============================== */
 export default function AppRouter() {
+  /**
+   * session → existe SOLO si login fue exitoso
+   * role    → viene del backend (secretaria, medico, admin, etc.)
+   */
   const { session, role } = useAuth();
 
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* LOGIN (ÚNICA RUTA PÚBLICA) */}
+        {/* ===============================
+           LOGIN (ÚNICA RUTA PÚBLICA)
+           =============================== */}
         <Route
           path="/login"
           element={<Login />}
         />
 
-        {/* ROOT */}
+        {/* ===============================
+           ROOT
+           =============================== */}
         <Route
           path="/"
           element={
@@ -136,7 +144,9 @@ export default function AppRouter() {
           }
         />
 
-        {/* FALLBACK */}
+        {/* ===============================
+           FALLBACK
+           =============================== */}
         <Route
           path="*"
           element={<Navigate to="/" replace />}
