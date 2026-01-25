@@ -11,18 +11,24 @@ import {
 } from "../../services/agendaApi";
 
 /*
-Agenda (ORQUESTADOR REAL)
+Agenda (ORQUESTADOR REAL – FINAL)
 
-- Muestra toolbar
-- Renderiza columnas
+Responsabilidades:
+- Maneja contexto (fecha, box, profesionales)
+- Renderiza agenda
 - Abre modal
 - Ejecuta backend
+- NO valida paciente (eso es del formulario)
 */
 
+// =========================
+// HORARIOS CANÓNICOS
+// =========================
 const TIMES_15_MIN = (() => {
   const out = [];
-  let cur = 9 * 60;    // 09:00
+  let cur = 9 * 60;     // 09:00
   const end = 18 * 60; // 18:00
+
   while (cur < end) {
     const hh = String(Math.floor(cur / 60)).padStart(2, "0");
     const mm = String(cur % 60).padStart(2, "0");
@@ -43,13 +49,13 @@ export default function Agenda({
   onProfessionalsChange
 }) {
   // =========================
-  // ESTADO MODAL
+  // ESTADOS INTERNOS
   // =========================
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   // =========================
-  // VALIDACIONES BASE
+  // VALIDACIÓN DE RENDER
   // =========================
   const canRenderAgenda =
     !loading &&
@@ -64,7 +70,7 @@ export default function Agenda({
   // =========================
   return (
     <div>
-      {/* ===== CONTEXTO ===== */}
+      {/* ===== TOOLBAR ===== */}
       <AgendaToolbar
         date={date}
         box={box}
@@ -106,7 +112,10 @@ export default function Agenda({
                 times={TIMES_15_MIN}
                 slots={profCalendar.slots}
                 onSelectSlot={(slotInfo) => {
-                  setSelectedSlot(slotInfo);
+                  setSelectedSlot({
+                    ...slotInfo,
+                    professional: profId
+                  });
                 }}
               />
             );
@@ -118,56 +127,77 @@ export default function Agenda({
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
+
         onClose={() => {
           if (!actionLoading) setSelectedSlot(null);
         }}
 
-        onReserve={async () => {
+        // =========================
+        // RESERVAR (AVAILABLE → RESERVED)
+        // =========================
+        onReserve={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
+
             await createSlot({
               date,
               box,
-              professional: selectedSlot.professional,
-              time: selectedSlot.time,
-              rut: "PENDIENTE" // luego viene formulario
+              professional: slot.professional,
+              time: slot.time,
+              rut: patient.rut,
+              status: "reserved"
             });
+
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
 
-        onConfirm={async () => {
+        // =========================
+        // CONFIRMAR (RESERVED → CONFIRMED)
+        // =========================
+        onConfirm={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
+
             await createSlot({
               date,
               box,
-              professional: selectedSlot.professional,
-              time: selectedSlot.time,
-              rut: selectedSlot.slot?.rut
+              professional: slot.professional,
+              time: slot.time,
+              rut: patient.rut,
+              status: "confirmed"
             });
+
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
 
+        // =========================
+        // ANULAR
+        // =========================
         onCancel={async () => {
           try {
             setActionLoading(true);
+
             await cancelSlot({
               date,
               professional: selectedSlot.professional,
               time: selectedSlot.time
             });
+
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
 
+        // =========================
+        // REPROGRAMAR (pendiente UI)
+        // =========================
         onReschedule={async () => {
           alert("Reprogramación pendiente de UI");
           setSelectedSlot(null);
@@ -175,4 +205,4 @@ export default function Agenda({
       />
     </div>
   );
-                            }
+                }
