@@ -2,13 +2,18 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 /* ===============================
-   PÁGINAS
+   PÁGINAS PÚBLICAS
    =============================== */
 import Login from "../pages/Login";
+
+/* ===============================
+   HOMES (por ahora solo secretaría)
+   Luego agregarás HomeMedico, HomeAdmin, etc.
+   =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 
 /* ===============================
-   DASHBOARDS
+   DASHBOARDS / MÓDULOS
    =============================== */
 import DashboardAgenda from "../pages/dashboard-agenda.jsx";
 import DashboardPacientes from "../pages/dashboard-pacientes.jsx";
@@ -19,60 +24,70 @@ import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 /* ===============================
    HELPERS
    =============================== */
-function getHomePath(session, role) {
-  // ✅ si hay sesión, el backend define el home del rol
-  if (session && role?.entry) return role.entry;
 
-  // ✅ sin sesión: login
+/**
+ * Decide a dónde ir en "/"
+ * - Con sesión + role.entry → entry del backend
+ * - Sin sesión → /login
+ */
+function resolveHome(session, role) {
+  if (session && role?.entry) return role.entry;
   return "/login";
 }
 
 /* ===============================
-   AUTH GUARD (SESIÓN)
+   GUARDS
    =============================== */
+
 function AuthGuard({ session, children }) {
   if (!session) return <Navigate to="/login" replace />;
   return children;
 }
 
-/* ===============================
-   ROLE GUARD (PERMISOS)
-   =============================== */
+/**
+ * RoleGuard GENÉRICO
+ * - NO hardcodea roles
+ * - NO asume nombres
+ * - Compara RUTAS reales ("/agenda", "/pacientes", etc.)
+ */
 function RoleGuard({ session, role, route, children }) {
-  // si no hay sesión, afuera
   if (!session) return <Navigate to="/login" replace />;
 
-  // si no hay rol aún (ej. todavía hidratando), manda al home genérico (root)
   if (!role) return <Navigate to="/" replace />;
 
-  // si no tiene permiso, vuelve al HOME DEL ROL (no a secretaría)
-  if (!role.allow?.includes(route)) {
-    return <Navigate to={role.entry || "/"} replace />;
+  const routePath = `/${route}`;
+
+  if (!role.allow?.includes(routePath)) {
+    return <Navigate to={role.entry} replace />;
   }
 
   return children;
 }
 
 /* ===============================
-   ROUTER PRINCIPAL (CANÓNICO)
+   ROUTER PRINCIPAL
    =============================== */
+
 export default function AppRouter() {
   const { session, role } = useAuth();
-  const homePath = getHomePath(session, role);
+  const home = resolveHome(session, role);
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* ✅ ÚNICA RUTA PÚBLICA */}
+        {/* ===============================
+           RUTA PÚBLICA ÚNICA
+           =============================== */}
         <Route path="/login" element={<Login />} />
 
-        {/* ✅ ROOT: decide con session + role.entry */}
-        <Route path="/" element={<Navigate to={homePath} replace />} />
+        {/* ===============================
+           ROOT
+           =============================== */}
+        <Route path="/" element={<Navigate to={home} replace />} />
 
-        {/* ✅ HOME (ejemplo: secretaría)
-            OJO: para médico/admin crearás su Home cuando exista,
-            y role.entry apuntará a esa ruta.
-        */}
+        {/* ===============================
+           HOMES (protegidos)
+           =============================== */}
         <Route
           path="/secretaria"
           element={
@@ -82,7 +97,9 @@ export default function AppRouter() {
           }
         />
 
-        {/* ✅ MÓDULOS PROTEGIDOS POR PERMISOS */}
+        {/* ===============================
+           MÓDULOS (por permisos)
+           =============================== */}
         <Route
           path="/agenda"
           element={
@@ -128,7 +145,9 @@ export default function AppRouter() {
           }
         />
 
-        {/* ✅ FALLBACK */}
+        {/* ===============================
+           FALLBACK
+           =============================== */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
