@@ -1,3 +1,4 @@
+import "../../styles/agenda/agenda.css";
 import { useState } from "react";
 import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
