@@ -21,7 +21,7 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
-   AUTH GUARD (SESION)
+   AUTH GUARD (SESIÓN)
    =============================== */
 function AuthGuard({ session, children }) {
   if (!session) {
@@ -32,11 +32,18 @@ function AuthGuard({ session, children }) {
 
 /* ===============================
    ROLE GUARD (PERMISOS)
+   🔑 CLAVE: NO REDIRIGE SI role AÚN NO CARGA
    =============================== */
 function RoleGuard({ role, route, children }) {
-  if (!role || !role.allow?.includes(route)) {
-    return <Navigate to={role?.entry || "/secretaria"} replace />;
+  // ⏳ Esperar a que el rol llegue desde el backend
+  if (!role) {
+    return null; // o loader si quieres
   }
+
+  if (!role.allow?.includes(route)) {
+    return <Navigate to={role.entry || "/secretaria"} replace />;
+  }
+
   return children;
 }
 
@@ -45,8 +52,8 @@ function RoleGuard({ role, route, children }) {
    =============================== */
 export default function AppRouter() {
   /**
-   * session  → existe SOLO si login fue exitoso
-   * role     → viene del backend (secretaria, medico, admin, etc.)
+   * session → existe SOLO si login fue exitoso
+   * role    → viene del backend (secretaria, medico, admin, etc.)
    */
   const { session, role } = useAuth();
 
