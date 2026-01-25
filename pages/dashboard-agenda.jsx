@@ -1,3 +1,4 @@
+// force rebuild
 import AgendaPage from "./AgendaPage.jsx";
 import "../styles/agenda/dashboard-agenda.css";
 
