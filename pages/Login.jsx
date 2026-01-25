@@ -5,7 +5,6 @@ import { useAuth } from "../auth/AuthContext";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-  // ✅ API CANÓNICA DEL CONTEXTO
   const { login } = useAuth();
 
   const [usuario, setUsuario] = useState("");
@@ -18,7 +17,6 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    // ===== VALIDACIÓN BÁSICA =====
     if (!usuario || !clave) {
       setError("Ingresa usuario y contraseña");
       setLoading(false);
@@ -44,11 +42,29 @@ export default function Login() {
         throw new Error(data.detail || "Credenciales incorrectas");
       }
 
-      // ✅ ÚNICO PUNTO DE LOGIN
-      // Guarda session + role + persistencia (sessionStorage)
+      // ===============================
+      // 🔑 NORMALIZACIÓN DE ROLE (CLAVE)
+      // ===============================
+      let role = data.role;
+
+      // 🛡️ Si backend manda string (legacy)
+      if (typeof role === "string") {
+        role = {
+          name: role,
+          entry: "/secretaria",
+          allow: ["agenda", "pacientes", "atencion", "documentos"]
+        };
+      }
+
+      // 🚨 Validación mínima defensiva
+      if (!role.entry || !Array.isArray(role.allow)) {
+        throw new Error("Rol inválido recibido desde backend");
+      }
+
+      // ✅ LOGIN FINAL (UN SOLO PUNTO)
       login({
         usuario: data.usuario,
-        role: data.role,
+        role
       });
 
     } catch (err) {
