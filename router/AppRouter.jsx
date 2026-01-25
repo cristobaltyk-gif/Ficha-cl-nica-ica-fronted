@@ -17,65 +17,62 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
+   HELPERS
+   =============================== */
+function getHomePath(session, role) {
+  // ✅ si hay sesión, el backend define el home del rol
+  if (session && role?.entry) return role.entry;
+
+  // ✅ sin sesión: login
+  return "/login";
+}
+
+/* ===============================
    AUTH GUARD (SESIÓN)
    =============================== */
 function AuthGuard({ session, children }) {
-  if (!session) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!session) return <Navigate to="/login" replace />;
   return children;
 }
 
 /* ===============================
    ROLE GUARD (PERMISOS)
    =============================== */
-function RoleGuard({ role, route, children }) {
-  if (!role || !role.allow?.includes(route)) {
-    return <Navigate to={role?.entry || "/"} replace />;
+function RoleGuard({ session, role, route, children }) {
+  // si no hay sesión, afuera
+  if (!session) return <Navigate to="/login" replace />;
+
+  // si no hay rol aún (ej. todavía hidratando), manda al home genérico (root)
+  if (!role) return <Navigate to="/" replace />;
+
+  // si no tiene permiso, vuelve al HOME DEL ROL (no a secretaría)
+  if (!role.allow?.includes(route)) {
+    return <Navigate to={role.entry || "/"} replace />;
   }
+
   return children;
 }
 
 /* ===============================
-   ROUTER PRINCIPAL (CANÓNICO FINAL)
+   ROUTER PRINCIPAL (CANÓNICO)
    =============================== */
 export default function AppRouter() {
-  /**
-   * session → existe SOLO si login fue exitoso
-   * role    → viene 100% desde backend
-   * role.entry → ruta inicial del rol (ej: "/secretaria", "/agenda")
-   */
   const { session, role } = useAuth();
+  const homePath = getHomePath(session, role);
 
   return (
     <BrowserRouter>
       <Routes>
+        {/* ✅ ÚNICA RUTA PÚBLICA */}
+        <Route path="/login" element={<Login />} />
 
-        {/* ===============================
-           LOGIN (ÚNICA RUTA PÚBLICA)
-           =============================== */}
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+        {/* ✅ ROOT: decide con session + role.entry */}
+        <Route path="/" element={<Navigate to={homePath} replace />} />
 
-        {/* ===============================
-           ROOT
-           =============================== */}
-        <Route
-          path="/"
-          element={
-            session
-              ? <Navigate to={role?.entry || "/login"} replace />
-              : <Navigate to="/login" replace />
-          }
-        />
-
-        {/* ===============================
-           ZONA PROTEGIDA
-           =============================== */}
-
-        {/* HOME SECRETARIA */}
+        {/* ✅ HOME (ejemplo: secretaría)
+            OJO: para médico/admin crearás su Home cuando exista,
+            y role.entry apuntará a esa ruta.
+        */}
         <Route
           path="/secretaria"
           element={
@@ -85,74 +82,54 @@ export default function AppRouter() {
           }
         />
 
-        {/* AGENDA */}
+        {/* ✅ MÓDULOS PROTEGIDOS POR PERMISOS */}
         <Route
           path="/agenda"
           element={
-            <AuthGuard session={session}>
-              <RoleGuard role={role} route="agenda">
-                <DashboardAgenda />
-              </RoleGuard>
-            </AuthGuard>
+            <RoleGuard session={session} role={role} route="agenda">
+              <DashboardAgenda />
+            </RoleGuard>
           }
         />
 
-        {/* PACIENTES */}
         <Route
           path="/pacientes"
           element={
-            <AuthGuard session={session}>
-              <RoleGuard role={role} route="pacientes">
-                <DashboardPacientes />
-              </RoleGuard>
-            </AuthGuard>
+            <RoleGuard session={session} role={role} route="pacientes">
+              <DashboardPacientes />
+            </RoleGuard>
           }
         />
 
-        {/* ATENCIÓN */}
         <Route
           path="/atencion"
           element={
-            <AuthGuard session={session}>
-              <RoleGuard role={role} route="atencion">
-                <DashboardAtencion />
-              </RoleGuard>
-            </AuthGuard>
+            <RoleGuard session={session} role={role} route="atencion">
+              <DashboardAtencion />
+            </RoleGuard>
           }
         />
 
-        {/* DOCUMENTOS */}
         <Route
           path="/documentos"
           element={
-            <AuthGuard session={session}>
-              <RoleGuard role={role} route="documentos">
-                <DashboardDocumentos />
-              </RoleGuard>
-            </AuthGuard>
+            <RoleGuard session={session} role={role} route="documentos">
+              <DashboardDocumentos />
+            </RoleGuard>
           }
         />
 
-        {/* ADMINISTRACIÓN */}
         <Route
           path="/administracion"
           element={
-            <AuthGuard session={session}>
-              <RoleGuard role={role} route="administracion">
-                <DashboardAdministracion />
-              </RoleGuard>
-            </AuthGuard>
+            <RoleGuard session={session} role={role} route="administracion">
+              <DashboardAdministracion />
+            </RoleGuard>
           }
         />
 
-        {/* ===============================
-           FALLBACK
-           =============================== */}
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-
+        {/* ✅ FALLBACK */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
