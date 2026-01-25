@@ -1,25 +1,40 @@
 import { createContext, useContext, useState } from "react";
 
 /*
-AuthContext
+AuthContext (CANÓNICO)
 - Guarda sesión activa
-- Guarda rol (viene del backend)
-- NO hace fetch aquí
+- Guarda rol (backend)
+- Expone login / logout
+- NO expone setters crudos
 */
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null); // ej: { userId, token }
-  const [role, setRole] = useState(null);       // ej: { name, allow, entry }
+  const [session, setSession] = useState(null); // { usuario }
+  const [role, setRole] = useState(null);       // { name, allow, entry }
+
+  // =========================
+  // ACCIONES
+  // =========================
+
+  function login({ usuario, role }) {
+    setSession({ usuario });
+    setRole(role);
+  }
+
+  function logout() {
+    setSession(null);
+    setRole(null);
+  }
 
   return (
     <AuthContext.Provider
       value={{
         session,
         role,
-        setSession,
-        setRole
+        login,
+        logout
       }}
     >
       {children}
