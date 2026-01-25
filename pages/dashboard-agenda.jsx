@@ -1,4 +1,4 @@
-import AgendaPage from "./AgendaPage";
+import AgendaPage from "./AgendaPage.jsx";
 import "../styles/agenda/dashboard-agenda.css";
 
 export default function DashboardAgenda() {
