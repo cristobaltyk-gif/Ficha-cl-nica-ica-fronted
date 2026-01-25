@@ -5,7 +5,7 @@ import { useAuth } from "../auth/AuthContext";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-  const { login } = useAuth();
+  const { setSession, setRole } = useAuth();
 
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
@@ -42,11 +42,9 @@ export default function Login() {
         throw new Error(data.detail || "Credenciales incorrectas");
       }
 
-      // ✅ ÚNICO punto de entrada de sesión
-      login({
-        usuario: data.usuario,
-        role: data.role,
-      });
+      // ✅ ÚNICO lugar donde se guarda sesión
+      setSession({ usuario: data.usuario });
+      setRole(data.role);
 
     } catch (err) {
       setError(err.message || "Error de conexión");
