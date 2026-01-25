@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
    CONTEXTO DE AUTENTICACIÓN
    (VIENE DEL BACKEND)
    =============================== */
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 /* ===============================
    HOME / LOGIN
