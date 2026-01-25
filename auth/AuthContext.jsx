@@ -1,17 +1,18 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 /*
 AuthContext (CANÓNICO FINAL)
-Reglas:
+
+Reglas REALES:
 - Mantiene sesión al RECARGAR
-- Borra sesión al CERRAR pestaña / navegador
+- Borra sesión SOLO al cerrar pestaña / navegador
 - Usa sessionStorage (NO localStorage)
+- NO borra sesión en navegación interna
 */
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-
   // =========================
   // ESTADO (hidrata desde sessionStorage)
   // =========================
@@ -46,19 +47,6 @@ export function AuthProvider({ children }) {
     sessionStorage.removeItem("role");
   }
 
-  // =========================
-  // LIMPIEZA AL CERRAR PESTAÑA
-  // =========================
-  useEffect(() => {
-    const handleUnload = () => {
-      sessionStorage.clear();
-    };
-
-    window.addEventListener("unload", handleUnload);
-    return () =>
-      window.removeEventListener("unload", handleUnload);
-  }, []);
-
   return (
     <AuthContext.Provider
       value={{
@@ -79,4 +67,4 @@ export function useAuth() {
     throw new Error("useAuth debe usarse dentro de AuthProvider");
   }
   return ctx;
-      }
+}
