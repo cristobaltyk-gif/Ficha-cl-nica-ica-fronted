@@ -1,0 +1,130 @@
+/* ===============================
+   MODAL – UI CLÍNICA (SOLO CSS)
+   Compatible con tu JSX actual:
+   .modal-backdrop, .modal, .modal-actions, .modal-footer
+   =============================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+/* Tarjeta modal */
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* Título principal "Hora XX:XX" */
+.modal h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 650;
+  color: #0f172a;
+}
+
+/* Párrafos de contexto (profesional/estado) */
+.modal p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #334155;
+}
+
+.modal p strong {
+  color: #0f172a;
+  font-weight: 650;
+}
+
+/* Destacar el estado (sin cambiar JSX) */
+.modal p:last-of-type {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+/* ===============================
+   ACCIONES
+   =============================== */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+/* Botones (sin clases extra) */
+.modal-actions button,
+.modal-footer button {
+  appearance: none;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+/* Hover */
+.modal-actions button:hover,
+.modal-footer button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10);
+}
+
+/* Disabled */
+.modal-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Botón principal: el primero (Reservar / Confirmar) */
+.modal-actions button:first-child {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+/* Botón de peligro: el último cuando suele ser "Anular" */
+.modal-actions button:last-child {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+/* Si hay 2 botones en reserved/confirmed,
+   mantenemos "Cambiar hora" como neutro y "Anular" peligro. */
+.modal-actions button:last-child:hover {
+  box-shadow: 0 12px 28px rgba(220, 38, 38, 0.22);
+}
+
+/* ===============================
+   FOOTER
+   =============================== */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.modal-footer button {
+  background: #f8fafc;
+}
