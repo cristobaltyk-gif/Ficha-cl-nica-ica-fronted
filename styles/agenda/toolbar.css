@@ -1,0 +1,65 @@
+/* =====================================================
+   AGENDA TOOLBAR – UI CANÓNICA
+   ===================================================== */
+
+.agenda-toolbar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  padding: 16px;
+
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+
+/* ===== BLOQUE ===== */
+.agenda-toolbar > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== LABEL ===== */
+.agenda-toolbar label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+/* ===== INPUTS / SELECTS ===== */
+.agenda-toolbar input,
+.agenda-toolbar select {
+  height: 38px;
+  padding: 6px 10px;
+
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  background: #f8fafc;
+
+  font-size: 14px;
+  color: #020617;
+}
+
+/* Focus limpio */
+.agenda-toolbar input:focus,
+.agenda-toolbar select:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+/* Disabled */
+.agenda-toolbar select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .agenda-toolbar {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+}
