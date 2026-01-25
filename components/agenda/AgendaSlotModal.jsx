@@ -1,3 +1,4 @@
+import "./styles/modal.css";
 import { useState } from "react";
 import PatientForm from "../patient/PatientForm";
 
