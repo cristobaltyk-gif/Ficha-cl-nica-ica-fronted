@@ -1,31 +1,22 @@
-import { useState } from "react";
-import Login from "./pages/Login";
 import AppRouter from "./router/AppRouter";
+import { AuthProvider } from "./auth/AuthContext";
 
 /**
- * App raíz
- * - Login SOLO valida credenciales
- * - App controla sesión
- * - Router SIEMPRE existe
- * - Sin sesión => Login visible
- * - Con sesión => flujo por rol
+ * App raíz (CANÓNICA FINAL)
+ *
+ * Responsabilidades:
+ * - Monta AuthProvider (sesión + rol desde backend)
+ * - Monta AppRouter
+ *
+ * NO hace:
+ * - NO maneja useState(session)
+ * - NO renderiza Login
+ * - NO decide flujos
  */
 export default function App() {
-  const [session, setSession] = useState(null);
-  // session = { usuario, role }
-
   return (
-    <>
-      {/* 🔐 Login bloqueante si NO hay sesión */}
-      {!session && (
-        <Login onLogin={setSession} />
-      )}
-
-      {/* 🧭 Router SIEMPRE montado */}
-      <AppRouter
-        session={session}
-        onLogout={() => setSession(null)}
-      />
-    </>
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
   );
 }
