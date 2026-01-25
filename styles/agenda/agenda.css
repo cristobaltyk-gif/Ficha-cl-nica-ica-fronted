@@ -1,5 +1,7 @@
 /* =====================================================
-   AGENDA – ESTRUCTURA BASE (CANÓNICA)
+   AGENDA – ESTRUCTURA BASE (CANÓNICA FINAL)
+   Compatible con Slot.jsx:
+   className={`slot slot-${status}`}
    ===================================================== */
 
 /* ===== CONTENEDOR GENERAL ===== */
@@ -20,6 +22,7 @@
   background: #ffffff;
   border-radius: 10px;
   padding: 12px;
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   display: flex;
@@ -64,36 +67,59 @@
   justify-content: center;
 
   font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* ===== ESTADOS SLOT (CANÓNICOS) ===== */
+/* ===== INTERACCIÓN ===== */
+.slot:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* ===== ACCESIBILIDAD ===== */
+.slot:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* =====================================================
+   ESTADOS SLOT (CANÓNICOS)
+   Coinciden EXACTO con backend y frontend
+   ===================================================== */
 
 /* Disponible */
-.slot.available {
+.slot-available {
   background: #ecfdf5;
   color: #065f46;
 }
 
 /* Reservada */
-.slot.reserved {
+.slot-reserved {
   background: #fef3c7;
   color: #92400e;
 }
 
 /* Confirmada */
-.slot.confirmed {
+.slot-confirmed {
   background: #dbeafe;
   color: #1e3a8a;
 }
 
 /* Bloqueada */
-.slot.blocked {
+.slot-blocked {
   background: #f1f5f9;
   color: #475569;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Cancelada (si se muestra) */
-.slot.cancelled {
+.slot-cancelled {
   background: #f8fafc;
   color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
