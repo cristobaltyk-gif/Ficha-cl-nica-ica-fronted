@@ -1,11 +1,12 @@
 import { useState } from "react";
 import "../styles/login.css";
+import { useAuth } from "../auth/AuthContext";
 
-// ✅ URL desde entorno (Vercel)
-// Debe existir: VITE_API_URL=https://ficha-cl-nica-backend.onrender.com
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function Login({ onLogin }) {
+export default function Login() {
+  const { login } = useAuth();
+
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
@@ -16,14 +17,12 @@ export default function Login({ onLogin }) {
     setError("");
     setLoading(true);
 
-    // ✅ Validación mínima
     if (!usuario || !clave) {
       setError("Ingresa usuario y contraseña");
       setLoading(false);
       return;
     }
 
-    // ✅ Seguridad: si falta la variable
     if (!API_URL) {
       setError("Backend no configurado (VITE_API_URL faltante)");
       setLoading(false);
@@ -33,21 +32,18 @@ export default function Login({ onLogin }) {
     try {
       const res = await fetch(`${API_URL}/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ usuario, clave }),
       });
 
-      // ✅ Lee respuesta aunque sea error
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(data.detail || "Credenciales incorrectas");
       }
 
-      // ✅ Login exitoso
-      onLogin({
+      // ✅ ÚNICO punto de entrada de sesión
+      login({
         usuario: data.usuario,
         role: data.role,
       });
