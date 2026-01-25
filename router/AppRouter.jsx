@@ -37,12 +37,13 @@ function RoleGuard({ role, route, children }) {
 }
 
 /* ===============================
-   ROUTER PRINCIPAL (CANÓNICO)
+   ROUTER PRINCIPAL (CANÓNICO FINAL)
    =============================== */
 export default function AppRouter() {
   /**
    * session → existe SOLO si login fue exitoso
-   * role    → viene del backend (secretaria, medico, admin, etc.)
+   * role    → viene 100% desde backend
+   * role.entry → ruta inicial del rol (ej: "/secretaria", "/agenda")
    */
   const { session, role } = useAuth();
 
@@ -65,7 +66,7 @@ export default function AppRouter() {
           path="/"
           element={
             session
-              ? <Navigate to="/secretaria" replace />
+              ? <Navigate to={role?.entry || "/login"} replace />
               : <Navigate to="/login" replace />
           }
         />
