@@ -1,14 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-/* ===============================
-   CONTEXTO DE AUTENTICACIÓN
-   (VIENE DEL BACKEND)
-   =============================== */
 import { useAuth } from "../auth/AuthContext.jsx";
 
 /* ===============================
-   HOME / LOGIN
+   PÁGINAS
    =============================== */
+import Login from "../pages/Login";
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 
 /* ===============================
@@ -21,29 +17,22 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
-   AUTH GUARD (SESIÓN)
+   AUTH GUARD
    =============================== */
 function AuthGuard({ session, children }) {
   if (!session) {
-    return <Navigate to="/secretaria" replace />;
+    return <Navigate to="/login" replace />;
   }
   return children;
 }
 
 /* ===============================
-   ROLE GUARD (PERMISOS)
-   🔑 CLAVE: NO REDIRIGE SI role AÚN NO CARGA
+   ROLE GUARD
    =============================== */
 function RoleGuard({ role, route, children }) {
-  // ⏳ Esperar a que el rol llegue desde el backend
-  if (!role) {
-    return null; // o loader si quieres
+  if (!role || !role.allow?.includes(route)) {
+    return <Navigate to={role?.entry || "/"} replace />;
   }
-
-  if (!role.allow?.includes(route)) {
-    return <Navigate to={role.entry || "/secretaria"} replace />;
-  }
-
   return children;
 }
 
@@ -51,31 +40,41 @@ function RoleGuard({ role, route, children }) {
    ROUTER PRINCIPAL
    =============================== */
 export default function AppRouter() {
-  /**
-   * session → existe SOLO si login fue exitoso
-   * role    → viene del backend (secretaria, medico, admin, etc.)
-   */
   const { session, role } = useAuth();
 
   return (
     <BrowserRouter>
       <Routes>
 
+        {/* LOGIN (ÚNICA RUTA PÚBLICA) */}
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
         {/* ROOT */}
         <Route
           path="/"
-          element={<Navigate to="/secretaria" replace />}
-        />
-
-        {/* LOGIN / HOME */}
-        <Route
-          path="/secretaria"
-          element={<HomeSecretaria />}
+          element={
+            session
+              ? <Navigate to="/secretaria" replace />
+              : <Navigate to="/login" replace />
+          }
         />
 
         {/* ===============================
            ZONA PROTEGIDA
            =============================== */}
+
+        {/* HOME SECRETARIA */}
+        <Route
+          path="/secretaria"
+          element={
+            <AuthGuard session={session}>
+              <HomeSecretaria />
+            </AuthGuard>
+          }
+        />
 
         {/* AGENDA */}
         <Route
@@ -140,7 +139,7 @@ export default function AppRouter() {
         {/* FALLBACK */}
         <Route
           path="*"
-          element={<Navigate to="/secretaria" replace />}
+          element={<Navigate to="/" replace />}
         />
 
       </Routes>
