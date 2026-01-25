@@ -2,18 +2,17 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 /* ===============================
-   PÁGINAS PÚBLICAS
+   PÁGINA PÚBLICA
    =============================== */
 import Login from "../pages/Login";
 
 /* ===============================
-   HOMES (por ahora solo secretaría)
-   Luego agregarás HomeMedico, HomeAdmin, etc.
+   HOMES (por rol)
    =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 
 /* ===============================
-   DASHBOARDS / MÓDULOS
+   MÓDULOS
    =============================== */
 import DashboardAgenda from "../pages/dashboard-agenda.jsx";
 import DashboardPacientes from "../pages/dashboard-pacientes.jsx";
@@ -24,12 +23,6 @@ import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 /* ===============================
    HELPERS
    =============================== */
-
-/**
- * Decide a dónde ir en "/"
- * - Con sesión + role.entry → entry del backend
- * - Sin sesión → /login
- */
 function resolveHome(session, role) {
   if (session && role?.entry) return role.entry;
   return "/login";
@@ -38,7 +31,6 @@ function resolveHome(session, role) {
 /* ===============================
    GUARDS
    =============================== */
-
 function AuthGuard({ session, children }) {
   if (!session) return <Navigate to="/login" replace />;
   return children;
@@ -46,18 +38,14 @@ function AuthGuard({ session, children }) {
 
 /**
  * RoleGuard GENÉRICO
- * - NO hardcodea roles
- * - NO asume nombres
- * - Compara RUTAS reales ("/agenda", "/pacientes", etc.)
+ * - role.allow = ["agenda", "pacientes", ...]
+ * - route = "agenda"
  */
 function RoleGuard({ session, role, route, children }) {
   if (!session) return <Navigate to="/login" replace />;
-
   if (!role) return <Navigate to="/" replace />;
 
-  const routePath = `/${route}`;
-
-  if (!role.allow?.includes(routePath)) {
+  if (!role.allow?.includes(route)) {
     return <Navigate to={role.entry} replace />;
   }
 
@@ -65,9 +53,8 @@ function RoleGuard({ session, role, route, children }) {
 }
 
 /* ===============================
-   ROUTER PRINCIPAL
+   ROUTER PRINCIPAL (FINAL)
    =============================== */
-
 export default function AppRouter() {
   const { session, role } = useAuth();
   const home = resolveHome(session, role);
@@ -75,19 +62,14 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ===============================
-           RUTA PÚBLICA ÚNICA
-           =============================== */}
+
+        {/* 🔓 ÚNICA RUTA PÚBLICA */}
         <Route path="/login" element={<Login />} />
 
-        {/* ===============================
-           ROOT
-           =============================== */}
+        {/* 🧭 ROOT */}
         <Route path="/" element={<Navigate to={home} replace />} />
 
-        {/* ===============================
-           HOMES (protegidos)
-           =============================== */}
+        {/* 🏠 HOME SECRETARÍA (protegido) */}
         <Route
           path="/secretaria"
           element={
@@ -97,9 +79,7 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===============================
-           MÓDULOS (por permisos)
-           =============================== */}
+        {/* 📅 AGENDA */}
         <Route
           path="/agenda"
           element={
@@ -109,6 +89,7 @@ export default function AppRouter() {
           }
         />
 
+        {/* 👥 PACIENTES */}
         <Route
           path="/pacientes"
           element={
@@ -118,6 +99,7 @@ export default function AppRouter() {
           }
         />
 
+        {/* 🩺 ATENCIÓN */}
         <Route
           path="/atencion"
           element={
@@ -127,6 +109,7 @@ export default function AppRouter() {
           }
         />
 
+        {/* 📄 DOCUMENTOS */}
         <Route
           path="/documentos"
           element={
@@ -136,6 +119,7 @@ export default function AppRouter() {
           }
         />
 
+        {/* ⚙️ ADMINISTRACIÓN */}
         <Route
           path="/administracion"
           element={
@@ -145,10 +129,9 @@ export default function AppRouter() {
           }
         />
 
-        {/* ===============================
-           FALLBACK
-           =============================== */}
+        {/* 🚫 FALLBACK */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </BrowserRouter>
   );
