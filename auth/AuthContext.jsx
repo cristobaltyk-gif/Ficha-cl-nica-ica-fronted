@@ -1,32 +1,63 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 /*
-AuthContext (CANÓNICO)
-- Guarda sesión activa
-- Guarda rol (backend)
-- Expone login / logout
-- NO expone setters crudos
+AuthContext (CANÓNICO FINAL)
+Reglas:
+- Mantiene sesión al RECARGAR
+- Borra sesión al CERRAR pestaña / navegador
+- Usa sessionStorage (NO localStorage)
 */
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null); // { usuario }
-  const [role, setRole] = useState(null);       // { name, allow, entry }
 
   // =========================
-  // ACCIONES
+  // ESTADO (hidrata desde sessionStorage)
   // =========================
+  const [session, setSession] = useState(() => {
+    const stored = sessionStorage.getItem("session");
+    return stored ? JSON.parse(stored) : null;
+  });
 
+  const [role, setRole] = useState(() => {
+    const stored = sessionStorage.getItem("role");
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  // =========================
+  // LOGIN / LOGOUT
+  // =========================
   function login({ usuario, role }) {
-    setSession({ usuario });
+    const sessionData = { usuario };
+
+    setSession(sessionData);
     setRole(role);
+
+    sessionStorage.setItem("session", JSON.stringify(sessionData));
+    sessionStorage.setItem("role", JSON.stringify(role));
   }
 
   function logout() {
     setSession(null);
     setRole(null);
+
+    sessionStorage.removeItem("session");
+    sessionStorage.removeItem("role");
   }
+
+  // =========================
+  // LIMPIEZA AL CERRAR PESTAÑA
+  // =========================
+  useEffect(() => {
+    const handleUnload = () => {
+      sessionStorage.clear();
+    };
+
+    window.addEventListener("unload", handleUnload);
+    return () =>
+      window.removeEventListener("unload", handleUnload);
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -48,4 +79,4 @@ export function useAuth() {
     throw new Error("useAuth debe usarse dentro de AuthProvider");
   }
   return ctx;
-}
+      }
