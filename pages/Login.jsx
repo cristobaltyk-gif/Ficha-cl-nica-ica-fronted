@@ -5,7 +5,8 @@ import { useAuth } from "../auth/AuthContext";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-  const { setSession, setRole } = useAuth();
+  // ✅ API CANÓNICA DEL CONTEXTO
+  const { login } = useAuth();
 
   const [usuario, setUsuario] = useState("");
   const [clave, setClave] = useState("");
@@ -17,6 +18,7 @@ export default function Login() {
     setError("");
     setLoading(true);
 
+    // ===== VALIDACIÓN BÁSICA =====
     if (!usuario || !clave) {
       setError("Ingresa usuario y contraseña");
       setLoading(false);
@@ -36,15 +38,18 @@ export default function Login() {
         body: JSON.stringify({ usuario, clave }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
       if (!res.ok) {
         throw new Error(data.detail || "Credenciales incorrectas");
       }
 
-      // ✅ ÚNICO lugar donde se guarda sesión
-      setSession({ usuario: data.usuario });
-      setRole(data.role);
+      // ✅ ÚNICO PUNTO DE LOGIN
+      // Guarda session + role + persistencia (sessionStorage)
+      login({
+        usuario: data.usuario,
+        role: data.role,
+      });
 
     } catch (err) {
       setError(err.message || "Error de conexión");
