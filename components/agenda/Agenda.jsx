@@ -1,5 +1,6 @@
 import "../../styles/agenda/agenda.css";
 import { useState } from "react";
+
 import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
@@ -7,15 +8,15 @@ import AgendaSlotModal from "./AgendaSlotModal";
 // API agenda (YA EXISTE)
 import {
   createSlot,
-  cancelSlot,
-  rescheduleSlot
+  cancelSlot
 } from "../../services/agendaApi";
 
 /*
 Agenda (ORQUESTADOR REAL – UX MEJORADA)
 
 ✔ Mantiene lógica intacta
-✔ Mejora visual: resumen + layout clínico
+✔ Resumen superior por profesional
+✔ Layout clínico limpio
 ✔ No toca backend
 */
 
@@ -33,6 +34,7 @@ const TIMES_15_MIN = (() => {
     out.push(`${hh}:${mm}`);
     cur += 15;
   }
+
   return out;
 })();
 
@@ -69,6 +71,7 @@ export default function Agenda({
   // =========================
   function getStats(profId) {
     const slots = agendaData.calendar[profId]?.slots || {};
+
     const busy = Object.keys(slots).length;
     const total = TIMES_15_MIN.length;
     const free = total - busy;
@@ -78,6 +81,18 @@ export default function Agenda({
     else if (free < 5) status = "low";
 
     return { free, busy, total, status };
+  }
+
+  // =========================
+  // SLOT CLICK (bloqueado si guardando)
+  // =========================
+  function handleSelectSlot(slotInfo, profId) {
+    if (actionLoading) return;
+
+    setSelectedSlot({
+      ...slotInfo,
+      professional: profId
+    });
   }
 
   // =========================
@@ -147,7 +162,7 @@ export default function Agenda({
             </div>
           </div>
 
-          {/* ===== COLUMNAS ===== */}
+          {/* ===== GRID DE PROFESIONALES ===== */}
           <div className="agenda-grid">
             {professionals.map((profId) => {
               const profCalendar =
@@ -160,12 +175,9 @@ export default function Agenda({
                   box={box}
                   times={TIMES_15_MIN}
                   slots={profCalendar.slots}
-                  onSelectSlot={(slotInfo) => {
-                    setSelectedSlot({
-                      ...slotInfo,
-                      professional: profId
-                    });
-                  }}
+                  onSelectSlot={(slotInfo) =>
+                    handleSelectSlot(slotInfo, profId)
+                  }
                 />
               );
             })}
@@ -199,7 +211,6 @@ export default function Agenda({
             });
 
             onAgendaChanged?.();
-
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
@@ -223,7 +234,6 @@ export default function Agenda({
             });
 
             onAgendaChanged?.();
-
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
@@ -244,7 +254,6 @@ export default function Agenda({
             });
 
             onAgendaChanged?.();
-
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
