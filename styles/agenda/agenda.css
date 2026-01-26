@@ -1,11 +1,12 @@
 /* =====================================================
-   AGENDA – ESTRUCTURA BASE (CANÓNICA FINAL)
-   Compatible con Slot.jsx:
+   AGENDA – ESTILO CANÓNICO FINAL (ICA)
+   Compatible con:
    className={`slot slot-${status}`}
    ===================================================== */
 
 /* ===== CONTENEDOR GENERAL ===== */
-.agenda {
+.agenda,
+.agenda-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
@@ -17,10 +18,79 @@
   background: #f8fafc;
 }
 
-/* ===== COLUMNA PROFESIONAL ===== */
+/* ===== PÁGINA GENERAL ===== */
+.agenda-page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* =====================================================
+   RESUMEN SUPERIOR (NUEVO)
+   ===================================================== */
+
+.agenda-summary {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.agenda-summary h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.agenda-summary-grid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.agenda-summary-card {
+  border-radius: 14px;
+  padding: 12px 16px;
+  min-width: 180px;
+
+  background: #f8fafc;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+
+.agenda-summary-card.free {
+  border-left: 6px solid #16a34a;
+}
+
+.agenda-summary-card.low {
+  border-left: 6px solid #facc15;
+}
+
+.agenda-summary-card.full {
+  border-left: 6px solid #dc2626;
+}
+
+.prof-name {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #020617;
+}
+
+.free {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.busy {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* =====================================================
+   COLUMNA PROFESIONAL
+   ===================================================== */
+
 .agenda-column {
   background: #ffffff;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px;
 
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -48,7 +118,10 @@
   color: #64748b;
 }
 
-/* ===== ESTADOS GENERALES ===== */
+/* =====================================================
+   ESTADOS GENERALES
+   ===================================================== */
+
 .agenda-state {
   padding: 40px;
   text-align: center;
@@ -56,10 +129,13 @@
   font-size: 14px;
 }
 
-/* ===== SLOT BASE ===== */
+/* =====================================================
+   SLOT BASE
+   ===================================================== */
+
 .slot {
   height: 36px;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 6px;
 
   display: flex;
@@ -67,7 +143,7 @@
   justify-content: center;
 
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 
   cursor: pointer;
   transition: all 0.15s ease;
@@ -87,7 +163,8 @@
 
 /* =====================================================
    ESTADOS SLOT (CANÓNICOS)
-   Coinciden EXACTO con backend y frontend
+   Coinciden con backend:
+   available / reserved / confirmed / blocked
    ===================================================== */
 
 /* Disponible */
