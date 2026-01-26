@@ -10,6 +10,8 @@ import Login from "../pages/Login";
    HOMES
    =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
+import HomeMedico from "../pages/home/HomeMedico";
+import HomeKinesiologia from "../pages/home/HomeKinesiologia";
 
 /* ===============================
    MÓDULOS
@@ -39,10 +41,10 @@ function AuthGuard({ session, children }) {
 function RoleGuard({ session, role, route, children }) {
   if (!session) return <Navigate to="/login" replace />;
 
-  // ⏳ Esperar que role cargue desde sessionStorage
+  // ⏳ Esperar role cargado
   if (!role) return null;
 
-  // 🚫 Si no tiene permiso → rebota al home del rol
+  // 🚫 Sin permiso → vuelve al home
   if (!role.allow?.includes(route)) {
     return <Navigate to={role.entry} replace />;
   }
@@ -64,11 +66,7 @@ export default function AppRouter() {
         <Route
           path="/login"
           element={
-            session ? (
-              <Navigate to={home} replace />
-            ) : (
-              <Login />
-            )
+            session ? <Navigate to={home} replace /> : <Login />
           }
         />
 
@@ -81,6 +79,26 @@ export default function AppRouter() {
           element={
             <AuthGuard session={session}>
               <HomeSecretaria />
+            </AuthGuard>
+          }
+        />
+
+        {/* 🏠 HOME MEDICO */}
+        <Route
+          path="/medico"
+          element={
+            <AuthGuard session={session}>
+              <HomeMedico />
+            </AuthGuard>
+          }
+        />
+
+        {/* 🏠 HOME KINESIOLOGIA */}
+        <Route
+          path="/kine"
+          element={
+            <AuthGuard session={session}>
+              <HomeKinesiologia />
             </AuthGuard>
           }
         />
