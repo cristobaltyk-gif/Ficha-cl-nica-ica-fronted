@@ -7,7 +7,7 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import Login from "../pages/Login";
 
 /* ===============================
-   HOMES (por rol)
+   HOMES
    =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 
@@ -36,15 +36,13 @@ function AuthGuard({ session, children }) {
   return children;
 }
 
-/**
- * RoleGuard GENÉRICO
- * - role.allow = ["agenda", "pacientes", ...]
- * - route = "agenda"
- */
 function RoleGuard({ session, role, route, children }) {
   if (!session) return <Navigate to="/login" replace />;
-  if (!role) return <Navigate to="/" replace />;
 
+  // ⏳ Esperar que role cargue desde sessionStorage
+  if (!role) return null;
+
+  // 🚫 Si no tiene permiso → rebota al home del rol
   if (!role.allow?.includes(route)) {
     return <Navigate to={role.entry} replace />;
   }
@@ -62,14 +60,22 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* 🔓 ÚNICA RUTA PÚBLICA */}
-        <Route path="/login" element={<Login />} />
+        {/* 🔓 LOGIN */}
+        <Route
+          path="/login"
+          element={
+            session ? (
+              <Navigate to={home} replace />
+            ) : (
+              <Login />
+            )
+          }
+        />
 
         {/* 🧭 ROOT */}
         <Route path="/" element={<Navigate to={home} replace />} />
 
-        {/* 🏠 HOME SECRETARÍA (protegido) */}
+        {/* 🏠 HOME SECRETARIA */}
         <Route
           path="/secretaria"
           element={
@@ -130,13 +136,7 @@ export default function AppRouter() {
         />
 
         {/* 🚫 FALLBACK */}
-        <Route
-  path="/login"
-  element={
-    session ? <Navigate to={home} replace /> : <Login />
-  }
-/>
-
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
