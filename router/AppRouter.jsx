@@ -7,6 +7,11 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import Login from "../pages/Login";
 
 /* ===============================
+   LAYOUT GLOBAL (TopBar + Outlet)
+   =============================== */
+import AppLayout from "./AppLayout";
+
+/* ===============================
    HOMES
    =============================== */
 import HomeSecretaria from "../pages/home/HomeSecretaria";
@@ -41,10 +46,10 @@ function AuthGuard({ session, children }) {
 function RoleGuard({ session, role, route, children }) {
   if (!session) return <Navigate to="/login" replace />;
 
-  // ⏳ Esperar role cargado
+  // ⏳ Esperar role cargado desde sessionStorage
   if (!role) return null;
 
-  // 🚫 Sin permiso → vuelve al home
+  // 🚫 Sin permiso → vuelve al home del rol
   if (!role.allow?.includes(route)) {
     return <Navigate to={role.entry} replace />;
   }
@@ -53,7 +58,7 @@ function RoleGuard({ session, role, route, children }) {
 }
 
 /* ===============================
-   ROUTER PRINCIPAL (FINAL)
+   ROUTER PRINCIPAL (FINAL ICA)
    =============================== */
 export default function AppRouter() {
   const { session, role } = useAuth();
@@ -62,98 +67,97 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔓 LOGIN */}
+        {/* ===============================
+            🔓 LOGIN (única ruta pública)
+           =============================== */}
         <Route
           path="/login"
           element={
-            session ? <Navigate to={home} replace /> : <Login />
+            session ? (
+              <Navigate to={home} replace />
+            ) : (
+              <Login />
+            )
           }
         />
 
-        {/* 🧭 ROOT */}
+        {/* ===============================
+            🧭 ROOT
+           =============================== */}
         <Route path="/" element={<Navigate to={home} replace />} />
 
-        {/* 🏠 HOME SECRETARIA */}
+        {/* ===============================
+            🔒 APP PRIVADA (Layout Global)
+            Todo lo interno vive aquí
+           =============================== */}
         <Route
-          path="/secretaria"
           element={
             <AuthGuard session={session}>
-              <HomeSecretaria />
+              <AppLayout />
             </AuthGuard>
           }
-        />
+        >
+          {/* ===== HOMES ===== */}
+          <Route path="/secretaria" element={<HomeSecretaria />} />
+          <Route path="/medico" element={<HomeMedico />} />
+          <Route path="/kine" element={<HomeKinesiologia />} />
 
-        {/* 🏠 HOME MEDICO */}
-        <Route
-          path="/medico"
-          element={
-            <AuthGuard session={session}>
-              <HomeMedico />
-            </AuthGuard>
-          }
-        />
+          {/* ===== MÓDULOS ===== */}
 
-        {/* 🏠 HOME KINESIOLOGIA */}
-        <Route
-          path="/kine"
-          element={
-            <AuthGuard session={session}>
-              <HomeKinesiologia />
-            </AuthGuard>
-          }
-        />
+          {/* 📅 Agenda */}
+          <Route
+            path="/agenda"
+            element={
+              <RoleGuard session={session} role={role} route="agenda">
+                <DashboardAgenda />
+              </RoleGuard>
+            }
+          />
 
-        {/* 📅 AGENDA */}
-        <Route
-          path="/agenda"
-          element={
-            <RoleGuard session={session} role={role} route="agenda">
-              <DashboardAgenda />
-            </RoleGuard>
-          }
-        />
+          {/* 👥 Pacientes */}
+          <Route
+            path="/pacientes"
+            element={
+              <RoleGuard session={session} role={role} route="pacientes">
+                <DashboardPacientes />
+              </RoleGuard>
+            }
+          />
 
-        {/* 👥 PACIENTES */}
-        <Route
-          path="/pacientes"
-          element={
-            <RoleGuard session={session} role={role} route="pacientes">
-              <DashboardPacientes />
-            </RoleGuard>
-          }
-        />
+          {/* 🩺 Atención */}
+          <Route
+            path="/atencion"
+            element={
+              <RoleGuard session={session} role={role} route="atencion">
+                <DashboardAtencion />
+              </RoleGuard>
+            }
+          />
 
-        {/* 🩺 ATENCIÓN */}
-        <Route
-          path="/atencion"
-          element={
-            <RoleGuard session={session} role={role} route="atencion">
-              <DashboardAtencion />
-            </RoleGuard>
-          }
-        />
+          {/* 📄 Documentos */}
+          <Route
+            path="/documentos"
+            element={
+              <RoleGuard session={session} role={role} route="documentos">
+                <DashboardDocumentos />
+              </RoleGuard>
+            }
+          />
 
-        {/* 📄 DOCUMENTOS */}
-        <Route
-          path="/documentos"
-          element={
-            <RoleGuard session={session} role={role} route="documentos">
-              <DashboardDocumentos />
-            </RoleGuard>
-          }
-        />
+          {/* ⚙️ Administración */}
+          <Route
+            path="/administracion"
+            element={
+              <RoleGuard session={session} role={role} route="administracion">
+                <DashboardAdministracion />
+              </RoleGuard>
+            }
+          />
+        </Route>
 
-        {/* ⚙️ ADMINISTRACIÓN */}
-        <Route
-          path="/administracion"
-          element={
-            <RoleGuard session={session} role={role} route="administracion">
-              <DashboardAdministracion />
-            </RoleGuard>
-          }
-        />
-
-        {/* 🚫 FALLBACK */}
+        {/* ===============================
+            🚫 FALLBACK
+           =============================== */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
