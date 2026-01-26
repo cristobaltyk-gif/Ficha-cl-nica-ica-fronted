@@ -12,14 +12,11 @@ import {
 } from "../../services/agendaApi";
 
 /*
-Agenda (ORQUESTADOR REAL – FINAL)
+Agenda (ORQUESTADOR REAL – UX MEJORADA)
 
-Responsabilidades:
-- Maneja contexto (fecha, box, profesionales)
-- Renderiza agenda
-- Abre modal
-- Ejecuta backend
-- NO valida paciente (eso es del formulario)
+✔ Mantiene lógica intacta
+✔ Mejora visual: resumen + layout clínico
+✔ No toca backend
 */
 
 // =========================
@@ -47,7 +44,8 @@ export default function Agenda({
   agendaData,
   onDateChange,
   onBoxChange,
-  onProfessionalsChange
+  onProfessionalsChange,
+  onAgendaChanged
 }) {
   // =========================
   // ESTADOS INTERNOS
@@ -67,10 +65,26 @@ export default function Agenda({
     agendaData.calendar;
 
   // =========================
+  // HELPERS UX
+  // =========================
+  function getStats(profId) {
+    const slots = agendaData.calendar[profId]?.slots || {};
+    const busy = Object.keys(slots).length;
+    const total = TIMES_15_MIN.length;
+    const free = total - busy;
+
+    let status = "free";
+    if (free === 0) status = "full";
+    else if (free < 5) status = "low";
+
+    return { free, busy, total, status };
+  }
+
+  // =========================
   // RENDER
   // =========================
   return (
-    <div>
+    <div className="agenda-page">
       {/* ===== TOOLBAR ===== */}
       <AgendaToolbar
         date={date}
@@ -83,7 +97,9 @@ export default function Agenda({
 
       {/* ===== ESTADOS ===== */}
       {loading && (
-        <div className="agenda-state">Cargando agenda…</div>
+        <div className="agenda-state">
+          Cargando agenda…
+        </div>
       )}
 
       {!loading && (!date || !box || professionals.length === 0) && (
@@ -100,41 +116,74 @@ export default function Agenda({
 
       {/* ===== AGENDA ===== */}
       {canRenderAgenda && (
-        <div className="agenda">
-          {professionals.map((profId) => {
-            const profCalendar =
-              agendaData.calendar[profId] || { slots: {} };
+        <>
+          {/* ===== RESUMEN SUPERIOR ===== */}
+          <div className="agenda-summary">
+            <h2>📅 Agenda {date}</h2>
 
-            return (
-              <AgendaColumn
-                key={profId}
-                professionalId={profId}
-                box={box}
-                times={TIMES_15_MIN}
-                slots={profCalendar.slots}
-                onSelectSlot={(slotInfo) => {
-                  setSelectedSlot({
-                    ...slotInfo,
-                    professional: profId
-                  });
-                }}
-              />
-            );
-          })}
-        </div>
+            <div className="agenda-summary-grid">
+              {professionals.map((profId) => {
+                const stats = getStats(profId);
+
+                return (
+                  <div
+                    key={profId}
+                    className={`agenda-summary-card ${stats.status}`}
+                  >
+                    <div className="prof-name">
+                      {profId}
+                    </div>
+
+                    <div className="free">
+                      🟢 {stats.free} libres
+                    </div>
+
+                    <div className="busy">
+                      🔴 {stats.busy} ocupados
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ===== COLUMNAS ===== */}
+          <div className="agenda-grid">
+            {professionals.map((profId) => {
+              const profCalendar =
+                agendaData.calendar[profId] || { slots: {} };
+
+              return (
+                <AgendaColumn
+                  key={profId}
+                  professionalId={profId}
+                  box={box}
+                  times={TIMES_15_MIN}
+                  slots={profCalendar.slots}
+                  onSelectSlot={(slotInfo) => {
+                    setSelectedSlot({
+                      ...slotInfo,
+                      professional: profId
+                    });
+                  }}
+                />
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* ===== MODAL ===== */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
-
+        loading={actionLoading}
         onClose={() => {
           if (!actionLoading) setSelectedSlot(null);
         }}
 
         // =========================
-        // RESERVAR (AVAILABLE → RESERVED)
+        // RESERVAR
         // =========================
         onReserve={async ({ slot, patient }) => {
           try {
@@ -149,6 +198,8 @@ export default function Agenda({
               status: "reserved"
             });
 
+            onAgendaChanged?.();
+
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
@@ -156,7 +207,7 @@ export default function Agenda({
         }}
 
         // =========================
-        // CONFIRMAR (RESERVED → CONFIRMED)
+        // CONFIRMAR
         // =========================
         onConfirm={async ({ slot, patient }) => {
           try {
@@ -170,6 +221,8 @@ export default function Agenda({
               rut: patient.rut,
               status: "confirmed"
             });
+
+            onAgendaChanged?.();
 
           } finally {
             setActionLoading(false);
@@ -190,6 +243,8 @@ export default function Agenda({
               time: selectedSlot.time
             });
 
+            onAgendaChanged?.();
+
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
@@ -197,7 +252,7 @@ export default function Agenda({
         }}
 
         // =========================
-        // REPROGRAMAR (pendiente UI)
+        // REPROGRAMAR (pendiente)
         // =========================
         onReschedule={async () => {
           alert("Reprogramación pendiente de UI");
@@ -206,4 +261,4 @@ export default function Agenda({
       />
     </div>
   );
-                }
+}
