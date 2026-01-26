@@ -130,7 +130,12 @@ export default function AppRouter() {
         />
 
         {/* 🚫 FALLBACK */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+  path="/login"
+  element={
+    session ? <Navigate to={home} replace /> : <Login />
+  }
+/>
 
       </Routes>
     </BrowserRouter>
