@@ -2,9 +2,8 @@ import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
 
-import AgendaMonthSummary from "./AgendaMonthSummary.jsx";
 import AgendaMonthSummary from "./agenda/AgendaMonthSummary.jsx";
-
+import AgendaWeekSummary from "./agenda/AgendaWeekSummary.jsx";
 import "../styles/agenda/dashboard-agenda.css";
 
 export default function DashboardAgenda() {
