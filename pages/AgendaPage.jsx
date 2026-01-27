@@ -5,9 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 Orquestador de Agenda (CANÓNICO)
-- Maneja contexto
-- Decide cuándo cargar
-- Refresca agenda tras acciones
+
+✔ Mantiene carga diaria intacta
+✔ No rompe nada existente
+✔ Integra Summary mensual/semanal (nuevo)
+✔ Preparado para calendario visual futuro
 */
 
 export default function AgendaPage() {
@@ -18,22 +20,30 @@ export default function AgendaPage() {
   const [date, setDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
+
   const [box, setBox] = useState(""); // box1 | box2 | box3
-  const [professionals, setProfessionals] = useState([]); // 1 o 2 ids
+  const [professionals, setProfessionals] = useState([]); // ["medico1"]
 
   // =========================
-  // DATA
+  // DATA PRINCIPAL (día)
   // =========================
 
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [error, setError] = useState(null);
 
-  // 🔑 CLAVE: disparador de recarga
+  // =========================
+  // SUMMARY (nuevo)
+  // =========================
+
+  const [monthSummary, setMonthSummary] = useState(null);
+  const [weekSummary, setWeekSummary] = useState(null);
+
+  // 🔑 disparador de recarga
   const [reloadKey, setReloadKey] = useState(0);
 
   // =========================
-  // CARGA DE AGENDA
+  // CARGA AGENDA DIARIA (igual que antes)
   // =========================
 
   useEffect(() => {
@@ -45,7 +55,7 @@ export default function AgendaPage() {
       return;
     }
 
-    async function loadAgenda() {
+    async function loadAgendaDay() {
       setLoading(true);
       setError(null);
 
@@ -64,6 +74,7 @@ export default function AgendaPage() {
         if (!cancelled) {
           setAgendaData(data);
         }
+
       } catch (err) {
         if (!cancelled) {
           setError(err.message);
@@ -76,12 +87,91 @@ export default function AgendaPage() {
       }
     }
 
-    loadAgenda();
+    loadAgendaDay();
 
     return () => {
       cancelled = true;
     };
-  }, [date, box, professionals, reloadKey]); // 👈 AQUÍ ESTABA EL PROBLEMA
+  }, [date, box, professionals, reloadKey]);
+
+  // =========================
+  // SUMMARY MENSUAL (nuevo)
+  // =========================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (professionals.length === 0) {
+      setMonthSummary(null);
+      return;
+    }
+
+    const professional = professionals[0];
+    const month = date.slice(0, 7); // YYYY-MM
+
+    async function loadMonthSummary() {
+      try {
+        const res = await fetch(
+          `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setMonthSummary(data);
+        }
+      } catch {
+        setMonthSummary(null);
+      }
+    }
+
+    loadMonthSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [date, professionals, reloadKey]);
+
+  // =========================
+  // SUMMARY SEMANAL (nuevo)
+  // =========================
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (professionals.length === 0) {
+      setWeekSummary(null);
+      return;
+    }
+
+    const professional = professionals[0];
+
+    async function loadWeekSummary() {
+      try {
+        const res = await fetch(
+          `${API_URL}/agenda/summary/week?professional=${professional}&week_start=${date}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setWeekSummary(data);
+        }
+      } catch {
+        setWeekSummary(null);
+      }
+    }
+
+    loadWeekSummary();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [date, professionals, reloadKey]);
 
   // =========================
   // ERRORES
@@ -92,7 +182,7 @@ export default function AgendaPage() {
   }
 
   // =========================
-  // RENDER
+  // RENDER FINAL
   // =========================
 
   return (
@@ -103,12 +193,16 @@ export default function AgendaPage() {
       professionals={professionals}
       agendaData={agendaData}
 
-      /* setters de contexto */
+      /* setters contexto */
       onDateChange={setDate}
       onBoxChange={setBox}
       onProfessionalsChange={setProfessionals}
 
-      /* 🔁 REFRESH REAL */
+      /* 🔥 summary integrado (nuevo) */
+      monthSummary={monthSummary}
+      weekSummary={weekSummary}
+
+      /* refresh real */
       onAgendaChanged={() => {
         setReloadKey((k) => k + 1);
       }}
