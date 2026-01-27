@@ -1,130 +1,218 @@
-/* ===============================
-   MODAL – UI CLÍNICA (SOLO CSS)
-   Compatible con tu JSX actual:
+/* =========================================
+   MODAL — ICA BOUTIQUE PREMIUM (2026)
+   Compatible con tu JSX actual
    .modal-backdrop, .modal, .modal-actions, .modal-footer
-   =============================== */
+========================================= */
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
+
+  /* Fondo boutique real */
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(14px);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
-  padding: 16px;
+
+  z-index: 999;
+  padding: 18px;
 }
 
-/* Tarjeta modal */
+/* =========================================
+   TARJETA MODAL (CLÍNICA PREMIUM)
+========================================= */
+
 .modal {
   width: 100%;
-  max-width: 520px;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  max-width: 540px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 20px;
+
+  padding: 22px 24px;
+
   border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.30);
+
+  animation: modalFade 0.22s ease;
 }
 
-/* Título principal "Hora XX:XX" */
+@keyframes modalFade {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
 .modal h3 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-  font-weight: 650;
+  margin: 0 0 14px 0;
+
+  font-size: 19px;
+  font-weight: 800;
+
   color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
-/* Párrafos de contexto (profesional/estado) */
+/* Texto clínico */
 .modal p {
-  margin: 6px 0;
+  margin: 8px 0;
   font-size: 14px;
-  color: #334155;
+  color: rgba(30, 41, 59, 0.82);
 }
 
 .modal p strong {
+  font-weight: 700;
   color: #0f172a;
-  font-weight: 650;
 }
 
-/* Destacar el estado (sin cambiar JSX) */
+/* Estado destacado */
 .modal p:last-of-type {
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  margin-top: 14px;
+  padding: 10px 12px;
+
+  border-radius: 14px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 237, 213, 0.75),
+    rgba(255, 255, 255, 0.85)
+  );
+
+  border: 1px solid rgba(251, 146, 60, 0.25);
 }
 
-/* ===============================
+/* =========================================
    ACCIONES
-   =============================== */
+========================================= */
+
 .modal-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-top: 14px;
+
+  margin-top: 18px;
 }
 
-/* Botones (sin clases extra) */
+/* Botones boutique base */
 .modal-actions button,
 .modal-footer button {
   appearance: none;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #0f172a;
-  padding: 10px 14px;
-  border-radius: 10px;
+  border: none;
+
+  padding: 11px 16px;
+  border-radius: 14px;
+
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+
+  transition: all 0.18s ease;
 }
 
 /* Hover */
 .modal-actions button:hover,
 .modal-footer button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
 }
 
 /* Disabled */
 .modal-actions button:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
-  opacity: 0.65;
   transform: none;
   box-shadow: none;
 }
 
-/* Botón principal: el primero (Reservar / Confirmar) */
+/* =========================================
+   BOTÓN PRINCIPAL (Reservar / Confirmar)
+   ICA NARANJO PREMIUM
+========================================= */
+
 .modal-actions button:first-child {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+  background: linear-gradient(
+    180deg,
+    #fb923c,
+    #f97316
+  );
+
+  color: white;
 }
 
-/* Botón de peligro: el último cuando suele ser "Anular" */
+.modal-actions button:first-child:hover {
+  box-shadow: 0 18px 38px rgba(249, 115, 22, 0.35);
+}
+
+/* =========================================
+   BOTÓN PELIGRO (Anular)
+========================================= */
+
 .modal-actions button:last-child {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: #ffffff;
+  background: linear-gradient(
+    180deg,
+    #dc2626,
+    #b91c1c
+  );
+
+  color: white;
 }
 
-/* Si hay 2 botones en reserved/confirmed,
-   mantenemos "Cambiar hora" como neutro y "Anular" peligro. */
 .modal-actions button:last-child:hover {
-  box-shadow: 0 12px 28px rgba(220, 38, 38, 0.22);
+  box-shadow: 0 18px 40px rgba(220, 38, 38, 0.28);
 }
 
-/* ===============================
+/* =========================================
    FOOTER
-   =============================== */
+========================================= */
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid #e2e8f0;
+
+  margin-top: 22px;
+  padding-top: 16px;
+
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
 }
 
+/* Botón cerrar boutique */
 .modal-footer button {
-  background: #f8fafc;
+  background: rgba(15, 23, 42, 0.06);
+  color: #0f172a;
+}
+
+.modal-footer button:hover {
+  background: rgba(15, 23, 42, 0.12);
+}
+
+/* =========================================
+   RESPONSIVE MOBILE
+========================================= */
+
+@media (max-width: 640px) {
+  .modal {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button,
+  .modal-footer button {
+    width: 100%;
+  }
 }
