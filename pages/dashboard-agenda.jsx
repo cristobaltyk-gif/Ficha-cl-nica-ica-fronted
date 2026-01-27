@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthContext";
 import AgendaPage from "./AgendaPage.jsx";
 
 import AgendaMonthSummary from "./AgendaMonthSummary.jsx";
-import AgendaWeekSummary from "./AgendaWeekSummary.jsx";
+import AgendaMonthSummary from "./agenda/AgendaMonthSummary.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
 
