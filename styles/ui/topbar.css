@@ -1,10 +1,12 @@
 /* =========================================
    ICA TOPBAR — BOUTIQUE PREMIUM (2026)
+   Compatible con:
+   <span className="topbar-user">
 ========================================= */
 
 .topbar {
   --ica-primary: #0f766e;
-  --ica-bg: rgba(255, 255, 255, 0.9);
+  --ica-bg: rgba(255, 255, 255, 0.92);
   --ica-border: rgba(148, 163, 184, 0.25);
   --ica-shadow: rgba(15, 23, 42, 0.08);
 
@@ -52,7 +54,7 @@
 }
 
 /* ==========================
-   CENTRO (TÍTULO + ROL)
+   CENTRO (TÍTULO + USUARIO)
 ========================== */
 
 .topbar-center {
@@ -70,10 +72,11 @@
   color: #0f172a;
 }
 
-.topbar-center .role {
+/* ✅ ESTA ES LA CLASE REAL QUE USAS */
+.topbar-user {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(100, 116, 139, 0.9);
+  color: rgba(100, 116, 139, 0.85);
 }
 
 /* ==========================
@@ -111,6 +114,10 @@
 
   .topbar-center strong {
     font-size: 16px;
+  }
+
+  .topbar-user {
+    font-size: 12px;
   }
 
   .topbar-btn {
