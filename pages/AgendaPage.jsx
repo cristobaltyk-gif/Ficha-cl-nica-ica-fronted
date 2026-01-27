@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../auth/AuthContext";
 import Agenda from "../components/agenda/Agenda";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-Orquestador de Agenda (CANÓNICO)
+AgendaPage (CANÓNICO FINAL)
 
-✔ Mantiene carga diaria intacta
-✔ No rompe nada existente
-✔ Integra Summary mensual/semanal (nuevo)
-✔ Preparado para calendario visual futuro
+✔ Agenda diaria intacta
+✔ Secretaría → summary mensual SOLO
+✔ Médico → summary semanal SOLO
+✔ NO carga ambos
 */
 
 export default function AgendaPage() {
+  const { role } = useAuth();
+
   // =========================
   // CONTEXTO
   // =========================
@@ -21,8 +24,8 @@ export default function AgendaPage() {
     new Date().toISOString().slice(0, 10)
   );
 
-  const [box, setBox] = useState(""); // box1 | box2 | box3
-  const [professionals, setProfessionals] = useState([]); // ["medico1"]
+  const [box, setBox] = useState("");
+  const [professionals, setProfessionals] = useState([]);
 
   // =========================
   // DATA PRINCIPAL (día)
@@ -33,23 +36,22 @@ export default function AgendaPage() {
   const [error, setError] = useState(null);
 
   // =========================
-  // SUMMARY (nuevo)
+  // SUMMARY (según rol)
   // =========================
 
   const [monthSummary, setMonthSummary] = useState(null);
   const [weekSummary, setWeekSummary] = useState(null);
 
-  // 🔑 disparador de recarga
+  // 🔑 refresco real
   const [reloadKey, setReloadKey] = useState(0);
 
   // =========================
-  // CARGA AGENDA DIARIA (igual que antes)
+  // AGENDA DIARIA (NO TOCAR)
   // =========================
 
   useEffect(() => {
     let cancelled = false;
 
-    // Regla dura: no cargar sin contexto completo
     if (!date || !box || professionals.length === 0) {
       setAgendaData(null);
       return;
@@ -61,19 +63,14 @@ export default function AgendaPage() {
 
       try {
         const res = await fetch(
-          `${API_URL}/agenda?date=${date}`,
-          { headers: { Accept: "application/json" } }
+          `${API_URL}/agenda?date=${date}`
         );
 
-        if (!res.ok) {
-          throw new Error("No se pudo cargar agenda");
-        }
+        if (!res.ok) throw new Error("No se pudo cargar agenda");
 
         const data = await res.json();
 
-        if (!cancelled) {
-          setAgendaData(data);
-        }
+        if (!cancelled) setAgendaData(data);
 
       } catch (err) {
         if (!cancelled) {
@@ -81,9 +78,7 @@ export default function AgendaPage() {
           setAgendaData(null);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -95,86 +90,77 @@ export default function AgendaPage() {
   }, [date, box, professionals, reloadKey]);
 
   // =========================
-  // SUMMARY MENSUAL (nuevo)
+  // SUMMARY SEGÚN ROL (CORRECTO)
   // =========================
 
   useEffect(() => {
     let cancelled = false;
 
-    if (professionals.length === 0) {
-      setMonthSummary(null);
-      return;
-    }
+    // reset siempre
+    setMonthSummary(null);
+    setWeekSummary(null);
+
+    if (!role || professionals.length === 0) return;
 
     const professional = professionals[0];
-    const month = date.slice(0, 7); // YYYY-MM
 
-    async function loadMonthSummary() {
-      try {
-        const res = await fetch(
-          `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
-        );
+    // =========================
+    // SECRETARIA → MONTH ONLY
+    // =========================
+    if (role.name === "secretaria") {
+      const month = date.slice(0, 7);
 
-        if (!res.ok) return;
+      async function loadMonth() {
+        try {
+          const res = await fetch(
+            `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
+          );
 
-        const data = await res.json();
+          if (!res.ok) return;
 
-        if (!cancelled) {
-          setMonthSummary(data);
+          const data = await res.json();
+
+          if (!cancelled) setMonthSummary(data);
+
+        } catch {
+          setMonthSummary(null);
         }
-      } catch {
-        setMonthSummary(null);
       }
+
+      loadMonth();
     }
 
-    loadMonthSummary();
+    // =========================
+    // MEDICO → WEEK ONLY
+    // =========================
+    if (role.name === "medico") {
+      async function loadWeek() {
+        try {
+          const res = await fetch(
+            `${API_URL}/agenda/summary/week?professional=${professional}&week_start=${date}`
+          );
+
+          if (!res.ok) return;
+
+          const data = await res.json();
+
+          if (!cancelled) setWeekSummary(data);
+
+        } catch {
+          setWeekSummary(null);
+        }
+      }
+
+      loadWeek();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [date, professionals, reloadKey]);
+  }, [date, professionals, role, reloadKey]);
 
   // =========================
-  // SUMMARY SEMANAL (nuevo)
-  // =========================
-
-  useEffect(() => {
-    let cancelled = false;
-
-    if (professionals.length === 0) {
-      setWeekSummary(null);
-      return;
-    }
-
-    const professional = professionals[0];
-
-    async function loadWeekSummary() {
-      try {
-        const res = await fetch(
-          `${API_URL}/agenda/summary/week?professional=${professional}&week_start=${date}`
-        );
-
-        if (!res.ok) return;
-
-        const data = await res.json();
-
-        if (!cancelled) {
-          setWeekSummary(data);
-        }
-      } catch {
-        setWeekSummary(null);
-      }
-    }
-
-    loadWeekSummary();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, professionals, reloadKey]);
-
-  // =========================
-  // ERRORES
+  // ERROR
   // =========================
 
   if (error) {
@@ -193,19 +179,17 @@ export default function AgendaPage() {
       professionals={professionals}
       agendaData={agendaData}
 
-      /* setters contexto */
       onDateChange={setDate}
       onBoxChange={setBox}
       onProfessionalsChange={setProfessionals}
 
-      /* 🔥 summary integrado (nuevo) */
+      // ✅ SOLO UNO llegará según rol
       monthSummary={monthSummary}
       weekSummary={weekSummary}
 
-      /* refresh real */
       onAgendaChanged={() => {
         setReloadKey((k) => k + 1);
       }}
     />
   );
-}
+      }
