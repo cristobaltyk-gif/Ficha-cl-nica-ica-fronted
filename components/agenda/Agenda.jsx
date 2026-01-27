@@ -12,11 +12,11 @@ import {
 } from "../../services/agendaApi";
 
 /*
-Agenda (ORQUESTADOR REAL – UX MEJORADA)
+Agenda (ORQUESTADOR REAL – UX LIMPIA)
 
 ✔ Mantiene lógica intacta
-✔ Resumen superior por profesional
-✔ Layout clínico limpio
+✔ NO incluye resumen superior (eso vive en Dashboard)
+✔ Layout limpio boutique
 ✔ No toca backend
 */
 
@@ -26,7 +26,7 @@ Agenda (ORQUESTADOR REAL – UX MEJORADA)
 const TIMES_15_MIN = (() => {
   const out = [];
   let cur = 9 * 60;     // 09:00
-  const end = 18 * 60; // 18:00
+  const end = 18 * 60;  // 18:00
 
   while (cur < end) {
     const hh = String(Math.floor(cur / 60)).padStart(2, "0");
@@ -65,23 +65,6 @@ export default function Agenda({
     professionals.length > 0 &&
     agendaData &&
     agendaData.calendar;
-
-  // =========================
-  // HELPERS UX
-  // =========================
-  function getStats(profId) {
-    const slots = agendaData.calendar[profId]?.slots || {};
-
-    const busy = Object.keys(slots).length;
-    const total = TIMES_15_MIN.length;
-    const free = total - busy;
-
-    let status = "free";
-    if (free === 0) status = "full";
-    else if (free < 5) status = "low";
-
-    return { free, busy, total, status };
-  }
 
   // =========================
   // SLOT CLICK (bloqueado si guardando)
@@ -129,60 +112,27 @@ export default function Agenda({
         </div>
       )}
 
-      {/* ===== AGENDA ===== */}
+      {/* ===== GRID PRINCIPAL ===== */}
       {canRenderAgenda && (
-        <>
-          {/* ===== RESUMEN SUPERIOR ===== */}
-          <div className="agenda-summary">
-            <h2>📅 Agenda {date}</h2>
+        <div className="agenda-grid">
+          {professionals.map((profId) => {
+            const profCalendar =
+              agendaData.calendar[profId] || { slots: {} };
 
-            <div className="agenda-summary-grid">
-              {professionals.map((profId) => {
-                const stats = getStats(profId);
-
-                return (
-                  <div
-                    key={profId}
-                    className={`agenda-summary-card ${stats.status}`}
-                  >
-                    <div className="prof-name">
-                      {profId}
-                    </div>
-
-                    <div className="free">
-                      🟢 {stats.free} libres
-                    </div>
-
-                    <div className="busy">
-                      🔴 {stats.busy} ocupados
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ===== GRID DE PROFESIONALES ===== */}
-          <div className="agenda-grid">
-            {professionals.map((profId) => {
-              const profCalendar =
-                agendaData.calendar[profId] || { slots: {} };
-
-              return (
-                <AgendaColumn
-                  key={profId}
-                  professionalId={profId}
-                  box={box}
-                  times={TIMES_15_MIN}
-                  slots={profCalendar.slots}
-                  onSelectSlot={(slotInfo) =>
-                    handleSelectSlot(slotInfo, profId)
-                  }
-                />
-              );
-            })}
-          </div>
-        </>
+            return (
+              <AgendaColumn
+                key={profId}
+                professionalId={profId}
+                box={box}
+                times={TIMES_15_MIN}
+                slots={profCalendar.slots}
+                onSelectSlot={(slotInfo) =>
+                  handleSelectSlot(slotInfo, profId)
+                }
+              />
+            );
+          })}
+        </div>
       )}
 
       {/* ===== MODAL ===== */}
