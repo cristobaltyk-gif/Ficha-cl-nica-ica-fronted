@@ -1,200 +1,134 @@
 /* =====================================================
-   AGENDA – ICA PREMIUM BOUTIQUE (2026)
-   Compatible con:
-   className={`slot slot-${status}`}
+   AGENDA – ICA BOUTIQUE (RESET ESTRUCTURAL)
+   SOLO CSS – NO ROMPE JSX
    ===================================================== */
 
 /* =====================================================
-   CONTENEDOR GENERAL
+   CONTENEDOR PRINCIPAL
    ===================================================== */
 
-.agenda,
+.agenda-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  min-height: 100%;
+  padding: 24px;
+
+  background: #f9fafb;
+}
+
+/* =====================================================
+   ESTADOS (loading / vacío)
+   ===================================================== */
+
+.agenda-state {
+  padding: 48px 24px;
+  text-align: center;
+
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.55);
+
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* =====================================================
+   GRID PRINCIPAL — CAMBIO REAL
+   Antes: columnas rígidas
+   Ahora: cards clínicas fluidas
+   ===================================================== */
+
 .agenda-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
-  padding: 18px;
-
-  height: 100%;
-  overflow: auto;
-
-  background: #f9fafb;
-}
-
-/* Página completa */
-.agenda-page {
-  min-height: 100vh;
-  background: #f9fafb;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
 }
 
 /* =====================================================
-   RESUMEN SUPERIOR — ICA DASHBOARD
-   ===================================================== */
-
-.agenda-summary {
-  padding: 20px;
-  margin-bottom: 12px;
-
-  background: white;
-  border-radius: 18px;
-
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-}
-
-.agenda-summary h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-/* Cards resumen */
-.agenda-summary-grid {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.agenda-summary-card {
-  flex: 1;
-  min-width: 200px;
-
-  border-radius: 16px;
-  padding: 14px 16px;
-
-  background: linear-gradient(
-    180deg,
-    rgba(248, 250, 252, 1),
-    rgba(255, 255, 255, 1)
-  );
-
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-
-  transition: transform 0.18s ease;
-}
-
-.agenda-summary-card:hover {
-  transform: translateY(-2px);
-}
-
-/* Estado borde */
-.agenda-summary-card.free {
-  border-left: 6px solid #16a34a;
-}
-
-.agenda-summary-card.low {
-  border-left: 6px solid #ff7a18;
-}
-
-.agenda-summary-card.full {
-  border-left: 6px solid #dc2626;
-}
-
-/* Nombre profesional */
-.prof-name {
-  font-weight: 800;
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #0f172a;
-}
-
-.free {
-  color: #16a34a;
-  font-weight: 700;
-}
-
-.busy {
-  color: #dc2626;
-  font-weight: 700;
-}
-
-/* =====================================================
-   COLUMNA PROFESIONAL — ICA CARD
+   COLUMNA PROFESIONAL → CARD
    ===================================================== */
 
 .agenda-column {
-  background: white;
-  border-radius: 18px;
-  padding: 14px;
-
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
-
   display: flex;
   flex-direction: column;
+  gap: 16px;
+
+  padding: 20px;
+  border-radius: 22px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
-/* Header columna */
-.agenda-title {
-  padding-bottom: 10px;
-  margin-bottom: 12px;
+/* =====================================================
+   HEADER PROFESIONAL
+   ===================================================== */
 
+.agenda-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding-bottom: 14px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.35);
 }
 
 .agenda-title strong {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: #0f172a;
 }
 
 .agenda-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(100, 116, 139, 0.8);
+  color: rgba(100, 116, 139, 0.75);
 }
 
 /* =====================================================
-   ESTADOS GENERALES
+   LISTA DE SLOTS — ESTRUCTURA NUEVA
    ===================================================== */
 
-.agenda-state {
-  padding: 50px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 600;
-  color: rgba(100, 116, 139, 0.8);
+.agenda-column > .slot {
+  margin-bottom: 0;
 }
 
 /* =====================================================
-   SLOT — ICA PREMIUM REAL (MODERNO)
+   SLOT — NUEVO DISEÑO REAL
    ===================================================== */
 
 .slot {
-  height: 46px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 14px;
+  height: 52px;
+  border-radius: 16px;
+
+  font-size: 15px;
   font-weight: 700;
 
-  cursor: pointer;
-
-  background: white;
+  background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
 
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-
-  transition: all 0.18s ease;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .slot-time {
-  font-size: 14px;
   font-weight: 800;
   color: rgba(15, 23, 42, 0.85);
 }
 
-/* Hover boutique */
+/* Hover real */
 .slot:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
 }
 
 /* Focus accesible */
@@ -205,46 +139,45 @@
 }
 
 /* =====================================================
-   ESTADOS SLOT — ICA BOUTIQUE
+   ESTADOS SLOT — ICA (SIN TURQUESA)
    ===================================================== */
 
 /* Disponible */
 .slot-available {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.96),
-    rgba(248, 250, 252, 1)
+    #ffffff,
+    #f8fafc
   );
   color: #0f172a;
 }
 
-/* Reservada */
+/* Reservada — naranjo tecnológico */
 .slot-reserved {
   background: linear-gradient(
     180deg,
-    rgba(255, 237, 213, 1),
-    rgba(255, 247, 237, 1)
+    #fff1e6,
+    #fff7ed
   );
-  border-color: rgba(255, 122, 24, 0.35);
+  border-color: rgba(255, 122, 24, 0.45);
   color: #9a3412;
 }
 
-/* Confirmada */
+/* Confirmada — azul clínico */
 .slot-confirmed {
   background: linear-gradient(
     180deg,
-    rgba(219, 234, 254, 1),
-    rgba(239, 246, 255, 1)
+    #e0edff,
+    #f0f6ff
   );
-  border-color: rgba(37, 99, 235, 0.35);
+  border-color: rgba(37, 99, 235, 0.4);
   color: #1e3a8a;
 }
 
 /* Bloqueada */
 .slot-blocked {
-  background: rgba(241, 245, 249, 0.85);
-  border-color: rgba(148, 163, 184, 0.25);
-  color: rgba(100, 116, 139, 0.65);
+  background: #f1f5f9;
+  color: rgba(100, 116, 139, 0.6);
 
   cursor: not-allowed;
   opacity: 0.55;
@@ -253,7 +186,7 @@
 
 /* Cancelada */
 .slot-cancelled {
-  background: rgba(248, 250, 252, 0.7);
+  background: #f8fafc;
   color: rgba(148, 163, 184, 0.7);
 
   cursor: not-allowed;
@@ -262,17 +195,21 @@
 }
 
 /* =====================================================
-   RESPONSIVE MOBILE
+   MOBILE — CAMBIO REAL
    ===================================================== */
 
 @media (max-width: 720px) {
+  .agenda-page {
+    padding: 16px;
+  }
+
   .agenda-grid {
     grid-template-columns: 1fr;
-    padding: 12px;
+    gap: 20px;
   }
 
   .slot {
-    height: 52px;
+    height: 56px;
     font-size: 16px;
   }
 }
