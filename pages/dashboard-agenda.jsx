@@ -4,8 +4,20 @@ import { useAuth } from "../auth/AuthContext";
 import AgendaPage from "./AgendaPage.jsx";
 import AgendaMonthSummary from "./agenda/AgendaMonthSummary.jsx";
 import AgendaWeekSummary from "./agenda/AgendaWeekSummary.jsx";
+import AgendaSummarySelector from "./agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
+
+/*
+DashboardAgenda – ESTRUCTURA CANÓNICA
+
+✔ Selector de resumen (mensual / semanal)
+✔ Selección de hasta 4 médicos
+✔ Resumen SIEMPRE visible
+✔ Agenda diaria se abre desde el resumen
+✔ SIN CSS nuevo
+✔ SIN tocar Agenda.jsx
+*/
 
 export default function DashboardAgenda() {
   const { role } = useAuth();
@@ -13,7 +25,14 @@ export default function DashboardAgenda() {
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
-  // 🔑 FECHA SELECCIONADA DESDE RESUMEN
+  // ===============================
+  // ESTADO ESTRUCTURAL (CLAVE)
+  // ===============================
+  const [summaryMode, setSummaryMode] = useState(
+    isMedico ? "weekly" : "monthly"
+  );
+
+  const [selectedProfessionals, setSelectedProfessionals] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 
   return (
@@ -25,44 +44,63 @@ export default function DashboardAgenda() {
       <header className="agenda-header">
         <h1>Agenda</h1>
         <span className="agenda-mode">
-          {isSecretaria && "Calendario mensual"}
-          {isMedico && "Agenda semanal"}
+          {summaryMode === "monthly" && "Resumen mensual"}
+          {summaryMode === "weekly" && "Resumen semanal"}
         </span>
       </header>
 
       {/* ===============================
-          CUERPO PRINCIPAL (2 ZONAS)
+          SELECTOR (CONTROL REAL)
+      =============================== */}
+      {isSecretaria && (
+        <AgendaSummarySelector
+          professionals={[]} 
+          /* ↑ puedes pasar aquí la lista real de médicos */
+          onChange={({ mode, selectedProfessionals }) => {
+            setSummaryMode(mode);
+            setSelectedProfessionals(selectedProfessionals);
+            setSelectedDate(null); // reset al cambiar contexto
+          }}
+        />
+      )}
+
+      {/* ===============================
+          CUERPO PRINCIPAL
       =============================== */}
       <div className="agenda-layout">
 
         {/* ===============================
-            ZONA IZQUIERDA — CALENDARIO
+            ZONA IZQUIERDA — RESUMEN
         =============================== */}
         <aside className="agenda-left">
-          {isSecretaria && (
+
+          {summaryMode === "monthly" && (
             <AgendaMonthSummary
+              professionals={selectedProfessionals}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
             />
           )}
 
-          {isMedico && (
+          {summaryMode === "weekly" && (
             <AgendaWeekSummary
+              professionals={selectedProfessionals}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
             />
           )}
+
         </aside>
 
         {/* ===============================
-            ZONA DERECHA — AGENDA DEL DÍA
+            ZONA DERECHA — AGENDA DIARIA
         =============================== */}
         <main className="agenda-right">
           {selectedDate ? (
             <AgendaPage forcedDate={selectedDate} />
           ) : (
             <div className="agenda-placeholder">
-              Selecciona un día en el calendario
+              Selecciona un día en el resumen
             </div>
           )}
         </main>
