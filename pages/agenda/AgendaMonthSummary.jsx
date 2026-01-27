@@ -1,3 +1,4 @@
+import "../../styles/agenda/month-summary.css";
 import { useEffect, useState } from "react";
 import "../../styles/agenda/month-summary.css";
 
