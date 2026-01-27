@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import "../../styles/ui/topbar.css";
+import "../styles/ui/topbar.css";
 
 export default function TopBar({ title }) {
   const navigate = useNavigate();
