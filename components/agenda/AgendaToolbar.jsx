@@ -1,13 +1,13 @@
 import "../../styles/agenda/toolbar.css";
-
 export default function AgendaToolbar({
   date,
   box,
-  professionals,
+  professionals, // array de 1 o 2 ids
   onDateChange,
   onBoxChange,
   onProfessionalsChange
 }) {
+  // Lista temporal (luego vendrá del backend)
   const PROFESSIONAL_OPTIONS = [
     { id: "cristobal_huerta", label: "Dr. Cristóbal Huerta" },
     { id: "jaime_espinoza", label: "Dr. Jaime Espinoza" }
@@ -21,22 +21,29 @@ export default function AgendaToolbar({
       onProfessionalsChange([]);
       return;
     }
+
+    // mantiene B solo si es distinto
     const next = [value];
-    if (selectedB && selectedB !== value) next.push(selectedB);
+    if (selectedB && selectedB !== value) {
+      next.push(selectedB);
+    }
     onProfessionalsChange(next.slice(0, 2));
   }
 
   function handleSelectB(value) {
     if (!selectedA) return;
+
     if (!value || value === selectedA) {
       onProfessionalsChange([selectedA]);
       return;
     }
+
     onProfessionalsChange([selectedA, value]);
   }
 
   return (
-    <div className="agenda-toolbar">
+    <div>
+      {/* Fecha */}
       <div>
         <label>Fecha</label>
         <input
@@ -46,9 +53,13 @@ export default function AgendaToolbar({
         />
       </div>
 
+      {/* Box */}
       <div>
         <label>Box</label>
-        <select value={box} onChange={(e) => onBoxChange(e.target.value)}>
+        <select
+          value={box}
+          onChange={(e) => onBoxChange(e.target.value)}
+        >
           <option value="">— Seleccionar —</option>
           <option value="box1">Box 1</option>
           <option value="box2">Box 2</option>
@@ -56,9 +67,13 @@ export default function AgendaToolbar({
         </select>
       </div>
 
+      {/* Profesional principal */}
       <div>
         <label>Profesional</label>
-        <select value={selectedA} onChange={(e) => handleSelectA(e.target.value)}>
+        <select
+          value={selectedA}
+          onChange={(e) => handleSelectA(e.target.value)}
+        >
           <option value="">— Seleccionar —</option>
           {PROFESSIONAL_OPTIONS.map((p) => (
             <option key={p.id} value={p.id}>
@@ -68,6 +83,7 @@ export default function AgendaToolbar({
         </select>
       </div>
 
+      {/* Profesional secundario (opcional) */}
       <div>
         <label>Segundo profesional</label>
         <select
@@ -76,11 +92,13 @@ export default function AgendaToolbar({
           disabled={!selectedA}
         >
           <option value="">— Ninguno —</option>
-          {PROFESSIONAL_OPTIONS.filter((p) => p.id !== selectedA).map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.label}
-            </option>
-          ))}
+          {PROFESSIONAL_OPTIONS
+            .filter((p) => p.id !== selectedA)
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
         </select>
       </div>
     </div>
