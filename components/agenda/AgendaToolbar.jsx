@@ -1,4 +1,4 @@
-import "../../styles/agenda/toolbar-boutique.css";
+import "../../styles/agenda/toolbar.css";
 
 export default function AgendaToolbar({
   date,
@@ -36,8 +36,8 @@ export default function AgendaToolbar({
   }
 
   return (
-    <div className="ica-toolbar-boutique">
-      <div className="ica-field-boutique">
+    <div className="agenda-toolbar">
+      <div>
         <label>Fecha</label>
         <input
           type="date"
@@ -46,26 +46,20 @@ export default function AgendaToolbar({
         />
       </div>
 
-      <div className="ica-field-boutique">
+      <div>
         <label>Box</label>
-        <select
-          value={box}
-          onChange={(e) => onBoxChange(e.target.value)}
-        >
-          <option value="">Seleccionar</option>
+        <select value={box} onChange={(e) => onBoxChange(e.target.value)}>
+          <option value="">— Seleccionar —</option>
           <option value="box1">Box 1</option>
           <option value="box2">Box 2</option>
           <option value="box3">Box 3</option>
         </select>
       </div>
 
-      <div className="ica-field-boutique">
+      <div>
         <label>Profesional</label>
-        <select
-          value={selectedA}
-          onChange={(e) => handleSelectA(e.target.value)}
-        >
-          <option value="">Seleccionar</option>
+        <select value={selectedA} onChange={(e) => handleSelectA(e.target.value)}>
+          <option value="">— Seleccionar —</option>
           {PROFESSIONAL_OPTIONS.map((p) => (
             <option key={p.id} value={p.id}>
               {p.label}
@@ -74,14 +68,14 @@ export default function AgendaToolbar({
         </select>
       </div>
 
-      <div className="ica-field-boutique">
+      <div>
         <label>Segundo profesional</label>
         <select
           value={selectedB}
           onChange={(e) => handleSelectB(e.target.value)}
           disabled={!selectedA}
         >
-          <option value="">Ninguno</option>
+          <option value="">— Ninguno —</option>
           {PROFESSIONAL_OPTIONS.filter((p) => p.id !== selectedA).map((p) => (
             <option key={p.id} value={p.id}>
               {p.label}
