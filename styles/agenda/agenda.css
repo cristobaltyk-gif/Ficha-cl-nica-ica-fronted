@@ -1,67 +1,104 @@
 /* =====================================================
-   AGENDA – ESTILO CANÓNICO FINAL (ICA)
+   AGENDA – ICA BOUTIQUE PREMIUM (2026)
    Compatible con:
    className={`slot slot-${status}`}
-   ===================================================== */
+===================================================== */
 
-/* ===== CONTENEDOR GENERAL ===== */
-.agenda,
-.agenda-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-  padding: 16px;
+/* ===============================
+   VARIABLES ICA (CANÓNICO)
+============================== */
 
-  height: 100%;
-  overflow: auto;
+:root {
+  --ica-primary: #1e3a8a;       /* Azul ICA */
+  --ica-secondary: #334155;     /* Gris elegante */
+  --ica-bg: #f8fafc;           /* Fondo limpio */
+  --ica-card: #ffffff;
 
-  background: #f8fafc;
-}
+  --ica-border: rgba(148, 163, 184, 0.25);
+  --ica-shadow: rgba(15, 23, 42, 0.06);
 
-/* ===== PÁGINA GENERAL ===== */
-.agenda-page {
-  min-height: 100vh;
-  background: #f8fafc;
+  --ica-orange: rgba(249, 115, 22, 0.12); /* Toque tecnológico */
 }
 
 /* =====================================================
-   RESUMEN SUPERIOR (NUEVO)
-   ===================================================== */
+   CONTENEDOR GENERAL
+===================================================== */
+
+.agenda-page {
+  min-height: 100vh;
+  background: var(--ica-bg);
+  padding: 18px;
+}
+
+/* Grid profesionales */
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  padding: 10px 0;
+}
+
+/* =====================================================
+   RESUMEN SUPERIOR (HEADER)
+===================================================== */
 
 .agenda-summary {
-  padding: 16px;
-  border-bottom: 1px solid #e2e8f0;
-  background: white;
+  padding: 18px 20px;
+  border-radius: 18px;
+
+  background: var(--ica-card);
+  border: 1px solid var(--ica-border);
+  box-shadow: 0 10px 26px var(--ica-shadow);
+
+  margin-bottom: 18px;
 }
 
 .agenda-summary h2 {
   margin: 0;
   font-size: 18px;
-  color: #0f172a;
+  font-weight: 800;
+  color: var(--ica-primary);
 }
 
 .agenda-summary-grid {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
-  margin-top: 12px;
+  margin-top: 14px;
 }
 
+/* Tarjeta resumen */
 .agenda-summary-card {
-  border-radius: 14px;
-  padding: 12px 16px;
-  min-width: 180px;
+  flex: 1;
+  min-width: 190px;
 
-  background: #f8fafc;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  padding: 14px 16px;
+
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #f9fafb
+  );
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+
+  box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+
+  transition: transform 0.15s ease;
 }
 
+.agenda-summary-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Estados resumen */
 .agenda-summary-card.free {
   border-left: 6px solid #16a34a;
 }
 
 .agenda-summary-card.low {
-  border-left: 6px solid #facc15;
+  border-left: 6px solid #f97316;
 }
 
 .agenda-summary-card.full {
@@ -69,134 +106,164 @@
 }
 
 .prof-name {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ica-secondary);
   margin-bottom: 6px;
-  color: #020617;
 }
 
 .free {
   color: #16a34a;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .busy {
   color: #dc2626;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* =====================================================
    COLUMNA PROFESIONAL
-   ===================================================== */
+===================================================== */
 
 .agenda-column {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 12px;
+  background: var(--ica-card);
+  border-radius: 18px;
+  padding: 14px;
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--ica-border);
+  box-shadow: 0 10px 24px var(--ica-shadow);
 
   display: flex;
   flex-direction: column;
-  min-width: 220px;
 }
 
-/* ===== HEADER COLUMNA ===== */
+/* Header profesional */
 .agenda-title {
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 .agenda-title strong {
   font-size: 15px;
-  color: #020617;
-  display: block;
+  font-weight: 800;
+  color: var(--ica-primary);
 }
 
 .agenda-subtitle {
   font-size: 12px;
-  color: #64748b;
+  font-weight: 600;
+  color: rgba(100, 116, 139, 0.85);
 }
 
 /* =====================================================
    ESTADOS GENERALES
-   ===================================================== */
+===================================================== */
 
 .agenda-state {
-  padding: 40px;
+  padding: 50px;
   text-align: center;
-  color: #64748b;
   font-size: 14px;
+  font-weight: 600;
+  color: rgba(100, 116, 139, 0.8);
 }
 
 /* =====================================================
-   SLOT BASE
-   ===================================================== */
+   SLOT BASE (BOTIQUE)
+===================================================== */
 
 .slot {
-  height: 36px;
-  border-radius: 8px;
-  margin-bottom: 6px;
+  height: 42px;
+  border-radius: 14px;
+  margin-bottom: 8px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 
   cursor: pointer;
-  transition: all 0.15s ease;
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: white;
+
+  transition: all 0.18s ease;
 }
 
-/* ===== INTERACCIÓN ===== */
+/* Hover premium */
 .slot:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
 }
 
-/* ===== ACCESIBILIDAD ===== */
+/* Focus accesible */
 .slot:focus {
-  outline: 2px solid #2563eb;
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--ica-primary);
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.18);
 }
 
 /* =====================================================
-   ESTADOS SLOT (CANÓNICOS)
-   Coinciden con backend:
-   available / reserved / confirmed / blocked
-   ===================================================== */
+   ESTADOS SLOT (ICA PREMIUM)
+===================================================== */
 
 /* Disponible */
 .slot-available {
-  background: #ecfdf5;
-  color: #065f46;
+  background: rgba(34, 197, 94, 0.10);
+  color: #166534;
 }
 
 /* Reservada */
 .slot-reserved {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--ica-orange);
+  color: #9a3412;
 }
 
 /* Confirmada */
 .slot-confirmed {
-  background: #dbeafe;
+  background: rgba(59, 130, 246, 0.12);
   color: #1e3a8a;
 }
 
 /* Bloqueada */
 .slot-blocked {
-  background: #f1f5f9;
-  color: #475569;
+  background: rgba(226, 232, 240, 0.6);
+  color: rgba(71, 85, 105, 0.8);
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
-/* Cancelada (si se muestra) */
+/* Cancelada */
 .slot-cancelled {
-  background: #f8fafc;
-  color: #94a3b8;
+  background: rgba(248, 250, 252, 0.9);
+  color: rgba(148, 163, 184, 0.9);
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* =====================================================
+   RESPONSIVE MOBILE
+===================================================== */
+
+@media (max-width: 720px) {
+  .agenda-page {
+    padding: 12px;
+  }
+
+  .agenda-summary {
+    padding: 14px;
+  }
+
+  .agenda-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slot {
+    height: 48px;
+    font-size: 15px;
+  }
 }
