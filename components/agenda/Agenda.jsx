@@ -5,28 +5,18 @@ import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
 
-// API agenda (YA EXISTE)
 import {
   createSlot,
   cancelSlot
 } from "../../services/agendaApi";
-
-/*
-Agenda (ORQUESTADOR REAL – UX LIMPIA)
-
-✔ Mantiene lógica intacta
-✔ NO incluye resumen superior (eso vive en Dashboard)
-✔ Layout limpio boutique
-✔ No toca backend
-*/
 
 // =========================
 // HORARIOS CANÓNICOS
 // =========================
 const TIMES_15_MIN = (() => {
   const out = [];
-  let cur = 9 * 60;     // 09:00
-  const end = 18 * 60;  // 18:00
+  let cur = 9 * 60;
+  const end = 18 * 60;
 
   while (cur < end) {
     const hh = String(Math.floor(cur / 60)).padStart(2, "0");
@@ -49,15 +39,9 @@ export default function Agenda({
   onProfessionalsChange,
   onAgendaChanged
 }) {
-  // =========================
-  // ESTADOS INTERNOS
-  // =========================
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // =========================
-  // VALIDACIÓN DE RENDER
-  // =========================
   const canRenderAgenda =
     !loading &&
     date &&
@@ -66,9 +50,6 @@ export default function Agenda({
     agendaData &&
     agendaData.calendar;
 
-  // =========================
-  // SLOT CLICK (bloqueado si guardando)
-  // =========================
   function handleSelectSlot(slotInfo, profId) {
     if (actionLoading) return;
 
@@ -78,12 +59,12 @@ export default function Agenda({
     });
   }
 
-  // =========================
-  // RENDER
-  // =========================
   return (
-    <div className="agenda-page">
-      {/* ===== TOOLBAR ===== */}
+    <section className="agenda-page">
+
+      {/* =========================
+          TOOLBAR (FILTROS)
+         ========================= */}
       <AgendaToolbar
         date={date}
         box={box}
@@ -93,49 +74,58 @@ export default function Agenda({
         onProfessionalsChange={onProfessionalsChange}
       />
 
-      {/* ===== ESTADOS ===== */}
-      {loading && (
-        <div className="agenda-state">
-          Cargando agenda…
-        </div>
-      )}
+      {/* =========================
+          CONTENEDOR AGENDA (FOCO)
+         ========================= */}
+      <section className="agenda-container">
 
-      {!loading && (!date || !box || professionals.length === 0) && (
-        <div className="agenda-state">
-          Selecciona fecha, box y profesional(es)
-        </div>
-      )}
+        {/* ===== ESTADOS ===== */}
+        {loading && (
+          <div className="agenda-state">
+            Cargando agenda…
+          </div>
+        )}
 
-      {!loading && date && box && professionals.length > 0 && !agendaData && (
-        <div className="agenda-state">
-          Sin datos de agenda para el día seleccionado
-        </div>
-      )}
+        {!loading && (!date || !box || professionals.length === 0) && (
+          <div className="agenda-state">
+            Selecciona fecha, box y profesional
+          </div>
+        )}
 
-      {/* ===== GRID PRINCIPAL ===== */}
-      {canRenderAgenda && (
-        <div className="agenda-grid">
-          {professionals.map((profId) => {
-            const profCalendar =
-              agendaData.calendar[profId] || { slots: {} };
+        {!loading && date && box && professionals.length > 0 && !agendaData && (
+          <div className="agenda-state">
+            Sin datos de agenda para el día seleccionado
+          </div>
+        )}
 
-            return (
-              <AgendaColumn
-                key={profId}
-                professionalId={profId}
-                box={box}
-                times={TIMES_15_MIN}
-                slots={profCalendar.slots}
-                onSelectSlot={(slotInfo) =>
-                  handleSelectSlot(slotInfo, profId)
-                }
-              />
-            );
-          })}
-        </div>
-      )}
+        {/* ===== GRID PRINCIPAL ===== */}
+        {canRenderAgenda && (
+          <div className="agenda-grid">
+            {professionals.map((profId) => {
+              const profCalendar =
+                agendaData.calendar[profId] || { slots: {} };
 
-      {/* ===== MODAL ===== */}
+              return (
+                <AgendaColumn
+                  key={profId}
+                  professionalId={profId}
+                  box={box}
+                  times={TIMES_15_MIN}
+                  slots={profCalendar.slots}
+                  onSelectSlot={(slotInfo) =>
+                    handleSelectSlot(slotInfo, profId)
+                  }
+                />
+              );
+            })}
+          </div>
+        )}
+
+      </section>
+
+      {/* =========================
+          MODAL
+         ========================= */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
@@ -144,13 +134,9 @@ export default function Agenda({
           if (!actionLoading) setSelectedSlot(null);
         }}
 
-        // =========================
-        // RESERVAR
-        // =========================
         onReserve={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
-
             await createSlot({
               date,
               box,
@@ -159,7 +145,6 @@ export default function Agenda({
               rut: patient.rut,
               status: "reserved"
             });
-
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
@@ -167,13 +152,9 @@ export default function Agenda({
           }
         }}
 
-        // =========================
-        // CONFIRMAR
-        // =========================
         onConfirm={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
-
             await createSlot({
               date,
               box,
@@ -182,7 +163,6 @@ export default function Agenda({
               rut: patient.rut,
               status: "confirmed"
             });
-
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
@@ -190,19 +170,14 @@ export default function Agenda({
           }
         }}
 
-        // =========================
-        // ANULAR
-        // =========================
         onCancel={async () => {
           try {
             setActionLoading(true);
-
             await cancelSlot({
               date,
               professional: selectedSlot.professional,
               time: selectedSlot.time
             });
-
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
@@ -210,14 +185,11 @@ export default function Agenda({
           }
         }}
 
-        // =========================
-        // REPROGRAMAR (pendiente)
-        // =========================
         onReschedule={async () => {
-          alert("Reprogramación pendiente de UI");
+          alert("Reprogramación pendiente");
           setSelectedSlot(null);
         }}
       />
-    </div>
+    </section>
   );
 }
