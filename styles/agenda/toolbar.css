@@ -1,91 +1,176 @@
-/* =====================================================
-   ICA – AGENDA TOOLBAR (BOUTIQUE PREMIUM)
-   Archivo: /styles/agenda/toolbar.css
-   NO cambia lógica, solo estética.
-   ===================================================== */
+/* =========================================
+   ICA TOOLBAR — BOUTIQUE PREMIUM (FINAL 2026)
+========================================= */
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
 .agenda-toolbar {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  /* ===== Theme Vars ICA ===== */
+  --focus: #0f766e;
+  --border: rgba(148, 163, 184, 0.35);
+  --shadow: rgba(15, 23, 42, 0.06);
+  --text-label: rgba(30, 41, 59, 0.65);
+  --bg-glass: rgba(255, 255, 255, 0.88);
 
-  padding: 18px;
-  margin-bottom: 18px;
-
-  background: #ffffff;
-  border-radius: 18px;
-
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-}
-
-/* ===== CADA CAMPO ===== */
-.agenda-toolbar > div {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 20px;
+
+  /* Glass premium */
+  backdrop-filter: blur(12px);
+  background: linear-gradient(
+    180deg,
+    var(--bg-glass),
+    #f8fafc
+  );
+
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 10px 30px var(--shadow);
+
+  margin-bottom: 16px;
 }
 
-/* ===== LABELS (Boutique clean) ===== */
+/* =========================================
+   FIELD BLOCKS (ICA Cards)
+========================================= */
+
+.agenda-toolbar > div {
+  flex: 1;
+  min-width: 170px;
+  max-width: 100%;
+
+  padding: 6px 8px;
+  border-radius: 14px;
+
+  /* subtle separation */
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* =========================================
+   LABELS — Premium Clinic
+========================================= */
+
 .agenda-toolbar label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  color: #334155;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  color: var(--text-label);
+  margin-bottom: 6px;
+  display: block;
 }
 
-/* ===== INPUTS Y SELECTS ===== */
+/* =========================================
+   INPUTS + SELECTS
+========================================= */
+
 .agenda-toolbar input,
 .agenda-toolbar select {
-  height: 42px;
-  padding: 0 12px;
+  width: 100%;
+  height: 44px;
+  padding: 10px 14px;
 
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  border: 1px solid var(--border);
 
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--bg-glass);
 
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  color: #0f172a;
 
-  transition: all 0.18s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    background 0.2s ease;
 }
 
-/* ===== EFECTO PREMIUM AL ENFOCAR ===== */
+/* Focus boutique */
 .agenda-toolbar input:focus,
 .agenda-toolbar select:focus {
   outline: none;
+  border-color: var(--focus);
+
+  box-shadow:
+    0 0 0 3px rgba(15, 118, 110, 0.18),
+    0 4px 12px rgba(15, 118, 110, 0.12);
+
   background: #ffffff;
-
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.18);
 }
 
-/* ===== HOVER SUTIL ===== */
-.agenda-toolbar input:hover,
-.agenda-toolbar select:hover {
-  border-color: #94a3b8;
-}
-
-/* ===== DISABLED ===== */
+/* Disabled */
 .agenda-toolbar select:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.6);
 }
 
-/* ===== RESPONSIVE MOBILE ===== */
-@media (max-width: 640px) {
+/* Hover (solo desktop) */
+@media (hover: hover) {
+  .agenda-toolbar input:hover,
+  .agenda-toolbar select:not(:disabled):hover {
+    border-color: rgba(15, 118, 110, 0.3);
+  }
+}
+
+/* =========================================
+   MOBILE — ICA Touch Friendly
+========================================= */
+
+@media (max-width: 720px) {
   .agenda-toolbar {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    gap: 12px;
     padding: 14px;
-    border-radius: 14px;
+  }
+
+  .agenda-toolbar > div {
+    min-width: 100%;
+    padding: 6px;
   }
 
   .agenda-toolbar input,
   .agenda-toolbar select {
-    height: 44px;
-    font-size: 15px;
+    height: 48px;
+    font-size: 16px;
+  }
+}
+
+/* =========================================
+   DARK MODE SUPPORT
+========================================= */
+
+@media (prefers-color-scheme: dark) {
+  .agenda-toolbar {
+    --bg-glass: rgba(15, 23, 42, 0.92);
+    --text-label: rgba(148, 163, 184, 0.9);
+
+    background: linear-gradient(
+      180deg,
+      var(--bg-glass),
+      #1e293b
+    );
+
+    border-color: rgba(71, 85, 105, 0.5);
+  }
+
+  .agenda-toolbar input,
+  .agenda-toolbar select {
+    background: rgba(30, 41, 59, 0.85);
+    color: #f1f5f9;
+    border-color: rgba(71, 85, 105, 0.6);
+  }
+}
+
+/* =========================================
+   PRINT FRIENDLY
+========================================= */
+
+@media print {
+  .agenda-toolbar {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    background: white !important;
   }
 }
