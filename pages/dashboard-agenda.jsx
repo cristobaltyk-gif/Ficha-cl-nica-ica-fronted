@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
@@ -12,6 +13,9 @@ export default function DashboardAgenda() {
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
+  // 🔑 FECHA SELECCIONADA DESDE RESUMEN
+  const [selectedDate, setSelectedDate] = useState(null);
+
   return (
     <div className="dashboard-agenda">
 
@@ -20,27 +24,50 @@ export default function DashboardAgenda() {
       =============================== */}
       <header className="agenda-header">
         <h1>Agenda</h1>
-        <p>
-          {isSecretaria && "Vista mensual"}
-          {isMedico && "Vista semanal"}
-        </p>
+        <span className="agenda-mode">
+          {isSecretaria && "Calendario mensual"}
+          {isMedico && "Agenda semanal"}
+        </span>
       </header>
 
       {/* ===============================
-          RESUMEN (SIEMPRE VISIBLE)
+          CUERPO PRINCIPAL (2 ZONAS)
       =============================== */}
-      <section className="agenda-summary">
-        {isSecretaria && <AgendaMonthSummary />}
-        {isMedico && <AgendaWeekSummary />}
-      </section>
+      <div className="agenda-layout">
 
-      {/* ===============================
-          AGENDA PRINCIPAL
-      =============================== */}
-      <section className="agenda-main">
-        <AgendaPage />
-      </section>
+        {/* ===============================
+            ZONA IZQUIERDA — CALENDARIO
+        =============================== */}
+        <aside className="agenda-left">
+          {isSecretaria && (
+            <AgendaMonthSummary
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+          )}
 
+          {isMedico && (
+            <AgendaWeekSummary
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
+          )}
+        </aside>
+
+        {/* ===============================
+            ZONA DERECHA — AGENDA DEL DÍA
+        =============================== */}
+        <main className="agenda-right">
+          {selectedDate ? (
+            <AgendaPage forcedDate={selectedDate} />
+          ) : (
+            <div className="agenda-placeholder">
+              Selecciona un día en el calendario
+            </div>
+          )}
+        </main>
+
+      </div>
     </div>
   );
 }
