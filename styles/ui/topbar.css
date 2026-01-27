@@ -1,48 +1,120 @@
+/* =========================================
+   ICA TOPBAR — BOUTIQUE PREMIUM (2026)
+========================================= */
+
 .topbar {
+  --ica-primary: #0f766e;
+  --ica-bg: rgba(255, 255, 255, 0.9);
+  --ica-border: rgba(148, 163, 184, 0.25);
+  --ica-shadow: rgba(15, 23, 42, 0.08);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 12px 16px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 18px;
+  border-radius: 18px;
+
+  background: var(--ica-bg);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid var(--ica-border);
+  box-shadow: 0 10px 28px var(--ica-shadow);
+
+  margin-bottom: 18px;
 }
 
+/* ==========================
+   BOTONES (ATRÁS + SALIR)
+========================== */
+
+.topbar-btn {
+  height: 44px;
+  min-width: 52px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--ica-primary);
+
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.topbar-btn:hover {
+  background: rgba(15, 118, 110, 0.16);
+  transform: translateY(-1px);
+}
+
+/* ==========================
+   CENTRO (TÍTULO + ROL)
+========================== */
+
 .topbar-center {
+  flex: 1;
   text-align: center;
+
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .topbar-center strong {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 800;
   color: #0f172a;
 }
 
-.topbar-user {
-  font-size: 12px;
-  color: #64748b;
+.topbar-center .role {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(100, 116, 139, 0.9);
 }
 
-.topbar-btn {
-  border: none;
-  background: #f1f5f9;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
+/* ==========================
+   BOTÓN SALIR (DESTACADO)
+========================== */
+
+.topbar-btn.logout {
+  background: linear-gradient(
+    180deg,
+    #dc2626,
+    #b91c1c
+  );
+
+  color: white;
   font-weight: 700;
 }
 
-.topbar-btn:hover {
-  background: #e2e8f0;
-}
-
-.topbar-btn.logout {
-  background: #dc2626;
-  color: white;
-}
-
 .topbar-btn.logout:hover {
-  background: #b91c1c;
+  background: linear-gradient(
+    180deg,
+    #ef4444,
+    #dc2626
+  );
+}
+
+/* ==========================
+   RESPONSIVE MOBILE
+========================== */
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .topbar-center strong {
+    font-size: 16px;
+  }
+
+  .topbar-btn {
+    height: 42px;
+    min-width: 46px;
+  }
 }
