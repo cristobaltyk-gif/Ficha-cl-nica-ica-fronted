@@ -1,13 +1,13 @@
 import Slot from "./Slot";
 
 /*
-AgendaColumn (UX FINAL)
+AgendaColumn (UX FINAL REAL)
 
-✔ Renderiza columna profesional
-✔ Slots coloreados según status
-✔ Bloquea slots no clickeables
-✔ Muestra info mínima si está ocupado
+✔ Card clínica por profesional
+✔ Header fijo (nombre + box)
+✔ Slots agrupados visualmente
 ✔ No toca backend
+✔ No cambia Slot.jsx
 */
 
 function prettyName(id) {
@@ -18,61 +18,58 @@ function prettyName(id) {
 export default function AgendaColumn({
   professionalId,
   box,
-  times,      // ["09:00", "09:15", ...]
-  slots,      // { "09:15": { status, rut? }, ... }
+  times,
+  slots,
   onSelectSlot
 }) {
   const boxLabel = box ? box.replace("box", "") : "?";
 
   return (
-    <div className="agenda-column">
-      {/* ===== HEADER ===== */}
-      <div className="agenda-title">
-        <strong>{prettyName(professionalId)}</strong>
+    <article className="agenda-column">
 
+      {/* =====================
+          HEADER PROFESIONAL
+         ===================== */}
+      <header className="agenda-title">
+        <strong>{prettyName(professionalId)}</strong>
         <span className="agenda-subtitle">
           Box {boxLabel}
         </span>
-      </div>
+      </header>
 
-      {/* ===== SLOTS ===== */}
-      {times.map((time) => {
-        const slot = slots?.[time];
-        const status = slot?.status || "available";
+      {/* =====================
+          LISTA DE SLOTS
+         ===================== */}
+      <section className="agenda-slots">
+        {times.map((time) => {
+          const slot = slots?.[time];
+          const status = slot?.status || "available";
 
-        // Slots que NO deben permitir click
-        const disabled =
-          status === "blocked" ||
-          status === "cancelled";
+          const disabled =
+            status === "blocked" ||
+            status === "cancelled";
 
-        return (
-          <Slot
-            key={`${professionalId}-${time}`}
-            time={time}
-            status={status}
-            disabled={disabled}
+          return (
+            <Slot
+              key={`${professionalId}-${time}`}
+              time={time}
+              status={status}
+              disabled={disabled}
+              label={slot?.rut ? `RUT: ${slot.rut}` : null}
+              onSelect={() => {
+                if (disabled) return;
 
-            // Tooltip simple si está ocupado
-            label={
-              slot?.rut
-                ? `RUT: ${slot.rut}`
-                : null
-            }
-
-            onSelect={() => {
-              if (disabled) return;
-
-              if (typeof onSelectSlot === "function") {
-                onSelectSlot({
+                onSelectSlot?.({
                   time,
                   status,
                   slot
                 });
-              }
-            }}
-          />
-        );
-      })}
-    </div>
+              }}
+            />
+          );
+        })}
+      </section>
+
+    </article>
   );
 }
