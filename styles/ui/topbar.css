@@ -1,6 +1,6 @@
 /* =========================================
-   TOPBAR ICA — AZUL BOUTIQUE PREMIUM REAL
-   Instituto de Cirugía Articular (2026)
+   TOPBAR ICA — PREMIUM CLÍNICO + TECH (2026)
+   Azul ICA + Gris boutique + Accent naranja
 ========================================= */
 
 .topbar {
@@ -8,31 +8,37 @@
   align-items: center;
   justify-content: space-between;
 
-  padding: 14px 18px;
-  border-radius: 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
 
-  background: #ffffff;
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #f8fafc
+  );
 
-  border: 1px solid rgba(30, 64, 175, 0.18);
+  border: 1px solid rgba(15, 23, 42, 0.12);
 
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 
-  margin: 12px 12px 20px;
+  margin: 14px 14px 22px;
 }
 
 /* ==========================
-   BOTÓN ATRÁS (AZUL ICA)
+   BOTÓN ATRÁS (TECH GLASS)
 ========================== */
 
 .topbar-btn {
-  height: 44px;
-  width: 48px;
+  height: 46px;
+  width: 52px;
 
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
 
-  background: rgba(30, 64, 175, 0.10);
-  color: #1e40af;
+  background: rgba(30, 41, 59, 0.06);
+  color: #1e293b;
 
   font-size: 18px;
   font-weight: 800;
@@ -42,16 +48,16 @@
   justify-content: center;
 
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .topbar-btn:hover {
-  background: rgba(30, 64, 175, 0.20);
-  transform: translateY(-1px);
+  background: rgba(30, 41, 59, 0.12);
+  transform: translateY(-2px);
 }
 
 /* ==========================
-   CENTRO (TÍTULO ICA)
+   CENTRO — IDENTIDAD ICA
 ========================== */
 
 .topbar-center {
@@ -60,55 +66,90 @@
 
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .topbar-center strong {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 900;
   color: #0f172a;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
 
-/* Usuario + rol (ICA boutique discreto) */
+/* Usuario + rol boutique */
 .topbar-user {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(30, 64, 175, 0.70);
+  color: rgba(30, 41, 59, 0.65);
+}
+
+/* Accent naranja tecnológico */
+.topbar-user::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  margin: 6px auto 0;
+
+  border-radius: 99px;
+  background: linear-gradient(
+    90deg,
+    #f97316,
+    #fb923c
+  );
 }
 
 /* ==========================
-   BOTÓN SALIR (AZUL OSCURO ICA)
+   BOTÓN SALIR — PREMIUM ICA
 ========================== */
 
 .topbar-btn.logout {
   width: auto;
   padding: 0 18px;
 
-  background: #1e3a8a;
-  color: white;
+  border-radius: 16px;
 
+  background: linear-gradient(
+    180deg,
+    #1e293b,
+    #0f172a
+  );
+
+  color: white;
   font-size: 15px;
   font-weight: 700;
 
-  border-radius: 14px;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.25);
+
+  transition: all 0.25s ease;
 }
 
 .topbar-btn.logout:hover {
-  background: #172554;
+  transform: translateY(-2px);
+  background: linear-gradient(
+    180deg,
+    #334155,
+    #111827
+  );
+}
+
+/* Naranjo tech glow al presionar */
+.topbar-btn.logout:active {
+  outline: 2px solid rgba(249, 115, 22, 0.45);
 }
 
 /* ==========================
-   MOBILE RESPONSIVE
+   MOBILE OPTIMIZADO
 ========================== */
 
 @media (max-width: 640px) {
   .topbar {
-    padding: 12px 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
   }
 
   .topbar-center strong {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .topbar-user {
@@ -116,8 +157,8 @@
   }
 
   .topbar-btn {
-    height: 42px;
-    width: 44px;
+    height: 44px;
+    width: 46px;
   }
 
   .topbar-btn.logout {
