@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "../../styles/agenda/agenda-summary-selector.css";
 
 /*
-AgendaSummarySelector — PRODUCCIÓN
+AgendaSummarySelector — PRODUCCIÓN FINAL
 
 Responsabilidad:
 - Selector maestro de profesionales (1–4)
@@ -13,38 +13,45 @@ Responsabilidad:
 */
 
 export default function AgendaSummarySelector({
-  professionals = [],               // [{ id, name }]
+  professionals = [],   // [{ id, name }]
   max = 4,
-  onChange,                         // ({ mode, selectedProfessionals })
+  onChange,
+  defaultMode = "monthly",
 }) {
-  const [mode, setMode] = useState("monthly");
+  const [mode, setMode] = useState(defaultMode);
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
-  // Notificar cambios al padre (DashboardAgenda)
+  // 🔔 Notificar cambios SOLO cuando hay cambios reales
   useEffect(() => {
-    onChange?.({
+    if (!onChange) return;
+
+    onChange({
       mode,
       selectedProfessionals,
     });
-  }, [mode, selectedProfessionals]);
+  }, [mode, selectedProfessionals, onChange]);
 
   function toggleProfessional(id) {
     setSelectedProfessionals((prev) => {
       if (prev.includes(id)) {
         return prev.filter((x) => x !== id);
       }
+
       if (prev.length >= max) return prev;
+
       return [...prev, id];
     });
   }
 
   return (
     <section className="agenda-summary-selector">
+
       {/* =========================
           MODO RESUMEN
       ========================= */}
       <div className="summary-mode">
         <button
+          type="button"
           className={mode === "monthly" ? "active" : ""}
           onClick={() => setMode("monthly")}
         >
@@ -52,6 +59,7 @@ export default function AgendaSummarySelector({
         </button>
 
         <button
+          type="button"
           className={mode === "weekly" ? "active" : ""}
           onClick={() => setMode("weekly")}
         >
@@ -69,16 +77,28 @@ export default function AgendaSummarySelector({
           </div>
         )}
 
-        {professionals.map((p) => (
-          <label key={p.id} className="professional-item">
-            <input
-              type="checkbox"
-              checked={selectedProfessionals.includes(p.id)}
-              onChange={() => toggleProfessional(p.id)}
-            />
-            {p.name}
-          </label>
-        ))}
+        {professionals.map((p) => {
+          const checked = selectedProfessionals.includes(p.id);
+          const disabled =
+            !checked && selectedProfessionals.length >= max;
+
+          return (
+            <label
+              key={p.id}
+              className={`professional-item ${
+                checked ? "active" : ""
+              } ${disabled ? "disabled" : ""}`}
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                disabled={disabled}
+                onChange={() => toggleProfessional(p.id)}
+              />
+              {p.name}
+            </label>
+          );
+        })}
       </div>
 
       {/* =========================
