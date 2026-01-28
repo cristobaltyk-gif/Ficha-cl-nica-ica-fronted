@@ -39,7 +39,7 @@ export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
   useEffect(() => {
     async function loadProfessionals() {
       try {
-        const res = await fetch(`${API_URL}/agenda/professionals`);
+        const res = await fetch(`${API_URL}/professionals`);
         const data = await res.json();
 
         setProfessionals(data);
