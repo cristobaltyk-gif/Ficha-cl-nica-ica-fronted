@@ -3,14 +3,6 @@ import Agenda from "../components/agenda/Agenda.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/*
-AgendaPage — PRODUCCIÓN
-
-✔ Recibe profesionales ya seleccionados
-✔ Carga SOLO agenda diaria
-✔ No decide selección global
-*/
-
 export default function AgendaPage({ forcedDate, professionals = [] }) {
   // =========================
   // FECHA
@@ -19,7 +11,6 @@ export default function AgendaPage({ forcedDate, professionals = [] }) {
     forcedDate || new Date().toISOString().slice(0, 10)
   );
 
-  // 🔑 sincroniza cuando cambia desde el resumen
   useEffect(() => {
     if (forcedDate) {
       setDate(forcedDate);
@@ -38,28 +29,38 @@ export default function AgendaPage({ forcedDate, professionals = [] }) {
   const [reloadKey, setReloadKey] = useState(0);
 
   // =========================
-  // AGENDA (POR FECHA)
+  // CARGA AGENDA
   // =========================
   useEffect(() => {
+    if (!date) return;
+
+    const controller = new AbortController();
+
     async function loadAgenda() {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(`${API_URL}/agenda?date=${date}`);
+        const res = await fetch(
+          `${API_URL}/agenda?date=${date}`,
+          { signal: controller.signal }
+        );
+
         const data = await res.json();
         setAgendaData(data);
-      } catch {
-        setError("Error cargando agenda");
-        setAgendaData(null);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setError("Error cargando agenda");
+          // ❌ NO limpiar agendaData
+        }
       } finally {
         setLoading(false);
       }
     }
 
-    if (date) {
-      loadAgenda();
-    }
+    loadAgenda();
+
+    return () => controller.abort();
   }, [date, reloadKey]);
 
   // =========================
