@@ -4,25 +4,25 @@ import { useEffect, useState } from "react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaMonthSummary (CANÓNICO)
+AgendaMonthSummary (CANÓNICO FINAL)
 
-✔ Soporta hasta 4 médicos seleccionados
-✔ Pinta disponibilidad mensual real
+✔ Muestra disponibilidad mensual de 1 profesional
+✔ Secretaría puede ver hasta 4 porque el ORQUESTADOR lo repite
 ✔ Click en día → abre Agenda diaria
-✔ NO usa medico1/medico2
-✔ Usa selectedDate + onSelectDate
+✔ NO combina médicos aquí
+✔ NO inventa nombres
 */
 
 export default function AgendaMonthSummary({
-  professionals = [],         // ["dr_huerta","dr_espinoza"]
-  selectedDate,               // "2026-01-27"
-  onSelectDate                // function(day)
+  professional,     // ID real del backend (ej: "dr_huerta")
+  selectedDate,     // "2026-01-27"
+  onSelectDate      // function(day)
 }) {
   const [days, setDays] = useState({});
   const [loading, setLoading] = useState(false);
 
   // ============================
-  // MES ACTUAL (si no hay fecha, hoy)
+  // MES ACTUAL (si no hay fecha → hoy)
   // ============================
   const baseDate =
     selectedDate || new Date().toISOString().slice(0, 10);
@@ -33,7 +33,7 @@ export default function AgendaMonthSummary({
   // FETCH SUMMARY MENSUAL
   // ============================
   useEffect(() => {
-    if (!professionals.length) {
+    if (!professional) {
       setDays({});
       return;
     }
@@ -44,22 +44,22 @@ export default function AgendaMonthSummary({
       setLoading(true);
 
       try {
-        // 🔥 Traemos resumen del primer médico seleccionado
-        // (después puedes combinar varios)
-        const mainProfessional = professionals[0];
-
         const res = await fetch(
-          `${API_URL}/agenda/summary/month?professional=${mainProfessional}&month=${month}`
+          `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
         );
 
-        if (!res.ok) return;
+        if (!res.ok) {
+          setDays({});
+          return;
+        }
 
         const data = await res.json();
 
         if (!cancelled) {
           setDays(data.days || {});
         }
-      } catch {
+      } catch (err) {
+        console.error("Error resumen mensual", err);
         setDays({});
       } finally {
         if (!cancelled) setLoading(false);
@@ -71,7 +71,7 @@ export default function AgendaMonthSummary({
     return () => {
       cancelled = true;
     };
-  }, [professionals, month]);
+  }, [professional, month]);
 
   // ============================
   // HELPERS UI
@@ -84,7 +84,7 @@ export default function AgendaMonthSummary({
   }
 
   // ============================
-  // CLICK DÍA → AGENDA
+  // CLICK DÍA → ABRIR AGENDA
   // ============================
   function handleClick(day) {
     if (typeof onSelectDate === "function") {
@@ -97,13 +97,13 @@ export default function AgendaMonthSummary({
   // ============================
   return (
     <div className="month-summary">
-      <h3>📅 Resumen mensual</h3>
+      <h3>📅 {professional}</h3>
 
       {/* Estado */}
       {loading && <p>Cargando disponibilidad…</p>}
 
       {!loading && Object.keys(days).length === 0 && (
-        <p>No hay datos de agenda para este mes.</p>
+        <p>No hay agenda para este mes.</p>
       )}
 
       {/* Calendario */}
