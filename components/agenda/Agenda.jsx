@@ -40,17 +40,20 @@ export default function Agenda({
   const [actionLoading, setActionLoading] = useState(false);
 
   // =========================
-  // CAN RENDER (SIN BLOQUEO BOX)
+  // CAN RENDER (NO SE DESMONTA CON LOADING)
   // =========================
   const canRenderAgenda =
-    !loading &&
     date &&
     professionals.length > 0 &&
     agendaData &&
     agendaData.calendar;
 
+  // =========================
+  // SELECT SLOT (DEFENSIVO)
+  // =========================
   function handleSelectSlot(slotInfo, profId) {
     if (actionLoading) return;
+    if (!slotInfo || !slotInfo.time) return;
 
     setSelectedSlot({
       ...slotInfo,
@@ -76,29 +79,21 @@ export default function Agenda({
           CONTENEDOR AGENDA
          ========================= */}
       <section className="agenda-container">
-        {/* ===== ESTADOS ===== */}
-        {loading && (
-          <div className="agenda-state">Cargando agenda…</div>
-        )}
-
-        {/* ✅ Ya no exige box */}
-        {!loading && (!date || professionals.length === 0) && (
+        {/* ===== MENSAJES DE ESTADO ===== */}
+        {!date || professionals.length === 0 ? (
           <div className="agenda-state">
             Selecciona fecha y profesional
           </div>
-        )}
-
-        {!loading && date && professionals.length > 0 && !agendaData && (
+        ) : !agendaData ? (
           <div className="agenda-state">
             Sin datos de agenda para el día seleccionado
           </div>
-        )}
+        ) : null}
 
-        {/* ===== GRID PRINCIPAL ===== */}
+        {/* ===== GRID PRINCIPAL (NUNCA SE DESMONTA POR LOADING) ===== */}
         {canRenderAgenda && (
           <div className="agenda-grid">
             {professionals.map((prof) => {
-              // ✅ professionals ahora son objetos
               const profId = prof.id;
 
               const profCalendar =
@@ -117,6 +112,13 @@ export default function Agenda({
                 />
               );
             })}
+          </div>
+        )}
+
+        {/* ===== OVERLAY LOADING ===== */}
+        {loading && (
+          <div className="agenda-state agenda-loading">
+            Cargando agenda…
           </div>
         )}
       </section>
