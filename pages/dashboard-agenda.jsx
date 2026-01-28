@@ -10,14 +10,13 @@ import AgendaSummarySelector from "./agenda/AgendaSummarySelector.jsx";
 import "../styles/agenda/dashboard-agenda.css";
 
 /*
-DashboardAgenda – ESTRUCTURA CANÓNICA FINAL
+DashboardAgenda – CANÓNICO FINAL
 
 ✔ Selector resumen (mensual/semanal)
-✔ Selección hasta 4 médicos (desde backend real)
-✔ Resumen siempre visible
-✔ Agenda diaria se abre desde resumen
+✔ Secretaría elige hasta 4 médicos reales
+✔ Renderiza 1–4 calendarios simultáneos
+✔ Click día → abre Agenda diaria
 ✔ NO toca Agenda.jsx
-✔ NO CSS nuevo
 */
 
 export default function DashboardAgenda() {
@@ -36,9 +35,7 @@ export default function DashboardAgenda() {
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // ===============================
-  // PROFESIONALES DISPONIBLES (REAL)
-  // ===============================
+  // Profesionales disponibles reales (desde backend)
   const [availableProfessionals, setAvailableProfessionals] = useState([]);
 
   return (
@@ -65,7 +62,7 @@ export default function DashboardAgenda() {
           onChange={({ mode, selectedProfessionals }) => {
             setSummaryMode(mode);
             setSelectedProfessionals(selectedProfessionals);
-            setSelectedDate(null);
+            setSelectedDate(null); // reset día al cambiar contexto
           }}
         />
       )}
@@ -76,24 +73,37 @@ export default function DashboardAgenda() {
       <div className="agenda-layout">
 
         {/* ===============================
-            IZQUIERDA — RESUMEN
+            IZQUIERDA — RESUMEN (1–4 médicos)
         =============================== */}
         <aside className="agenda-left">
 
-          {summaryMode === "monthly" && (
-            <AgendaMonthSummary
-              professionals={selectedProfessionals}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
-          )}
+          {/* ===== MENSUAL ===== */}
+          {summaryMode === "monthly" &&
+            selectedProfessionals.map((profId) => (
+              <AgendaMonthSummary
+                key={profId}
+                professional={profId}
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+              />
+            ))}
 
-          {summaryMode === "weekly" && (
-            <AgendaWeekSummary
-              professionals={selectedProfessionals}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
+          {/* ===== SEMANAL ===== */}
+          {summaryMode === "weekly" &&
+            selectedProfessionals.map((profId) => (
+              <AgendaWeekSummary
+                key={profId}
+                professional={profId}
+                selectedDate={selectedDate}
+                onSelectDate={setSelectedDate}
+              />
+            ))}
+
+          {/* Si no hay médicos seleccionados */}
+          {selectedProfessionals.length === 0 && (
+            <div className="agenda-placeholder">
+              Selecciona hasta 4 profesionales arriba
+            </div>
           )}
 
         </aside>
@@ -103,18 +113,16 @@ export default function DashboardAgenda() {
         =============================== */}
         <main className="agenda-right">
 
-          {/* AgendaPage siempre vive aquí */}
-          <AgendaPage
-            forcedDate={selectedDate}
+          {selectedDate ? (
+            <AgendaPage
+              forcedDate={selectedDate}
 
-            /* 🔥 IMPORTANTE:
-               aquí capturamos los profesionales reales */
-            onProfessionalsLoaded={(list) => {
-              setAvailableProfessionals(list);
-            }}
-          />
-
-          {!selectedDate && (
+              // Captura profesionales reales desde backend
+              onProfessionalsLoaded={(list) => {
+                setAvailableProfessionals(list);
+              }}
+            />
+          ) : (
             <div className="agenda-placeholder">
               Selecciona un día en el resumen
             </div>
