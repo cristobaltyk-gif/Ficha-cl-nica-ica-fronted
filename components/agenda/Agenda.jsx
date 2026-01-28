@@ -5,10 +5,7 @@ import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
 
-import {
-  createSlot,
-  cancelSlot
-} from "../../services/agendaApi";
+import { createSlot, cancelSlot } from "../../services/agendaApi";
 
 // =========================
 // HORARIOS CANÓNICOS
@@ -37,15 +34,17 @@ export default function Agenda({
   onDateChange,
   onBoxChange,
   onProfessionalsChange,
-  onAgendaChanged
+  onAgendaChanged,
 }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
+  // =========================
+  // CAN RENDER (SIN BLOQUEO BOX)
+  // =========================
   const canRenderAgenda =
     !loading &&
     date &&
-    box &&
     professionals.length > 0 &&
     agendaData &&
     agendaData.calendar;
@@ -55,13 +54,12 @@ export default function Agenda({
 
     setSelectedSlot({
       ...slotInfo,
-      professional: profId
+      professional: profId,
     });
   }
 
   return (
     <section className="agenda-page">
-
       {/* =========================
           TOOLBAR (FILTROS)
          ========================= */}
@@ -75,24 +73,22 @@ export default function Agenda({
       />
 
       {/* =========================
-          CONTENEDOR AGENDA (FOCO)
+          CONTENEDOR AGENDA
          ========================= */}
       <section className="agenda-container">
-
         {/* ===== ESTADOS ===== */}
         {loading && (
+          <div className="agenda-state">Cargando agenda…</div>
+        )}
+
+        {/* ✅ Ya no exige box */}
+        {!loading && (!date || professionals.length === 0) && (
           <div className="agenda-state">
-            Cargando agenda…
+            Selecciona fecha y profesional
           </div>
         )}
 
-        {!loading && (!date || !box || professionals.length === 0) && (
-          <div className="agenda-state">
-            Selecciona fecha, box y profesional
-          </div>
-        )}
-
-        {!loading && date && box && professionals.length > 0 && !agendaData && (
+        {!loading && date && professionals.length > 0 && !agendaData && (
           <div className="agenda-state">
             Sin datos de agenda para el día seleccionado
           </div>
@@ -101,7 +97,10 @@ export default function Agenda({
         {/* ===== GRID PRINCIPAL ===== */}
         {canRenderAgenda && (
           <div className="agenda-grid">
-            {professionals.map((profId) => {
+            {professionals.map((prof) => {
+              // ✅ professionals ahora son objetos
+              const profId = prof.id;
+
               const profCalendar =
                 agendaData.calendar[profId] || { slots: {} };
 
@@ -120,7 +119,6 @@ export default function Agenda({
             })}
           </div>
         )}
-
       </section>
 
       {/* =========================
@@ -133,58 +131,60 @@ export default function Agenda({
         onClose={() => {
           if (!actionLoading) setSelectedSlot(null);
         }}
-
         onReserve={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
+
             await createSlot({
               date,
               box,
               professional: slot.professional,
               time: slot.time,
               rut: patient.rut,
-              status: "reserved"
+              status: "reserved",
             });
+
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
-
         onConfirm={async ({ slot, patient }) => {
           try {
             setActionLoading(true);
+
             await createSlot({
               date,
               box,
               professional: slot.professional,
               time: slot.time,
               rut: patient.rut,
-              status: "confirmed"
+              status: "confirmed",
             });
+
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
-
         onCancel={async () => {
           try {
             setActionLoading(true);
+
             await cancelSlot({
               date,
               professional: selectedSlot.professional,
-              time: selectedSlot.time
+              time: selectedSlot.time,
             });
+
             onAgendaChanged?.();
           } finally {
             setActionLoading(false);
             setSelectedSlot(null);
           }
         }}
-
         onReschedule={async () => {
           alert("Reprogramación pendiente");
           setSelectedSlot(null);
