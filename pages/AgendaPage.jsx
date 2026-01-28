@@ -10,16 +10,20 @@ Orquestador de Agenda (CANÓNICO)
 - Refresca agenda tras acciones
 */
 
-export default function AgendaPage() {
+export default function AgendaPage({
+  forcedDate,
+  onProfessionalsLoaded
+}) {
   // =========================
   // CONTEXTO
   // =========================
 
   const [date, setDate] = useState(
-    new Date().toISOString().slice(0, 10)
+    forcedDate || new Date().toISOString().slice(0, 10)
   );
-  const [box, setBox] = useState(""); // box1 | box2 | box3
-  const [professionals, setProfessionals] = useState([]); // 1 o 2 ids
+
+  const [box, setBox] = useState(""); 
+  const [professionals, setProfessionals] = useState([]);
 
   // =========================
   // DATA
@@ -31,6 +35,47 @@ export default function AgendaPage() {
 
   // 🔑 CLAVE: disparador de recarga
   const [reloadKey, setReloadKey] = useState(0);
+
+  // =========================
+  // SI CAMBIA forcedDate → actualizar date
+  // =========================
+  useEffect(() => {
+    if (forcedDate) {
+      setDate(forcedDate);
+    }
+  }, [forcedDate]);
+
+  // =========================
+  // CARGAR PROFESIONALES (REAL)
+  // =========================
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfessionals() {
+      try {
+        const res = await fetch(`${API_URL}/agenda/professionals`);
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        if (!cancelled) {
+          setProfessionals(data);
+
+          // 🔥 PASAR LISTA AL DASHBOARD
+          onProfessionalsLoaded?.(data);
+        }
+      } catch {
+        // silencio
+      }
+    }
+
+    loadProfessionals();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // =========================
   // CARGA DE AGENDA
@@ -81,7 +126,7 @@ export default function AgendaPage() {
     return () => {
       cancelled = true;
     };
-  }, [date, box, professionals, reloadKey]); // 👈 AQUÍ ESTABA EL PROBLEMA
+  }, [date, box, professionals, reloadKey]);
 
   // =========================
   // ERRORES
