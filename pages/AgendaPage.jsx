@@ -4,25 +4,23 @@ import Agenda from "../components/agenda/Agenda";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-Orquestador de Agenda (CANÓNICO)
-- Maneja contexto
-- Decide cuándo cargar
-- Refresca agenda tras acciones
+AgendaPage SIN BLOQUEOS
+- Siempre usa fecha actual
+- Siempre carga agenda
+- Siempre entrega profesionales al dashboard
+- NO hay condiciones de carga
 */
 
-export default function AgendaPage({
-  forcedDate,
-  onProfessionalsLoaded
-}) {
+export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
   // =========================
-  // CONTEXTO
+  // FECHA SIEMPRE ACTUAL
   // =========================
 
   const [date, setDate] = useState(
     forcedDate || new Date().toISOString().slice(0, 10)
   );
 
-  const [box, setBox] = useState(""); 
+  const [box, setBox] = useState("");
   const [professionals, setProfessionals] = useState([]);
 
   // =========================
@@ -33,113 +31,59 @@ export default function AgendaPage({
   const [agendaData, setAgendaData] = useState(null);
   const [error, setError] = useState(null);
 
-  // 🔑 CLAVE: disparador de recarga
   const [reloadKey, setReloadKey] = useState(0);
 
   // =========================
-  // SI CAMBIA forcedDate → actualizar date
+  // PROFESIONALES (SIEMPRE)
   // =========================
   useEffect(() => {
-    if (forcedDate) {
-      setDate(forcedDate);
-    }
-  }, [forcedDate]);
-
-  // =========================
-  // CARGAR PROFESIONALES (REAL)
-  // =========================
-  useEffect(() => {
-    let cancelled = false;
-
     async function loadProfessionals() {
       try {
         const res = await fetch(`${API_URL}/agenda/professionals`);
-
-        if (!res.ok) return;
-
         const data = await res.json();
 
-        if (!cancelled) {
-          setProfessionals(data);
+        setProfessionals(data);
 
-          // 🔥 PASAR LISTA AL DASHBOARD
-          onProfessionalsLoaded?.(data);
-        }
+        // ✅ SIEMPRE entregar al dashboard
+        onProfessionalsLoaded?.(data);
       } catch {
-        // silencio
+        setProfessionals([]);
+
+        // ✅ incluso si falla
+        onProfessionalsLoaded?.([]);
       }
     }
 
     loadProfessionals();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   // =========================
-  // CARGA DE AGENDA
+  // AGENDA (SIEMPRE SIN IF)
   // =========================
-
   useEffect(() => {
-    let cancelled = false;
-
-    // Regla dura: no cargar sin contexto completo
-    if (!date || !box || professionals.length === 0) {
-      setAgendaData(null);
-      return;
-    }
-
     async function loadAgenda() {
       setLoading(true);
       setError(null);
 
       try {
-        const res = await fetch(
-          `${API_URL}/agenda?date=${date}`,
-          { headers: { Accept: "application/json" } }
-        );
-
-        if (!res.ok) {
-          throw new Error("No se pudo cargar agenda");
-        }
-
+        const res = await fetch(`${API_URL}/agenda?date=${date}`);
         const data = await res.json();
 
-        if (!cancelled) {
-          setAgendaData(data);
-        }
+        setAgendaData(data);
       } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-          setAgendaData(null);
-        }
+        setError("Error cargando agenda");
+        setAgendaData(null);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
     loadAgenda();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [date, box, professionals, reloadKey]);
-
-  // =========================
-  // ERRORES
-  // =========================
-
-  if (error) {
-    return <div className="agenda-state">Error: {error}</div>;
-  }
+  }, [date, reloadKey]);
 
   // =========================
   // RENDER
   // =========================
-
   return (
     <Agenda
       loading={loading}
@@ -147,16 +91,10 @@ export default function AgendaPage({
       box={box}
       professionals={professionals}
       agendaData={agendaData}
-
-      /* setters de contexto */
       onDateChange={setDate}
       onBoxChange={setBox}
       onProfessionalsChange={setProfessionals}
-
-      /* 🔁 REFRESH REAL */
-      onAgendaChanged={() => {
-        setReloadKey((k) => k + 1);
-      }}
+      onAgendaChanged={() => setReloadKey((k) => k + 1)}
     />
   );
 }
