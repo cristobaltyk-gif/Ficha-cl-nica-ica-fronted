@@ -4,29 +4,26 @@ import Agenda from "../components/agenda/Agenda.jsx";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaPage SIN BLOQUEOS
-- Siempre usa fecha actual
-- Siempre carga agenda
-- Siempre entrega profesionales al dashboard
-- NO hay condiciones de carga
+AgendaPage — PRODUCCIÓN
+
+✔ Recibe profesionales ya seleccionados
+✔ Carga SOLO agenda diaria
+✔ No decide selección global
 */
 
-export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
+export default function AgendaPage({ forcedDate, professionals }) {
   // =========================
-  // FECHA SIEMPRE ACTUAL
+  // FECHA
   // =========================
-
   const [date, setDate] = useState(
     forcedDate || new Date().toISOString().slice(0, 10)
   );
 
   const [box, setBox] = useState("");
-  const [professionals, setProfessionals] = useState([]);
 
   // =========================
-  // DATA
+  // DATA AGENDA
   // =========================
-
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [error, setError] = useState(null);
@@ -34,31 +31,7 @@ export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
   const [reloadKey, setReloadKey] = useState(0);
 
   // =========================
-  // PROFESIONALES (SIEMPRE)
-  // =========================
-  useEffect(() => {
-    async function loadProfessionals() {
-      try {
-        const res = await fetch(`${API_URL}/professionals`);
-        const data = await res.json();
-
-        setProfessionals(data);
-
-        // ✅ SIEMPRE entregar al dashboard
-        onProfessionalsLoaded?.(data);
-      } catch {
-        setProfessionals([]);
-
-        // ✅ incluso si falla
-        onProfessionalsLoaded?.([]);
-      }
-    }
-
-    loadProfessionals();
-  }, []);
-
-  // =========================
-  // AGENDA (SIEMPRE SIN IF)
+  // AGENDA (POR FECHA)
   // =========================
   useEffect(() => {
     async function loadAgenda() {
@@ -68,9 +41,8 @@ export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
       try {
         const res = await fetch(`${API_URL}/agenda?date=${date}`);
         const data = await res.json();
-
         setAgendaData(data);
-      } catch (err) {
+      } catch {
         setError("Error cargando agenda");
         setAgendaData(null);
       } finally {
@@ -93,7 +65,6 @@ export default function AgendaPage({ forcedDate, onProfessionalsLoaded }) {
       agendaData={agendaData}
       onDateChange={setDate}
       onBoxChange={setBox}
-      onProfessionalsChange={setProfessionals}
       onAgendaChanged={() => setReloadKey((k) => k + 1)}
     />
   );
