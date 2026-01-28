@@ -1,4 +1,5 @@
 import "../../styles/agenda/toolbar.css";
+import { useState, useEffect } from "react";
 
 export default function AgendaToolbar({
   date,
@@ -9,23 +10,42 @@ export default function AgendaToolbar({
   onProfessionalsChange,
 }) {
   // =========================
-  // Handler selección
+  // FECHA LOCAL (ANTI-COLAPSO)
   // =========================
-  function handleSelect(value) {
+  const [localDate, setLocalDate] = useState(date || "");
+
+  // Mantener sincronía si el padre cambia la fecha
+  useEffect(() => {
+    setLocalDate(date || "");
+  }, [date]);
+
+  function handleDateChange(value) {
+    setLocalDate(value);
+
+    // 🔒 Emitir SOLO si es una fecha válida y distinta
+    if (value && value !== date) {
+      onDateChange?.(value);
+    }
+  }
+
+  // =========================
+  // PROFESIONALES
+  // =========================
+  function handleSelectProfessional(value) {
     if (!value) {
-      // NO destruir la lista
-      onProfessionalsChange(professionals);
+      // “Todos” → devolver lista completa (como ya usabas)
+      onProfessionalsChange?.(professionals);
       return;
     }
 
     const prof = professionals.find((p) => p.id === value);
     if (prof) {
-      onProfessionalsChange([prof]);
+      onProfessionalsChange?.([prof]);
     }
   }
 
   // =========================
-  // Render
+  // RENDER
   // =========================
   return (
     <div className="agenda-toolbar">
@@ -33,14 +53,17 @@ export default function AgendaToolbar({
         <label>Fecha</label>
         <input
           type="date"
-          value={date}
-          onChange={(e) => onDateChange(e.target.value)}
+          value={localDate}
+          onChange={(e) => handleDateChange(e.target.value)}
         />
       </div>
 
       <div className="toolbar-field">
         <label>Box</label>
-        <select value={box} onChange={(e) => onBoxChange(e.target.value)}>
+        <select
+          value={box}
+          onChange={(e) => onBoxChange?.(e.target.value)}
+        >
           <option value="">— Seleccionar —</option>
           <option value="box1">Box 1</option>
           <option value="box2">Box 2</option>
@@ -50,7 +73,7 @@ export default function AgendaToolbar({
 
       <div className="toolbar-field">
         <label>Profesional</label>
-        <select onChange={(e) => handleSelect(e.target.value)}>
+        <select onChange={(e) => handleSelectProfessional(e.target.value)}>
           <option value="">— Todos —</option>
           {professionals.map((p) => (
             <option key={p.id} value={p.id}>
