@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Agenda from "../components/agenda/Agenda";
+import Agenda from "../components/agenda/Agenda.jxs";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
