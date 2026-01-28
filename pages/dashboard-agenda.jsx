@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
@@ -18,7 +18,7 @@ DashboardAgenda – CANÓNICO FINAL (FIX REAL)
 ✔ Secretaría elige hasta 4 médicos reales
 ✔ Renderiza 1–4 calendarios simultáneos
 ✔ Click día → abre Agenda diaria
-✔ Agenda diaria usa LOS MÉDICOS SELECCIONADOS
+✔ Agenda diaria recibe PROFESIONALES COMO OBJETOS
 */
 
 export default function DashboardAgenda() {
@@ -34,10 +34,13 @@ export default function DashboardAgenda() {
     isMedico ? "weekly" : "monthly"
   );
 
+  // IDs seleccionados desde el selector
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
+
+  // Fecha seleccionada desde el resumen
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Profesionales disponibles reales (desde backend)
+  // Profesionales reales (objetos desde backend)
   const [availableProfessionals, setAvailableProfessionals] = useState([]);
 
   // ===============================
@@ -48,7 +51,7 @@ export default function DashboardAgenda() {
       try {
         const res = await fetch(`${API_URL}/professionals`);
         const data = await res.json();
-        setAvailableProfessionals(data);
+        setAvailableProfessionals(Array.isArray(data) ? data : []);
       } catch {
         setAvailableProfessionals([]);
       }
@@ -64,6 +67,17 @@ export default function DashboardAgenda() {
     typeof selectedDate === "string"
       ? selectedDate
       : selectedDate?.date || null;
+
+  // ===============================
+  // 🔑 FIX CLAVE:
+  // Convertir IDs → OBJETOS antes de pasar a AgendaPage
+  // ===============================
+  const selectedProfessionalObjects = useMemo(() => {
+    if (!Array.isArray(selectedProfessionals)) return [];
+    return availableProfessionals.filter((p) =>
+      selectedProfessionals.includes(p.id)
+    );
+  }, [selectedProfessionals, availableProfessionals]);
 
   return (
     <div className="dashboard-agenda">
@@ -123,7 +137,7 @@ export default function DashboardAgenda() {
               />
             ))}
 
-          {/* Si no hay médicos seleccionados */}
+          {/* Placeholder si no hay médicos */}
           {selectedProfessionals.length === 0 && (
             <div className="agenda-placeholder">
               Selecciona hasta 4 profesionales arriba
@@ -138,7 +152,7 @@ export default function DashboardAgenda() {
           {normalizedDate ? (
             <AgendaPage
               forcedDate={normalizedDate}
-              professionals={selectedProfessionals}   {/* 🔑 FIX CLAVE */}
+              professionals={selectedProfessionalObjects}  {/* ✅ OBJETOS */}
             />
           ) : (
             <div className="agenda-placeholder">
