@@ -1,44 +1,55 @@
 import "../../styles/agenda/month-summary.css";
 import { useEffect, useState } from "react";
 
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaMonthSummary (REAL)
+AgendaMonthSummary (CANÓNICO)
 
-✔ Calendario mensual visual
-✔ Endpoint: GET /agenda/summary/month
-✔ Secretaría / Reserva Online / Administrador
-✔ NO depende de AgendaPage
-✔ NO imprime JSON
+✔ Soporta hasta 4 médicos seleccionados
+✔ Pinta disponibilidad mensual real
+✔ Click en día → abre Agenda diaria
+✔ NO usa medico1/medico2
+✔ Usa selectedDate + onSelectDate
 */
 
 export default function AgendaMonthSummary({
-  professional, // ej: "medico1"
-  date          // ej: "2026-01-27"
+  professionals = [],         // ["dr_huerta","dr_espinoza"]
+  selectedDate,               // "2026-01-27"
+  onSelectDate                // function(day)
 }) {
-  const [days, setDays] = useState(null);
+  const [days, setDays] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // =========================
+  // ============================
+  // MES ACTUAL (si no hay fecha, hoy)
+  // ============================
+  const baseDate =
+    selectedDate || new Date().toISOString().slice(0, 10);
+
+  const month = baseDate.slice(0, 7); // YYYY-MM
+
+  // ============================
   // FETCH SUMMARY MENSUAL
-  // =========================
+  // ============================
   useEffect(() => {
-    if (!professional || !date) {
-      setDays(null);
+    if (!professionals.length) {
+      setDays({});
       return;
     }
 
-    const month = date.slice(0, 7); // YYYY-MM
     let cancelled = false;
 
     async function loadMonth() {
       setLoading(true);
 
       try {
+        // 🔥 Traemos resumen del primer médico seleccionado
+        // (después puedes combinar varios)
+        const mainProfessional = professionals[0];
+
         const res = await fetch(
-          `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
+          `${API_URL}/agenda/summary/month?professional=${mainProfessional}&month=${month}`
         );
 
         if (!res.ok) return;
@@ -46,10 +57,10 @@ export default function AgendaMonthSummary({
         const data = await res.json();
 
         if (!cancelled) {
-          setDays(data.days); // 👈 contrato esperado
+          setDays(data.days || {});
         }
       } catch {
-        setDays(null);
+        setDays({});
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -60,48 +71,64 @@ export default function AgendaMonthSummary({
     return () => {
       cancelled = true;
     };
-  }, [professional, date]);
+  }, [professionals, month]);
 
-  // =========================
+  // ============================
   // HELPERS UI
-  // =========================
-  function getColor(status) {
+  // ============================
+  function getClass(status) {
     if (status === "free") return "day free";
     if (status === "low") return "day low";
     if (status === "full") return "day full";
     return "day empty";
   }
 
-  // =========================
-  // RENDER
-  // =========================
-  if (loading) {
-    return (
-      <div className="month-summary">
-        <h3>📅 Calendario mensual</h3>
-        <p>Cargando…</p>
-      </div>
-    );
+  // ============================
+  // CLICK DÍA → AGENDA
+  // ============================
+  function handleClick(day) {
+    if (typeof onSelectDate === "function") {
+      onSelectDate(day);
+    }
   }
 
-  if (!days) return null;
-
+  // ============================
+  // RENDER
+  // ============================
   return (
     <div className="month-summary">
-      <h3>📅 Disponibilidad mensual</h3>
+      <h3>📅 Resumen mensual</h3>
 
+      {/* Estado */}
+      {loading && <p>Cargando disponibilidad…</p>}
+
+      {!loading && Object.keys(days).length === 0 && (
+        <p>No hay datos de agenda para este mes.</p>
+      )}
+
+      {/* Calendario */}
       <div className="month-grid">
-        {Object.entries(days).map(([day, status]) => (
-          <div key={day} className={getColor(status)}>
-            <span className="day-number">{day}</span>
-          </div>
-        ))}
+        {Object.entries(days).map(([day, status]) => {
+          const active = selectedDate === day;
+
+          return (
+            <button
+              key={day}
+              className={`${getClass(status)} ${
+                active ? "selected" : ""
+              }`}
+              onClick={() => handleClick(day)}
+            >
+              {day.slice(-2)}
+            </button>
+          );
+        })}
       </div>
 
-      {/* LEYENDA */}
+      {/* Leyenda */}
       <div className="legend">
         <span><b className="dot free"></b> Libre</span>
-        <span><b className="dot low"></b> Pocos cupos</span>
+        <span><b className="dot low"></b> Pocos</span>
         <span><b className="dot full"></b> Lleno</span>
         <span><b className="dot empty"></b> Sin agenda</span>
       </div>
