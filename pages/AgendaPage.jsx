@@ -11,13 +11,20 @@ AgendaPage — PRODUCCIÓN
 ✔ No decide selección global
 */
 
-export default function AgendaPage({ forcedDate, professionals }) {
+export default function AgendaPage({ forcedDate, professionals = [] }) {
   // =========================
   // FECHA
   // =========================
   const [date, setDate] = useState(
     forcedDate || new Date().toISOString().slice(0, 10)
   );
+
+  // 🔑 sincroniza cuando cambia desde el resumen
+  useEffect(() => {
+    if (forcedDate) {
+      setDate(forcedDate);
+    }
+  }, [forcedDate]);
 
   const [box, setBox] = useState("");
 
@@ -50,7 +57,9 @@ export default function AgendaPage({ forcedDate, professionals }) {
       }
     }
 
-    loadAgenda();
+    if (date) {
+      loadAgenda();
+    }
   }, [date, reloadKey]);
 
   // =========================
