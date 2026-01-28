@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
@@ -8,6 +8,8 @@ import AgendaWeekSummary from "./agenda/AgendaWeekSummary.jsx";
 import AgendaSummarySelector from "./agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 DashboardAgenda – CANÓNICO FINAL
@@ -37,6 +39,23 @@ export default function DashboardAgenda() {
 
   // Profesionales disponibles reales (desde backend)
   const [availableProfessionals, setAvailableProfessionals] = useState([]);
+
+  // ===============================
+  // CARGA PROFESIONALES (GLOBAL)
+  // ===============================
+  useEffect(() => {
+    async function loadProfessionals() {
+      try {
+        const res = await fetch(`${API_URL}/professionals`);
+        const data = await res.json();
+        setAvailableProfessionals(data);
+      } catch {
+        setAvailableProfessionals([]);
+      }
+    }
+
+    loadProfessionals();
+  }, []);
 
   return (
     <div className="dashboard-agenda">
@@ -116,11 +135,6 @@ export default function DashboardAgenda() {
           {selectedDate ? (
             <AgendaPage
               forcedDate={selectedDate}
-
-              // Captura profesionales reales desde backend
-              onProfessionalsLoaded={(list) => {
-                setAvailableProfessionals(list);
-              }}
             />
           ) : (
             <div className="agenda-placeholder">
