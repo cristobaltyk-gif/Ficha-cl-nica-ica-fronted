@@ -8,14 +8,17 @@ CalendarMonthView (Secretaría)
 
 ✔ Vista mensual completa
 ✔ Días coloreados según disponibilidad
-✔ Click → selecciona fecha para Agenda
+✔ Click → devuelve OBJETO { date }
+✔ NO orquesta
+✔ NO decide flujos
+✔ Solo pinta + notifica
 */
 
 export default function CalendarMonthView({
-  professional,
-  month,
-  selectedDate,
-  onSelectDate
+  professional,          // objeto o id ya resuelto por el padre
+  month,                 // "YYYY-MM"
+  selectedDate,          // { date: "YYYY-MM-DD" } | null
+  onSelectDate           // function({ date })
 }) {
   const [days, setDays] = useState({});
   const [loading, setLoading] = useState(false);
@@ -25,6 +28,8 @@ export default function CalendarMonthView({
   // ============================
   useEffect(() => {
     if (!professional || !month) return;
+
+    let cancelled = false;
 
     async function loadSummary() {
       setLoading(true);
@@ -36,21 +41,26 @@ export default function CalendarMonthView({
 
         const data = await res.json();
 
-        if (res.ok) {
+        if (!cancelled && res.ok) {
           setDays(data.days || {});
         }
       } catch (err) {
         console.error("Error summary mensual", err);
+        if (!cancelled) setDays({});
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     loadSummary();
+
+    return () => {
+      cancelled = true;
+    };
   }, [professional, month]);
 
   // ============================
-  // Render calendario simple
+  // Render calendario
   // ============================
   const dayKeys = Object.keys(days);
 
@@ -60,17 +70,24 @@ export default function CalendarMonthView({
 
       {loading && <p>Cargando calendario…</p>}
 
+      {!loading && dayKeys.length === 0 && (
+        <p>No hay agenda para este mes.</p>
+      )}
+
       <div className="month-grid">
         {dayKeys.map((day) => {
           const status = days[day]; // free | low | full | empty
+          const isSelected = selectedDate?.date === day;
 
           return (
             <button
               key={day}
               className={`day-cell ${status} ${
-                selectedDate === day ? "selected" : ""
+                isSelected ? "selected" : ""
               }`}
-              onClick={() => onSelectDate(day)}
+              onClick={() =>
+                onSelectDate?.({ date: day })
+              }
             >
               {day.slice(-2)}
             </button>
