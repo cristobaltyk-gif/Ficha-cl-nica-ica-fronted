@@ -167,4 +167,4 @@ export default function AgendaSummarySelector({
       </div>
     </section>
   );
-          }
+}
