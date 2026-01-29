@@ -11,16 +11,6 @@ import "../styles/agenda/dashboard-agenda.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/*
-DashboardAgenda – CANÓNICO FINAL
-
-✔ Selector resumen (mensual/semanal)
-✔ Secretaría elige hasta 4 médicos
-✔ Renderiza 1–4 calendarios
-✔ Click día → abre Agenda diaria
-✔ Agenda diaria recibe profesionales COMO OBJETOS
-*/
-
 export default function DashboardAgenda() {
   const { role } = useAuth();
 
@@ -34,13 +24,14 @@ export default function DashboardAgenda() {
     isMedico ? "weekly" : "monthly"
   );
 
-  // IDs seleccionados desde el selector
+  // IDs seleccionados
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
-  // Fecha seleccionada desde el resumen
+  // Fecha seleccionada (CONTRATO ÚNICO)
+  // { date: "YYYY-MM-DD" } | null
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Profesionales reales (objetos)
+  // Profesionales reales
   const [availableProfessionals, setAvailableProfessionals] = useState([]);
 
   // ===============================
@@ -61,18 +52,14 @@ export default function DashboardAgenda() {
   }, []);
 
   // ===============================
-  // NORMALIZAR FECHA
+  // FECHA NORMALIZADA (YA STRING)
   // ===============================
-  const normalizedDate =
-    typeof selectedDate === "string"
-      ? selectedDate
-      : selectedDate?.date || null;
+  const normalizedDate = selectedDate?.date || null;
 
   // ===============================
-  // IDs → OBJETOS (FIX CLAVE)
+  // IDs → OBJETOS (AGENDA DIARIA)
   // ===============================
   const selectedProfessionalObjects = useMemo(() => {
-    if (!Array.isArray(selectedProfessionals)) return [];
     return availableProfessionals.filter((p) =>
       selectedProfessionals.includes(p.id)
     );
@@ -80,9 +67,6 @@ export default function DashboardAgenda() {
 
   return (
     <div className="dashboard-agenda">
-      {/* ===============================
-          HEADER
-      =============================== */}
       <header className="agenda-header">
         <h1>Agenda</h1>
         <span className="agenda-mode">
@@ -91,9 +75,7 @@ export default function DashboardAgenda() {
         </span>
       </header>
 
-      {/* ===============================
-          SELECTOR (SECRETARIA)
-      =============================== */}
+      {/* SELECTOR */}
       {isSecretaria && (
         <AgendaSummarySelector
           professionals={availableProfessionals}
@@ -105,33 +87,22 @@ export default function DashboardAgenda() {
         />
       )}
 
-      {/* ===============================
-          CUERPO PRINCIPAL
-      =============================== */}
       <div className="agenda-layout">
-        {/* ===============================
-            IZQUIERDA — RESUMEN
-        =============================== */}
+        {/* RESUMEN */}
         <aside className="agenda-left">
           {summaryMode === "monthly" &&
             selectedProfessionals.map((profId) => (
               <AgendaMonthSummary
                 key={profId}
                 professional={profId}
-                selectedDate={selectedDate}
+                selectedDate={normalizedDate}
                 onSelectDate={setSelectedDate}
               />
             ))}
 
-          {summaryMode === "weekly" &&
-            selectedProfessionals.map((profId) => (
-              <AgendaWeekSummary
-                key={profId}
-                professional={profId}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-              />
-            ))}
+          {summaryMode === "weekly" && isMedico && (
+            <AgendaWeekSummary />
+          )}
 
           {selectedProfessionals.length === 0 && (
             <div className="agenda-placeholder">
@@ -140,9 +111,7 @@ export default function DashboardAgenda() {
           )}
         </aside>
 
-        {/* ===============================
-            DERECHA — AGENDA DIARIA
-        =============================== */}
+        {/* AGENDA DIARIA */}
         <main className="agenda-right">
           {normalizedDate ? (
             <AgendaPage
@@ -158,4 +127,4 @@ export default function DashboardAgenda() {
       </div>
     </div>
   );
-}
+              }
