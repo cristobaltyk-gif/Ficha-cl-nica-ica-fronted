@@ -5,29 +5,28 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummarySelector — MÓDULO AUTÓNOMO (MES + SEMANA) — PRODUCCIÓN
+AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
 
-✔ Carga profesionales desde backend: GET /professionals
-✔ Selector de profesionales (1–4)
-✔ Selector de vista: Mensual (30 días) / Semanal (7 días)
+✔ Carga profesionales: GET /professionals
+✔ Selector profesionales (1–4)
+✔ Selector vista: 30 días / 7 días
 ✔ Botón Aplicar (único disparo)
 ✔ Backend REAL:
-   - GET /agenda/summary/month?professional=...&start_date=YYYY-MM-DD  (30 días)
-   - GET /agenda/summary/week?professional=...&start_date=YYYY-MM-DD   (7 días)
-✔ Pinta estados: free | low | full | empty
+   - /agenda/summary/month?professional=...&start_date=YYYY-MM-DD
+   - /agenda/summary/week?professional=...&start_date=YYYY-MM-DD
 ✔ Click día → onSelectDay("YYYY-MM-DD")
 */
 
 export default function AgendaSummarySelector({
   max = 4,
-  onSelectDay,     // (YYYY-MM-DD)
   defaultMode = "monthly", // "monthly" | "weekly"
-  startDate,       // opcional: fecha base YYYY-MM-DD; si no, usa HOY
+  startDate,               // opcional YYYY-MM-DD; si no, usa HOY
+  onSelectDay,             // (YYYY-MM-DD)
 }) {
   // =========================
   // Estado
   // =========================
-  const [mode, setMode] = useState(defaultMode); // monthly | weekly
+  const [mode, setMode] = useState(defaultMode);
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
@@ -38,7 +37,7 @@ export default function AgendaSummarySelector({
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // Fecha base
+  // Fecha base REAL
   // =========================
   function todayISO() {
     return new Date().toISOString().slice(0, 10);
@@ -47,7 +46,7 @@ export default function AgendaSummarySelector({
   const baseDate = startDate || todayISO();
 
   // =========================
-  // Cargar profesionales (cada vez que se monta)
+  // Cargar profesionales (REAL)
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -57,8 +56,8 @@ export default function AgendaSummarySelector({
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
-        const data = await res.json();
 
+        const data = await res.json();
         if (!cancelled) {
           setProfessionals(Array.isArray(data) ? data : []);
         }
@@ -90,16 +89,16 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // Cambiar modo (NO llama backend)
+  // Cambiar vista (NO llama backend)
   // =========================
-  function setModeSafe(next) {
+  function changeMode(next) {
     setMode(next);
     setApplied(false);
     setSummaryDays({});
   }
 
   // =========================
-  // APLICAR → Backend REAL
+  // APLICAR → BACKEND REAL (tus endpoints)
   // =========================
   async function applySelection() {
     if (selectedProfessionals.length === 0) return;
@@ -108,11 +107,13 @@ export default function AgendaSummarySelector({
     setSummaryDays({});
     setApplied(false);
 
+    // ✅ Endpoint REAL según tu router
     const endpoint =
-      mode === "weekly"
-        ? "/agenda/summary/week"
-        : "/agenda/summary/month"; // monthly
+      mode === "weekly" ? "/agenda/summary/week" : "/agenda/summary/month";
 
+    // merge por "peor estado gana"
+    // free < low < full < empty
+    const order = ["free", "low", "full", "empty"];
     const merged = {};
 
     try {
@@ -126,11 +127,10 @@ export default function AgendaSummarySelector({
         if (!res.ok) continue;
 
         const data = await res.json();
-        const days = data?.days || {};
 
-        // merge por "peor estado gana"
-        // (mantengo tu orden original)
-        const order = ["free", "low", "full", "empty"];
+        // ✅ Con tu router actualizado, ambos devuelven:
+        // { days: { "YYYY-MM-DD": "free|low|full|empty", ... } }
+        const days = data?.days || {};
 
         Object.entries(days).forEach(([date, status]) => {
           if (!merged[date]) {
@@ -160,23 +160,23 @@ export default function AgendaSummarySelector({
   return (
     <section className="agenda-summary-selector">
       {/* =========================
-          MODO (selector de vista)
+          SELECTOR VISTA (30 / 7)
       ========================= */}
       <div className="summary-mode">
         <button
           type="button"
           className={mode === "monthly" ? "active" : ""}
-          onClick={() => setModeSafe("monthly")}
+          onClick={() => changeMode("monthly")}
         >
-          Mensual (30 días)
+          30 días
         </button>
 
         <button
           type="button"
           className={mode === "weekly" ? "active" : ""}
-          onClick={() => setModeSafe("weekly")}
+          onClick={() => changeMode("weekly")}
         >
-          Semanal (7 días)
+          7 días
         </button>
       </div>
 
@@ -264,4 +264,4 @@ export default function AgendaSummarySelector({
       )}
     </section>
   );
-      }
+         }
