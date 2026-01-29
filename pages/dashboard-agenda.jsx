@@ -3,12 +3,13 @@ import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
 
-// 🔁 resúmenes ahora viven en components/agenda
+// 👉 TODO viene desde components/agenda
 import AgendaMonthSummary from "../components/agenda/AgendaMonthSummary.jsx";
 import AgendaWeekSummary from "../components/agenda/AgendaWeekSummary.jsx";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
+
 /*
 DashboardAgenda — ESTRUCTURA PURA
 
@@ -35,7 +36,9 @@ export default function DashboardAgenda({
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
-  // estado SOLO visual (fallback si no viene controlado)
+  // ===============================
+  // Estado SOLO visual (fallback)
+  // ===============================
   const [summaryModeLocal, setSummaryModeLocal] = useState(
     summaryModeProp || (isMedico ? "weekly" : "monthly")
   );
@@ -49,6 +52,7 @@ export default function DashboardAgenda({
 
   return (
     <div className="dashboard-agenda">
+
       {/* ===============================
           HEADER
       =============================== */}
@@ -74,10 +78,12 @@ export default function DashboardAgenda({
           LAYOUT PRINCIPAL
       =============================== */}
       <div className="agenda-layout">
+
         {/* ===============================
             IZQUIERDA — RESÚMENES
         =============================== */}
         <aside className="agenda-left">
+
           {summaryMode === "monthly" &&
             selectedProfessionals.map((profId) => (
               <AgendaMonthSummary
@@ -114,6 +120,7 @@ export default function DashboardAgenda({
             </div>
           )}
         </main>
+
       </div>
     </div>
   );
