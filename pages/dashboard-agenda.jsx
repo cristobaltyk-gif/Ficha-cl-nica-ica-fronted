@@ -3,10 +3,10 @@ import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
 
-// 👉 TODO viene desde components/agenda
-import AgendaMonthSummary from "../components/agenda/AgendaMonthSummary.jsx";
-import AgendaWeekSummary from "../components/agenda/AgendaWeekSummary.jsx";
+// 👉 componentes reales que EXISTEN
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
+import CalendarMonthView from "../components/agenda/CalendarMonthView.jsx";
+import CalendarWeekView from "../components/agenda/CalendarWeekView.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
 
@@ -50,6 +50,9 @@ export default function DashboardAgenda({
     onSummaryChange?.(payload);
   }
 
+  const singleProfessional =
+    selectedProfessionals.length === 1 ? selectedProfessionals[0] : null;
+
   return (
     <div className="dashboard-agenda">
 
@@ -84,23 +87,37 @@ export default function DashboardAgenda({
         =============================== */}
         <aside className="agenda-left">
 
-          {summaryMode === "monthly" &&
-            selectedProfessionals.map((profId) => (
-              <AgendaMonthSummary
-                key={profId}
-                professional={profId}
-                selectedDate={selectedDate}
-                onSelectDate={onSelectDate}
-              />
-            ))}
-
-          {summaryMode === "weekly" && isMedico && (
-            <AgendaWeekSummary />
+          {/* ===== RESUMEN MENSUAL ===== */}
+          {summaryMode === "monthly" && singleProfessional && (
+            <CalendarMonthView
+              professional={singleProfessional}
+              month={
+                selectedDate
+                  ? selectedDate.slice(0, 7)
+                  : new Date().toISOString().slice(0, 7)
+              }
+              selectedDate={
+                selectedDate ? { date: selectedDate } : null
+              }
+              onSelectDate={({ date }) => onSelectDate?.(date)}
+            />
           )}
 
-          {selectedProfessionals.length === 0 && (
+          {/* ===== RESUMEN SEMANAL (MÉDICO) ===== */}
+          {summaryMode === "weekly" && isMedico && singleProfessional && (
+            <CalendarWeekView
+              professional={singleProfessional}
+              weekStart={selectedDate}
+              selectedDate={
+                selectedDate ? { date: selectedDate } : null
+              }
+              onSelectDate={({ date }) => onSelectDate?.(date)}
+            />
+          )}
+
+          {!singleProfessional && (
             <div className="agenda-placeholder">
-              Selecciona hasta 4 profesionales arriba
+              Selecciona un profesional arriba
             </div>
           )}
         </aside>
@@ -109,7 +126,7 @@ export default function DashboardAgenda({
             DERECHA — AGENDA DIARIA
         =============================== */}
         <main className="agenda-right">
-          {selectedDate ? (
+          {selectedDate && selectedProfessionalObjects.length > 0 ? (
             <AgendaPage
               forcedDate={selectedDate}
               professionals={selectedProfessionalObjects}
