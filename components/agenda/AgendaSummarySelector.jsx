@@ -5,41 +5,49 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummarySelector — MÓDULO AUTÓNOMO FINAL (PRODUCCIÓN)
+AgendaSummarySelector — MÓDULO AUTÓNOMO (MES + SEMANA) — PRODUCCIÓN
 
-✔ Contrato REAL backend
-✔ /agenda/summary/month?start_date=
-✔ Backend devuelve 30 días exactos
-✔ Cruza meses
-✔ Una llamada por profesional al aplicar
-✔ Agenda SOLO futura
+✔ Carga profesionales desde backend: GET /professionals
+✔ Selector de profesionales (1–4)
+✔ Selector de vista: Mensual (30 días) / Semanal (7 días)
+✔ Botón Aplicar (único disparo)
+✔ Backend REAL:
+   - GET /agenda/summary/month?professional=...&start_date=YYYY-MM-DD  (30 días)
+   - GET /agenda/summary/week?professional=...&start_date=YYYY-MM-DD   (7 días)
+✔ Pinta estados: free | low | full | empty
+✔ Click día → onSelectDay("YYYY-MM-DD")
 */
 
 export default function AgendaSummarySelector({
   max = 4,
-  onSelectDay, // (YYYY-MM-DD)
+  onSelectDay,     // (YYYY-MM-DD)
+  defaultMode = "monthly", // "monthly" | "weekly"
+  startDate,       // opcional: fecha base YYYY-MM-DD; si no, usa HOY
 }) {
   // =========================
   // Estado
   // =========================
+  const [mode, setMode] = useState(defaultMode); // monthly | weekly
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const [summaryDays, setSummaryDays] = useState({});
+  const [summaryDays, setSummaryDays] = useState({}); // { "YYYY-MM-DD": "free|low|full|empty" }
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // Fecha base REAL
+  // Fecha base
   // =========================
   function todayISO() {
-    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    return new Date().toISOString().slice(0, 10);
   }
 
+  const baseDate = startDate || todayISO();
+
   // =========================
-  // Cargar profesionales
+  // Cargar profesionales (cada vez que se monta)
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -48,9 +56,9 @@ export default function AgendaSummarySelector({
       setLoadingProfessionals(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
-        if (!res.ok) throw new Error();
-
+        if (!res.ok) throw new Error("professionals");
         const data = await res.json();
+
         if (!cancelled) {
           setProfessionals(Array.isArray(data) ? data : []);
         }
@@ -75,16 +83,23 @@ export default function AgendaSummarySelector({
     setSummaryDays({});
 
     setSelectedProfessionals((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((x) => x !== id);
-      }
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= max) return prev;
       return [...prev, id];
     });
   }
 
   // =========================
-  // APLICAR → BACKEND REAL
+  // Cambiar modo (NO llama backend)
+  // =========================
+  function setModeSafe(next) {
+    setMode(next);
+    setApplied(false);
+    setSummaryDays({});
+  }
+
+  // =========================
+  // APLICAR → Backend REAL
   // =========================
   async function applySelection() {
     if (selectedProfessionals.length === 0) return;
@@ -93,40 +108,42 @@ export default function AgendaSummarySelector({
     setSummaryDays({});
     setApplied(false);
 
-    const startDate = todayISO();
-    const mergedDays = {};
+    const endpoint =
+      mode === "weekly"
+        ? "/agenda/summary/week"
+        : "/agenda/summary/month"; // monthly
+
+    const merged = {};
 
     try {
-      // UNA llamada por profesional
       for (const professionalId of selectedProfessionals) {
-        const res = await fetch(
-          `${API_URL}/agenda/summary/month` +
-            `?professional=${encodeURIComponent(professionalId)}` +
-            `&start_date=${encodeURIComponent(startDate)}`
-        );
+        const url =
+          `${API_URL}${endpoint}` +
+          `?professional=${encodeURIComponent(professionalId)}` +
+          `&start_date=${encodeURIComponent(baseDate)}`;
 
+        const res = await fetch(url);
         if (!res.ok) continue;
 
         const data = await res.json();
         const days = data?.days || {};
 
-        // Merge por peor estado
+        // merge por "peor estado gana"
+        // (mantengo tu orden original)
+        const order = ["free", "low", "full", "empty"];
+
         Object.entries(days).forEach(([date, status]) => {
-          if (!mergedDays[date]) {
-            mergedDays[date] = status;
-          } else {
-            const order = ["free", "low", "full", "empty"];
-            if (
-              order.indexOf(status) >
-              order.indexOf(mergedDays[date])
-            ) {
-              mergedDays[date] = status;
-            }
+          if (!merged[date]) {
+            merged[date] = status;
+            return;
+          }
+          if (order.indexOf(status) > order.indexOf(merged[date])) {
+            merged[date] = status;
           }
         });
       }
 
-      setSummaryDays(mergedDays);
+      setSummaryDays(merged);
       setApplied(true);
     } catch {
       setSummaryDays({});
@@ -138,36 +155,54 @@ export default function AgendaSummarySelector({
   // =========================
   // Render
   // =========================
+  const dayEntries = Object.entries(summaryDays);
+
   return (
     <section className="agenda-summary-selector">
+      {/* =========================
+          MODO (selector de vista)
+      ========================= */}
+      <div className="summary-mode">
+        <button
+          type="button"
+          className={mode === "monthly" ? "active" : ""}
+          onClick={() => setModeSafe("monthly")}
+        >
+          Mensual (30 días)
+        </button>
+
+        <button
+          type="button"
+          className={mode === "weekly" ? "active" : ""}
+          onClick={() => setModeSafe("weekly")}
+        >
+          Semanal (7 días)
+        </button>
+      </div>
+
       {/* =========================
           PROFESIONALES
       ========================= */}
       <div className="summary-professionals">
         {loadingProfessionals && (
-          <div className="agenda-placeholder">
-            Cargando profesionales…
-          </div>
+          <div className="agenda-placeholder">Cargando profesionales…</div>
         )}
 
         {!loadingProfessionals && professionals.length === 0 && (
-          <div className="agenda-placeholder">
-            No hay profesionales cargados
-          </div>
+          <div className="agenda-placeholder">No hay profesionales cargados</div>
         )}
 
         {!loadingProfessionals &&
           professionals.map((p) => {
             const checked = selectedProfessionals.includes(p.id);
-            const disabled =
-              !checked && selectedProfessionals.length >= max;
+            const disabled = !checked && selectedProfessionals.length >= max;
 
             return (
               <label
                 key={p.id}
-                className={`professional-item ${
-                  checked ? "active" : ""
-                } ${disabled ? "disabled" : ""}`}
+                className={`professional-item ${checked ? "active" : ""} ${
+                  disabled ? "disabled" : ""
+                }`}
               >
                 <input
                   type="checkbox"
@@ -200,20 +235,19 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          CALENDARIO (30 DÍAS REALES)
+          CALENDARIO RESULTADO
       ========================= */}
       {applied && (
         <div className="month-calendar">
-          {Object.keys(summaryDays).length === 0 && (
-            <p>No hay cupos disponibles.</p>
-          )}
+          {dayEntries.length === 0 && <p>No hay cupos disponibles.</p>}
 
           <div className="month-grid">
-            {Object.entries(summaryDays).map(([date, status]) => (
+            {dayEntries.map(([date, status]) => (
               <button
                 key={date}
                 className={`day-cell ${status}`}
                 onClick={() => onSelectDay?.(date)}
+                title={date}
               >
                 {date.slice(-2)}
               </button>
