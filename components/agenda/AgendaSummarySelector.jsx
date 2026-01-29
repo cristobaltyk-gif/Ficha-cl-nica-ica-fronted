@@ -5,38 +5,48 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummarySelector — MÓDULO AUTÓNOMO FINAL
+AgendaSummarySelector — MÓDULO AUTÓNOMO FINAL (ALINEADO BACKEND)
 
-Responsabilidad:
-- Cargar profesionales
-- Selección (1–4)
-- Botón Aplicar
-- Llamar backend de resumen (month / week)
-- Pintar cupos disponibles
-- Emitir evento simple al padre (día seleccionado)
-
-REUTILIZABLE:
-- Secretaría
-- Agenda online pacientes
+✔ Usa contrato REAL del backend
+✔ Envía professional (UNO) + month
+✔ Usa fecha base = HOY
+✔ Muestra SOLO 30 días hacia adelante
+✔ Una llamada por profesional al presionar Aplicar
+✔ Agenda pasada no se considera
 */
 
 export default function AgendaSummarySelector({
   max = 4,
-  defaultMode = "monthly",
-  onSelectDay, // (dateString)
+  onSelectDay, // (YYYY-MM-DD)
 }) {
   // =========================
   // Estado
   // =========================
-  const [mode, setMode] = useState(defaultMode);
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const [summaryDays, setSummaryDays] = useState({}); // { "YYYY-MM-DD": "free|low|full" }
+  const [summaryDays, setSummaryDays] = useState({});
   const [applied, setApplied] = useState(false);
+
+  // =========================
+  // Helpers de fecha
+  // =========================
+  function todayISO() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  }
+
+  function addDays(dateStr, days) {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function currentMonth() {
+    return todayISO().slice(0, 7); // YYYY-MM
+  }
 
   // =========================
   // Cargar profesionales
@@ -46,11 +56,9 @@ export default function AgendaSummarySelector({
 
     async function loadProfessionals() {
       setLoadingProfessionals(true);
-
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error();
-
         const data = await res.json();
         if (!cancelled) {
           setProfessionals(Array.isArray(data) ? data : []);
@@ -85,7 +93,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // APLICAR → LLAMA BACKEND
+  // APLICAR → BACKEND REAL
   // =========================
   async function applySelection() {
     if (selectedProfessionals.length === 0) return;
@@ -94,21 +102,46 @@ export default function AgendaSummarySelector({
     setSummaryDays({});
     setApplied(false);
 
+    const startDate = todayISO();
+    const endDate = addDays(startDate, 30);
+    const month = currentMonth();
+
+    const mergedDays = {};
+
     try {
-      const endpoint =
-        mode === "monthly"
-          ? "/agenda/summary/month"
-          : "/agenda/summary/week";
+      // 👉 UNA LLAMADA POR PROFESIONAL
+      for (const professionalId of selectedProfessionals) {
+        const res = await fetch(
+          `${API_URL}/agenda/summary/month` +
+            `?professional=${encodeURIComponent(professionalId)}` +
+            `&month=${month}`
+        );
 
-      const params = new URLSearchParams({
-        professionals: selectedProfessionals.join(","),
-      });
+        if (!res.ok) continue;
 
-      const res = await fetch(`${API_URL}${endpoint}?${params}`);
-      if (!res.ok) throw new Error();
+        const data = await res.json();
+        const days = data?.days || {};
 
-      const data = await res.json();
-      setSummaryDays(data?.days || {});
+        // 👉 SOLO FUTURO (30 días)
+        Object.entries(days).forEach(([date, status]) => {
+          if (date < startDate || date > endDate) return;
+
+          if (!mergedDays[date]) {
+            mergedDays[date] = status;
+          } else {
+            // peor estado gana
+            const order = ["free", "low", "full", "empty"];
+            if (
+              order.indexOf(status) >
+              order.indexOf(mergedDays[date])
+            ) {
+              mergedDays[date] = status;
+            }
+          }
+        });
+      }
+
+      setSummaryDays(mergedDays);
       setApplied(true);
     } catch {
       setSummaryDays({});
@@ -122,35 +155,6 @@ export default function AgendaSummarySelector({
   // =========================
   return (
     <section className="agenda-summary-selector">
-      {/* =========================
-          MODO
-      ========================= */}
-      <div className="summary-mode">
-        <button
-          type="button"
-          className={mode === "monthly" ? "active" : ""}
-          onClick={() => {
-            setMode("monthly");
-            setApplied(false);
-            setSummaryDays({});
-          }}
-        >
-          Resumen mensual
-        </button>
-
-        <button
-          type="button"
-          className={mode === "weekly" ? "active" : ""}
-          onClick={() => {
-            setMode("weekly");
-            setApplied(false);
-            setSummaryDays({});
-          }}
-        >
-          Resumen semanal
-        </button>
-      </div>
-
       {/* =========================
           PROFESIONALES
       ========================= */}
@@ -211,7 +215,7 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          CALENDARIO RESULTADO
+          CALENDARIO (30 DÍAS)
       ========================= */}
       {applied && (
         <div className="month-calendar">
