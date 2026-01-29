@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
-import AgendaMonthSummary from "./agenda/AgendaMonthSummary.jsx";
-import AgendaWeekSummary from "./agenda/AgendaWeekSummary.jsx";
-import AgendaSummarySelector from "./agenda/AgendaSummarySelector.jsx";
+
+// 🔁 resúmenes ahora viven en components/agenda
+import AgendaMonthSummary from "../components/agenda/AgendaMonthSummary.jsx";
+import AgendaWeekSummary from "../components/agenda/AgendaWeekSummary.jsx";
+import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
-
 /*
 DashboardAgenda — ESTRUCTURA PURA
 
