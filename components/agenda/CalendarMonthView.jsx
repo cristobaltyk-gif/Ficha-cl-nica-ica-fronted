@@ -4,19 +4,20 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-CalendarMonthView (Secretaría)
+CalendarMonthView (Secretaría / Paciente)
 
-✔ Vista mensual completa
-✔ Días coloreados según disponibilidad
+✔ Vista de 30 días FUTUROS desde una fecha base
+✔ Días coloreados según disponibilidad real
 ✔ Click → devuelve OBJETO { date }
 ✔ NO orquesta
 ✔ NO decide flujos
 ✔ Solo pinta + notifica
+✔ Contrato REAL backend (/agenda/summary/month?start_date=)
 */
 
 export default function CalendarMonthView({
-  professional,          // objeto o id ya resuelto por el padre
-  month,                 // "YYYY-MM"
+  professional,          // string ID profesional (ej: "medico1")
+  startDate,             // "YYYY-MM-DD" (fecha base REAL, viene del frontend)
   selectedDate,          // { date: "YYYY-MM-DD" } | null
   onSelectDate           // function({ date })
 }) {
@@ -24,10 +25,17 @@ export default function CalendarMonthView({
   const [loading, setLoading] = useState(false);
 
   // ============================
-  // Cargar summary mensual backend
+  // Fecha base segura (REAL)
+  // ============================
+  const baseDate =
+    startDate ||
+    new Date().toISOString().slice(0, 10); // YYYY-MM-DD hoy
+
+  // ============================
+  // Cargar summary (30 días reales)
   // ============================
   useEffect(() => {
-    if (!professional || !month) return;
+    if (!professional || !baseDate) return;
 
     let cancelled = false;
 
@@ -35,17 +43,19 @@ export default function CalendarMonthView({
       setLoading(true);
 
       try {
-        const res = await fetch(
-          `${API_URL}/agenda/summary/month?professional=${professional}&month=${month}`
-        );
+        const url =
+          `${API_URL}/agenda/summary/month` +
+          `?professional=${encodeURIComponent(professional)}` +
+          `&start_date=${encodeURIComponent(baseDate)}`;
 
+        const res = await fetch(url);
         const data = await res.json();
 
         if (!cancelled && res.ok) {
           setDays(data.days || {});
         }
       } catch (err) {
-        console.error("Error summary mensual", err);
+        console.error("Error summary rango 30 días", err);
         if (!cancelled) setDays({});
       } finally {
         if (!cancelled) setLoading(false);
@@ -57,21 +67,21 @@ export default function CalendarMonthView({
     return () => {
       cancelled = true;
     };
-  }, [professional, month]);
+  }, [professional, baseDate]);
 
   // ============================
-  // Render calendario
+  // Render
   // ============================
   const dayKeys = Object.keys(days);
 
   return (
     <div className="month-calendar">
-      <h3>📅 Disponibilidad mensual</h3>
+      <h3>📅 Disponibilidad próximos 30 días</h3>
 
       {loading && <p>Cargando calendario…</p>}
 
       {!loading && dayKeys.length === 0 && (
-        <p>No hay agenda para este mes.</p>
+        <p>No hay agenda disponible.</p>
       )}
 
       <div className="month-grid">
@@ -85,9 +95,7 @@ export default function CalendarMonthView({
               className={`day-cell ${status} ${
                 isSelected ? "selected" : ""
               }`}
-              onClick={() =>
-                onSelectDate?.({ date: day })
-              }
+              onClick={() => onSelectDate?.({ date: day })}
             >
               {day.slice(-2)}
             </button>
