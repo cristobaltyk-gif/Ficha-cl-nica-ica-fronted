@@ -1,26 +1,29 @@
 import { useState, useEffect } from "react";
 import "../../styles/agenda/agenda-summary-selector.css";
+import "../../styles/agenda/calendar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummarySelector — PRODUCCIÓN FINAL (AUTÓNOMO)
+AgendaSummarySelector — MÓDULO AUTÓNOMO FINAL
 
 Responsabilidad:
-- Cargar profesionales desde backend
-- Selector maestro de profesionales (1–4)
-- Selector de modo (monthly / weekly)
-- CONFIRMACIÓN explícita con botón "Aplicar"
-- Vive ANTES del resumen y de la agenda diaria
-- NO conoce Agenda.jsx
-- NO conoce fechas
-- NO depende de Dashboard
+- Cargar profesionales
+- Selección (1–4)
+- Botón Aplicar
+- Llamar backend de resumen (month / week)
+- Pintar cupos disponibles
+- Emitir evento simple al padre (día seleccionado)
+
+REUTILIZABLE:
+- Secretaría
+- Agenda online pacientes
 */
 
 export default function AgendaSummarySelector({
   max = 4,
-  onChange,
   defaultMode = "monthly",
+  onSelectDay, // (dateString)
 }) {
   // =========================
   // Estado
@@ -28,39 +31,38 @@ export default function AgendaSummarySelector({
   const [mode, setMode] = useState(defaultMode);
   const [professionals, setProfessionals] = useState([]);
   const [selectedProfessionals, setSelectedProfessionals] = useState([]);
-  const [loading, setLoading] = useState(false);
+
+  const [loadingProfessionals, setLoadingProfessionals] = useState(false);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+
+  const [summaryDays, setSummaryDays] = useState({}); // { "YYYY-MM-DD": "free|low|full" }
+  const [applied, setApplied] = useState(false);
 
   // =========================
-  // Cargar profesionales (AUTÓNOMO)
+  // Cargar profesionales
   // =========================
   useEffect(() => {
     let cancelled = false;
 
     async function loadProfessionals() {
-      setLoading(true);
+      setLoadingProfessionals(true);
 
       try {
         const res = await fetch(`${API_URL}/professionals`);
-        if (!res.ok) throw new Error("error profesionales");
+        if (!res.ok) throw new Error();
 
         const data = await res.json();
-
         if (!cancelled) {
           setProfessionals(Array.isArray(data) ? data : []);
         }
       } catch {
-        if (!cancelled) {
-          setProfessionals([]);
-        }
+        if (!cancelled) setProfessionals([]);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoadingProfessionals(false);
       }
     }
 
     loadProfessionals();
-
     return () => {
       cancelled = true;
     };
@@ -70,27 +72,49 @@ export default function AgendaSummarySelector({
   // Selección profesionales
   // =========================
   function toggleProfessional(id) {
+    setApplied(false);
+    setSummaryDays({});
+
     setSelectedProfessionals((prev) => {
       if (prev.includes(id)) {
         return prev.filter((x) => x !== id);
       }
-
       if (prev.length >= max) return prev;
-
       return [...prev, id];
     });
   }
 
   // =========================
-  // Aplicar selección (ÚNICO DISPARO)
+  // APLICAR → LLAMA BACKEND
   // =========================
-  function applySelection() {
-    if (!onChange) return;
+  async function applySelection() {
+    if (selectedProfessionals.length === 0) return;
 
-    onChange({
-      mode,
-      selectedProfessionals,
-    });
+    setLoadingSummary(true);
+    setSummaryDays({});
+    setApplied(false);
+
+    try {
+      const endpoint =
+        mode === "monthly"
+          ? "/agenda/summary/month"
+          : "/agenda/summary/week";
+
+      const params = new URLSearchParams({
+        professionals: selectedProfessionals.join(","),
+      });
+
+      const res = await fetch(`${API_URL}${endpoint}?${params}`);
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setSummaryDays(data?.days || {});
+      setApplied(true);
+    } catch {
+      setSummaryDays({});
+    } finally {
+      setLoadingSummary(false);
+    }
   }
 
   // =========================
@@ -99,13 +123,17 @@ export default function AgendaSummarySelector({
   return (
     <section className="agenda-summary-selector">
       {/* =========================
-          MODO RESUMEN
+          MODO
       ========================= */}
       <div className="summary-mode">
         <button
           type="button"
           className={mode === "monthly" ? "active" : ""}
-          onClick={() => setMode("monthly")}
+          onClick={() => {
+            setMode("monthly");
+            setApplied(false);
+            setSummaryDays({});
+          }}
         >
           Resumen mensual
         </button>
@@ -113,7 +141,11 @@ export default function AgendaSummarySelector({
         <button
           type="button"
           className={mode === "weekly" ? "active" : ""}
-          onClick={() => setMode("weekly")}
+          onClick={() => {
+            setMode("weekly");
+            setApplied(false);
+            setSummaryDays({});
+          }}
         >
           Resumen semanal
         </button>
@@ -123,19 +155,19 @@ export default function AgendaSummarySelector({
           PROFESIONALES
       ========================= */}
       <div className="summary-professionals">
-        {loading && (
+        {loadingProfessionals && (
           <div className="agenda-placeholder">
             Cargando profesionales…
           </div>
         )}
 
-        {!loading && professionals.length === 0 && (
+        {!loadingProfessionals && professionals.length === 0 && (
           <div className="agenda-placeholder">
             No hay profesionales cargados
           </div>
         )}
 
-        {!loading &&
+        {!loadingProfessionals &&
           professionals.map((p) => {
             const checked = selectedProfessionals.includes(p.id);
             const disabled =
@@ -161,7 +193,7 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          FOOTER + APLICAR
+          APLICAR
       ========================= */}
       <div className="summary-footer">
         <span>
@@ -171,12 +203,41 @@ export default function AgendaSummarySelector({
         <button
           type="button"
           className="apply-btn"
-          disabled={selectedProfessionals.length === 0}
+          disabled={selectedProfessionals.length === 0 || loadingSummary}
           onClick={applySelection}
         >
-          Aplicar selección
+          {loadingSummary ? "Cargando…" : "Aplicar"}
         </button>
       </div>
+
+      {/* =========================
+          CALENDARIO RESULTADO
+      ========================= */}
+      {applied && (
+        <div className="month-calendar">
+          {Object.keys(summaryDays).length === 0 && (
+            <p>No hay cupos disponibles.</p>
+          )}
+
+          <div className="month-grid">
+            {Object.entries(summaryDays).map(([date, status]) => (
+              <button
+                key={date}
+                className={`day-cell ${status}`}
+                onClick={() => onSelectDay?.(date)}
+              >
+                {date.slice(-2)}
+              </button>
+            ))}
+          </div>
+
+          <div className="legend">
+            <span className="free">🟢 libre</span>
+            <span className="low">🟡 pocos</span>
+            <span className="full">🔴 lleno</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
