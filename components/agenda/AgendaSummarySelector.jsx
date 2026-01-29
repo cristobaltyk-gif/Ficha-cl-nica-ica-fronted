@@ -10,6 +10,7 @@ Responsabilidad:
 - Cargar profesionales desde backend
 - Selector maestro de profesionales (1–4)
 - Selector de modo (monthly / weekly)
+- CONFIRMACIÓN explícita con botón "Aplicar"
 - Vive ANTES del resumen y de la agenda diaria
 - NO conoce Agenda.jsx
 - NO conoce fechas
@@ -66,18 +67,6 @@ export default function AgendaSummarySelector({
   }, []);
 
   // =========================
-  // Notificar cambios al padre
-  // =========================
-  useEffect(() => {
-    if (!onChange) return;
-
-    onChange({
-      mode,
-      selectedProfessionals,
-    });
-  }, [mode, selectedProfessionals, onChange]);
-
-  // =========================
   // Selección profesionales
   // =========================
   function toggleProfessional(id) {
@@ -89,6 +78,18 @@ export default function AgendaSummarySelector({
       if (prev.length >= max) return prev;
 
       return [...prev, id];
+    });
+  }
+
+  // =========================
+  // Aplicar selección (ÚNICO DISPARO)
+  // =========================
+  function applySelection() {
+    if (!onChange) return;
+
+    onChange({
+      mode,
+      selectedProfessionals,
     });
   }
 
@@ -160,10 +161,21 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          FOOTER
+          FOOTER + APLICAR
       ========================= */}
       <div className="summary-footer">
-        Seleccionados: {selectedProfessionals.length} / {max}
+        <span>
+          Seleccionados: {selectedProfessionals.length} / {max}
+        </span>
+
+        <button
+          type="button"
+          className="apply-btn"
+          disabled={selectedProfessionals.length === 0}
+          onClick={applySelection}
+        >
+          Aplicar selección
+        </button>
       </div>
     </section>
   );
