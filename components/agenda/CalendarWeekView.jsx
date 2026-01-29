@@ -4,19 +4,20 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-CalendarWeekView (Secretaría)
+CalendarWeekView (Secretaría / Médico)
 
-✔ Vista semanal completa (lunes a domingo)
-✔ Días coloreados según disponibilidad
+✔ Vista de 7 días CONSECUTIVOS desde start_date
+✔ Días coloreados según disponibilidad real
 ✔ Click → devuelve OBJETO { date }
 ✔ NO orquesta
 ✔ NO decide flujos
 ✔ Solo pinta + notifica
+✔ Contrato REAL backend (/agenda/summary/week?start_date=)
 */
 
 export default function CalendarWeekView({
-  professional,          // objeto o id ya resuelto por el padre
-  weekStart,             // "YYYY-MM-DD" (lunes)
+  professional,          // string ID profesional (ej: "medico1")
+  startDate,             // "YYYY-MM-DD" (fecha base REAL)
   selectedDate,          // { date: "YYYY-MM-DD" } | null
   onSelectDate           // function({ date })
 }) {
@@ -24,10 +25,17 @@ export default function CalendarWeekView({
   const [loading, setLoading] = useState(false);
 
   // ============================
-  // Cargar summary semanal backend
+  // Fecha base segura
+  // ============================
+  const baseDate =
+    startDate ||
+    new Date().toISOString().slice(0, 10); // hoy
+
+  // ============================
+  // Cargar summary semanal REAL
   // ============================
   useEffect(() => {
-    if (!professional || !weekStart) return;
+    if (!professional || !baseDate) return;
 
     let cancelled = false;
 
@@ -35,17 +43,19 @@ export default function CalendarWeekView({
       setLoading(true);
 
       try {
-        const res = await fetch(
-          `${API_URL}/agenda/summary/week?professional=${professional}&week_start=${weekStart}`
-        );
+        const url =
+          `${API_URL}/agenda/summary/week` +
+          `?professional=${encodeURIComponent(professional)}` +
+          `&start_date=${encodeURIComponent(baseDate)}`;
 
+        const res = await fetch(url);
         const data = await res.json();
 
         if (!cancelled && res.ok) {
           setDays(data.days || {});
         }
       } catch (err) {
-        console.error("Error summary semanal", err);
+        console.error("Error summary 7 días", err);
         if (!cancelled) setDays({});
       } finally {
         if (!cancelled) setLoading(false);
@@ -57,21 +67,21 @@ export default function CalendarWeekView({
     return () => {
       cancelled = true;
     };
-  }, [professional, weekStart]);
+  }, [professional, baseDate]);
 
   // ============================
-  // Render calendario semanal
+  // Render
   // ============================
   const dayKeys = Object.keys(days);
 
   return (
     <div className="month-calendar">
-      <h3>📆 Disponibilidad semanal</h3>
+      <h3>📆 Disponibilidad próximos 7 días</h3>
 
       {loading && <p>Cargando semana…</p>}
 
       {!loading && dayKeys.length === 0 && (
-        <p>No hay agenda para esta semana.</p>
+        <p>No hay agenda disponible.</p>
       )}
 
       <div className="month-grid">
@@ -85,11 +95,9 @@ export default function CalendarWeekView({
               className={`day-cell ${status} ${
                 isSelected ? "selected" : ""
               }`}
-              onClick={() =>
-                onSelectDate?.({ date: day })
-              }
+              onClick={() => onSelectDate?.({ date: day })}
             >
-              {day.slice(8, 10)}
+              {day.slice(-2)}
             </button>
           );
         })}
