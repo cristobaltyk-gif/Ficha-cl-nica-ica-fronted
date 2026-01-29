@@ -5,13 +5,11 @@ import Agenda from "../components/agenda/Agenda";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import CalendarMonthView from "../components/agenda/CalendarMonthView";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 /*
 AgendaPage (ORQUESTADOR CENTRAL)
 
 ✔ Secretaría
-✔ Selección de médico
+✔ Selección de médico (1)
 ✔ Vista mensual
 ✔ Click día → agenda diaria
 ✔ NO pinta slots
@@ -25,23 +23,36 @@ export default function AgendaPage() {
   // =========================
   // Estado global
   // =========================
-  const [professional, setProfessional] = useState(null); // id u objeto
+  const [professional, setProfessional] = useState(null); // id del médico
   const [selectedDate, setSelectedDate] = useState(null); // { date }
-  const [month, setMonth] = useState(
+  const [month] = useState(
     new Date().toISOString().slice(0, 7) // YYYY-MM
   );
+
+  // =========================
+  // Profesionales (TEMPORAL / MOCK)
+  // 👉 luego vendrá del backend
+  // =========================
+  const professionals = [
+    { id: "medico1", name: "Dr. Médico 1" },
+    { id: "medico2", name: "Dr. Médico 2" },
+  ];
 
   // =========================
   // Render
   // =========================
   return (
     <div className="agenda-page">
+
       {/* =========================
           Selector de médico
       ========================== */}
       <AgendaSummarySelector
-        value={professional}
-        onChange={(p) => {
+        professionals={professionals}
+        max={1} // secretaría: 1 médico a la vez
+        defaultMode="monthly"
+        onChange={({ selectedProfessionals }) => {
+          const p = selectedProfessionals[0] || null;
           setProfessional(p);
           setSelectedDate(null); // reset día al cambiar médico
         }}
