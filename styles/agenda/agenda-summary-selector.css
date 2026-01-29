@@ -1,9 +1,27 @@
+/* ===============================
+   CONTENEDOR PRINCIPAL
+=============================== */
 .agenda-summary-selector {
+  width: 100%;
+  min-width: 280px;
   padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+
   background: #ffffff;
+  border: 2px solid #0f172a; /* visible SI O SI */
+  border-radius: 10px;
+
+  display: block;
+  box-sizing: border-box;
+
+  /* anti-invisibilidad */
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
+/* ===============================
+   MODO (mensual / semanal)
+=============================== */
 .summary-mode {
   display: flex;
   gap: 8px;
@@ -11,39 +29,90 @@
 }
 
 .summary-mode button {
-  padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
+  flex: 1;
+  padding: 8px 10px;
+
   border-radius: 6px;
+  border: 1px solid #94a3b8;
+  background: #f8fafc;
+
+  font-size: 14px;
   cursor: pointer;
 }
 
 .summary-mode button.active {
-  background: #2563eb;
+  background: #0f172a;
   color: #ffffff;
-  border-color: #2563eb;
+  border-color: #0f172a;
 }
 
+/* ===============================
+   LISTA DE PROFESIONALES
+=============================== */
 .summary-professionals {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
+
+  padding: 8px;
+  border: 1px dashed #94a3b8;
+  border-radius: 6px;
+
+  min-height: 48px; /* clave: siempre visible */
 }
 
+/* placeholder cuando está vacío */
+.agenda-placeholder {
+  width: 100%;
+  padding: 8px;
+
+  font-size: 14px;
+  color: #475569;
+  background: #f1f5f9;
+
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* ===============================
+   ITEM PROFESIONAL
+=============================== */
 .professional-item {
   display: flex;
   align-items: center;
   gap: 6px;
+
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+
   font-size: 14px;
+  cursor: pointer;
 }
 
+.professional-item.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.professional-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.professional-item input {
+  cursor: pointer;
+}
+
+/* ===============================
+   FOOTER
+=============================== */
 .summary-footer {
-  margin-top: 12px;
-  font-size: 13px;
-  color: #374151;
-}
-
-.agenda-placeholder {
-  font-size: 14px;
-  color: #6b7280;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #334155;
+  text-align: right;
 }
