@@ -1,72 +1,56 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
-
 import AgendaMonthSummary from "./agenda/AgendaMonthSummary.jsx";
 import AgendaWeekSummary from "./agenda/AgendaWeekSummary.jsx";
 import AgendaSummarySelector from "./agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+/*
+DashboardAgenda — ESTRUCTURA PURA
 
-export default function DashboardAgenda() {
+✔ SOLO layout
+✔ SOLO orquestación visual
+✔ NO fetch
+✔ NO lógica de negocio
+✔ NO transformación de datos
+✔ NO contratos implícitos
+*/
+
+export default function DashboardAgenda({
+  availableProfessionals = [],        // [{ id, name }]
+  selectedProfessionals = [],         // [id]
+  selectedProfessionalObjects = [],   // [{ id, name }]
+  selectedDate = null,                // "YYYY-MM-DD" | null
+
+  summaryMode: summaryModeProp,       // "monthly" | "weekly"
+  onSummaryChange,                    // ({ mode, selectedProfessionals })
+  onSelectDate                        // (dateString)
+}) {
   const { role } = useAuth();
 
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
-  // ===============================
-  // ESTADO PRINCIPAL
-  // ===============================
-  const [summaryMode, setSummaryMode] = useState(
-    isMedico ? "weekly" : "monthly"
+  // estado SOLO visual (fallback si no viene controlado)
+  const [summaryModeLocal, setSummaryModeLocal] = useState(
+    summaryModeProp || (isMedico ? "weekly" : "monthly")
   );
 
-  // IDs seleccionados
-  const [selectedProfessionals, setSelectedProfessionals] = useState([]);
+  const summaryMode = summaryModeProp ?? summaryModeLocal;
 
-  // Fecha seleccionada (CONTRATO ÚNICO)
-  // { date: "YYYY-MM-DD" } | null
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  // Profesionales reales
-  const [availableProfessionals, setAvailableProfessionals] = useState([]);
-
-  // ===============================
-  // CARGA PROFESIONALES
-  // ===============================
-  useEffect(() => {
-    async function loadProfessionals() {
-      try {
-        const res = await fetch(`${API_URL}/professionals`);
-        const data = await res.json();
-        setAvailableProfessionals(Array.isArray(data) ? data : []);
-      } catch {
-        setAvailableProfessionals([]);
-      }
-    }
-
-    loadProfessionals();
-  }, []);
-
-  // ===============================
-  // FECHA NORMALIZADA (YA STRING)
-  // ===============================
-  const normalizedDate = selectedDate?.date || null;
-
-  // ===============================
-  // IDs → OBJETOS (AGENDA DIARIA)
-  // ===============================
-  const selectedProfessionalObjects = useMemo(() => {
-    return availableProfessionals.filter((p) =>
-      selectedProfessionals.includes(p.id)
-    );
-  }, [selectedProfessionals, availableProfessionals]);
+  function handleSummaryChange(payload) {
+    setSummaryModeLocal(payload.mode);
+    onSummaryChange?.(payload);
+  }
 
   return (
     <div className="dashboard-agenda">
+      {/* ===============================
+          HEADER
+      =============================== */}
       <header className="agenda-header">
         <h1>Agenda</h1>
         <span className="agenda-mode">
@@ -75,28 +59,31 @@ export default function DashboardAgenda() {
         </span>
       </header>
 
-      {/* SELECTOR */}
+      {/* ===============================
+          SELECTOR (SECRETARIA)
+      =============================== */}
       {isSecretaria && (
         <AgendaSummarySelector
           professionals={availableProfessionals}
-          onChange={({ mode, selectedProfessionals }) => {
-            setSummaryMode(mode);
-            setSelectedProfessionals(selectedProfessionals);
-            setSelectedDate(null);
-          }}
+          onChange={handleSummaryChange}
         />
       )}
 
+      {/* ===============================
+          LAYOUT PRINCIPAL
+      =============================== */}
       <div className="agenda-layout">
-        {/* RESUMEN */}
+        {/* ===============================
+            IZQUIERDA — RESÚMENES
+        =============================== */}
         <aside className="agenda-left">
           {summaryMode === "monthly" &&
             selectedProfessionals.map((profId) => (
               <AgendaMonthSummary
                 key={profId}
                 professional={profId}
-                selectedDate={normalizedDate}
-                onSelectDate={setSelectedDate}
+                selectedDate={selectedDate}
+                onSelectDate={onSelectDate}
               />
             ))}
 
@@ -111,11 +98,13 @@ export default function DashboardAgenda() {
           )}
         </aside>
 
-        {/* AGENDA DIARIA */}
+        {/* ===============================
+            DERECHA — AGENDA DIARIA
+        =============================== */}
         <main className="agenda-right">
-          {normalizedDate ? (
+          {selectedDate ? (
             <AgendaPage
-              forcedDate={normalizedDate}
+              forcedDate={selectedDate}
               professionals={selectedProfessionalObjects}
             />
           ) : (
@@ -127,4 +116,4 @@ export default function DashboardAgenda() {
       </div>
     </div>
   );
-              }
+}
