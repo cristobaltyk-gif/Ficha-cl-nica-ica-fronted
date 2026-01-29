@@ -3,10 +3,8 @@ import { useState, useEffect } from "react";
 
 export default function AgendaToolbar({
   date,
-  box,
-  professionals, // lista COMPLETA
+  professionals, // lista COMPLETA [{ id, name }]
   onDateChange,
-  onBoxChange,
   onProfessionalsChange,
 }) {
   // =========================
@@ -14,7 +12,7 @@ export default function AgendaToolbar({
   // =========================
   const [localDate, setLocalDate] = useState(date || "");
 
-  // Mantener sincronía si el padre cambia la fecha
+  // sincronía si el padre cambia fecha
   useEffect(() => {
     setLocalDate(date || "");
   }, [date]);
@@ -22,7 +20,6 @@ export default function AgendaToolbar({
   function handleDateChange(value) {
     setLocalDate(value);
 
-    // 🔒 Emitir SOLO si es una fecha válida y distinta
     if (value && value !== date) {
       onDateChange?.(value);
     }
@@ -33,7 +30,7 @@ export default function AgendaToolbar({
   // =========================
   function handleSelectProfessional(value) {
     if (!value) {
-      // “Todos” → devolver lista completa (como ya usabas)
+      // “Todos”
       onProfessionalsChange?.(professionals);
       return;
     }
@@ -49,6 +46,7 @@ export default function AgendaToolbar({
   // =========================
   return (
     <div className="agenda-toolbar">
+      {/* FECHA */}
       <div className="toolbar-field">
         <label>Fecha</label>
         <input
@@ -58,19 +56,7 @@ export default function AgendaToolbar({
         />
       </div>
 
-      <div className="toolbar-field">
-        <label>Box</label>
-        <select
-          value={box}
-          onChange={(e) => onBoxChange?.(e.target.value)}
-        >
-          <option value="">— Seleccionar —</option>
-          <option value="box1">Box 1</option>
-          <option value="box2">Box 2</option>
-          <option value="box3">Box 3</option>
-        </select>
-      </div>
-
+      {/* PROFESIONAL */}
       <div className="toolbar-field">
         <label>Profesional</label>
         <select onChange={(e) => handleSelectProfessional(e.target.value)}>
