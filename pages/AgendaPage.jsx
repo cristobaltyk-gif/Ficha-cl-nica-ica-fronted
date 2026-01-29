@@ -1,81 +1,73 @@
-import { useEffect, useState } from "react";
-import Agenda from "../components/agenda/Agenda.jsx";
+import { useState } from "react";
+import { useAuth } from "../auth/AuthContext";
+
+import Agenda from "../components/agenda/Agenda";
+import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
+import CalendarMonthView from "../components/agenda/CalendarMonthView";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function AgendaPage({ forcedDate, professionals = [] }) {
+/*
+AgendaPage (ORQUESTADOR CENTRAL)
+
+✔ Secretaría
+✔ Selección de médico
+✔ Vista mensual
+✔ Click día → agenda diaria
+✔ NO pinta slots
+✔ NO pinta calendario
+✔ Coordina estado global
+*/
+
+export default function AgendaPage() {
+  const { session } = useAuth();
+
   // =========================
-  // FECHA
+  // Estado global
   // =========================
-  const [date, setDate] = useState(
-    forcedDate || new Date().toISOString().slice(0, 10)
+  const [professional, setProfessional] = useState(null); // id u objeto
+  const [selectedDate, setSelectedDate] = useState(null); // { date }
+  const [month, setMonth] = useState(
+    new Date().toISOString().slice(0, 7) // YYYY-MM
   );
 
-  useEffect(() => {
-    if (forcedDate) {
-      setDate(forcedDate);
-    }
-  }, [forcedDate]);
-
-  const [box, setBox] = useState("");
-
   // =========================
-  // DATA AGENDA
-  // =========================
-  const [loading, setLoading] = useState(false);
-  const [agendaData, setAgendaData] = useState(null);
-  const [error, setError] = useState(null);
-
-  const [reloadKey, setReloadKey] = useState(0);
-
-  // =========================
-  // CARGA AGENDA
-  // =========================
-  useEffect(() => {
-    if (!date) return;
-
-    const controller = new AbortController();
-
-    async function loadAgenda() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const res = await fetch(
-          `${API_URL}/agenda?date=${date}`,
-          { signal: controller.signal }
-        );
-
-        const data = await res.json();
-        setAgendaData(data);
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          setError("Error cargando agenda");
-          // ❌ NO limpiar agendaData
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadAgenda();
-
-    return () => controller.abort();
-  }, [date, reloadKey]);
-
-  // =========================
-  // RENDER
+  // Render
   // =========================
   return (
-    <Agenda
-      loading={loading}
-      date={date}
-      box={box}
-      professionals={professionals}
-      agendaData={agendaData}
-      onDateChange={setDate}
-      onBoxChange={setBox}
-      onAgendaChanged={() => setReloadKey((k) => k + 1)}
-    />
+    <div className="agenda-page">
+      {/* =========================
+          Selector de médico
+      ========================== */}
+      <AgendaSummarySelector
+        value={professional}
+        onChange={(p) => {
+          setProfessional(p);
+          setSelectedDate(null); // reset día al cambiar médico
+        }}
+      />
+
+      {/* =========================
+          Vista mensual (Secretaría)
+      ========================== */}
+      {professional && (
+        <CalendarMonthView
+          professional={professional}
+          month={month}
+          selectedDate={selectedDate}
+          onSelectDate={(day) => setSelectedDate(day)}
+        />
+      )}
+
+      {/* =========================
+          Agenda diaria
+      ========================== */}
+      {professional && selectedDate && (
+        <Agenda
+          professional={professional}
+          date={selectedDate.date}
+        />
+      )}
+    </div>
   );
 }
