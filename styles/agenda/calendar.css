@@ -1,0 +1,109 @@
+/* ======================================================
+   CALENDAR (Month & Week)
+   Usado por:
+   - CalendarMonthView.jsx
+   - CalendarWeekView.jsx
+====================================================== */
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.month-calendar {
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  border: 2px solid #020617;
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+
+/* ===== TÍTULO ===== */
+.month-calendar h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #020617;
+}
+
+/* ===== SUBTEXTO ===== */
+.month-calendar .summary-sub,
+.month-calendar p {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: #475569;
+}
+
+/* ===== GRID DE DÍAS ===== */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* ===== CELDA DE DÍA ===== */
+.day-cell {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 14px;
+  font-weight: 500;
+  color: #020617;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-cell:hover {
+  background: #e2e8f0;
+}
+
+/* ===== ESTADOS DE OCUPACIÓN ===== */
+.day-cell.free {
+  background: #ecfdf5;
+  border-color: #34d399;
+}
+
+.day-cell.low {
+  background: #fffbeb;
+  border-color: #fbbf24;
+}
+
+.day-cell.full {
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+.day-cell.empty {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+/* ===== DÍA SELECCIONADO ===== */
+.day-cell.selected {
+  outline: 3px solid #020617;
+  outline-offset: -3px;
+}
+
+/* ===== LEYENDA ===== */
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend .free { color: #059669; }
+.legend .low { color: #d97706; }
+.legend .full { color: #dc2626; }
+.legend .empty { color: #64748b; }
