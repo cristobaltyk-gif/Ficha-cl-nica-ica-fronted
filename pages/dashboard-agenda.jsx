@@ -12,13 +12,13 @@ import "../styles/agenda/dashboard-agenda.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-DashboardAgenda – CANÓNICO FINAL (FIX REAL)
+DashboardAgenda – CANÓNICO FINAL
 
 ✔ Selector resumen (mensual/semanal)
-✔ Secretaría elige hasta 4 médicos reales
-✔ Renderiza 1–4 calendarios simultáneos
+✔ Secretaría elige hasta 4 médicos
+✔ Renderiza 1–4 calendarios
 ✔ Click día → abre Agenda diaria
-✔ Agenda diaria recibe PROFESIONALES COMO OBJETOS
+✔ Agenda diaria recibe profesionales COMO OBJETOS
 */
 
 export default function DashboardAgenda() {
@@ -40,11 +40,11 @@ export default function DashboardAgenda() {
   // Fecha seleccionada desde el resumen
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // Profesionales reales (objetos desde backend)
+  // Profesionales reales (objetos)
   const [availableProfessionals, setAvailableProfessionals] = useState([]);
 
   // ===============================
-  // CARGA PROFESIONALES (GLOBAL)
+  // CARGA PROFESIONALES
   // ===============================
   useEffect(() => {
     async function loadProfessionals() {
@@ -61,7 +61,7 @@ export default function DashboardAgenda() {
   }, []);
 
   // ===============================
-  // NORMALIZAR FECHA (ANTI BLANCO)
+  // NORMALIZAR FECHA
   // ===============================
   const normalizedDate =
     typeof selectedDate === "string"
@@ -69,8 +69,7 @@ export default function DashboardAgenda() {
       : selectedDate?.date || null;
 
   // ===============================
-  // 🔑 FIX CLAVE:
-  // Convertir IDs → OBJETOS antes de pasar a AgendaPage
+  // IDs → OBJETOS (FIX CLAVE)
   // ===============================
   const selectedProfessionalObjects = useMemo(() => {
     if (!Array.isArray(selectedProfessionals)) return [];
@@ -86,7 +85,6 @@ export default function DashboardAgenda() {
       =============================== */}
       <header className="agenda-header">
         <h1>Agenda</h1>
-
         <span className="agenda-mode">
           {summaryMode === "monthly" && "Resumen mensual"}
           {summaryMode === "weekly" && "Resumen semanal"}
@@ -102,7 +100,7 @@ export default function DashboardAgenda() {
           onChange={({ mode, selectedProfessionals }) => {
             setSummaryMode(mode);
             setSelectedProfessionals(selectedProfessionals);
-            setSelectedDate(null); // reset día al cambiar contexto
+            setSelectedDate(null);
           }}
         />
       )}
@@ -112,10 +110,9 @@ export default function DashboardAgenda() {
       =============================== */}
       <div className="agenda-layout">
         {/* ===============================
-            IZQUIERDA — RESUMEN (1–4 médicos)
+            IZQUIERDA — RESUMEN
         =============================== */}
         <aside className="agenda-left">
-          {/* ===== MENSUAL ===== */}
           {summaryMode === "monthly" &&
             selectedProfessionals.map((profId) => (
               <AgendaMonthSummary
@@ -126,7 +123,6 @@ export default function DashboardAgenda() {
               />
             ))}
 
-          {/* ===== SEMANAL ===== */}
           {summaryMode === "weekly" &&
             selectedProfessionals.map((profId) => (
               <AgendaWeekSummary
@@ -137,7 +133,6 @@ export default function DashboardAgenda() {
               />
             ))}
 
-          {/* Placeholder si no hay médicos */}
           {selectedProfessionals.length === 0 && (
             <div className="agenda-placeholder">
               Selecciona hasta 4 profesionales arriba
@@ -152,7 +147,7 @@ export default function DashboardAgenda() {
           {normalizedDate ? (
             <AgendaPage
               forcedDate={normalizedDate}
-              professionals={selectedProfessionalObjects}  {/* ✅ OBJETOS */}
+              professionals={selectedProfessionalObjects}
             />
           ) : (
             <div className="agenda-placeholder">
