@@ -5,10 +5,8 @@ import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
 
-import { createSlot, cancelSlot } from "../../services/agendaApi";
-
 // =========================
-// HORARIOS CANÓNICOS
+// HORARIOS CANÓNICOS (UI)
 // =========================
 const TIMES_15_MIN = (() => {
   const out = [];
@@ -25,22 +23,41 @@ const TIMES_15_MIN = (() => {
   return out;
 })();
 
+/*
+Agenda — MÓDULO VISUAL DE AGENDA DIARIA
+
+✔ Genérico
+✔ Reutilizable
+✔ Sin backend
+✔ Sin reglas
+✔ Sin fetch
+✔ Sin estado global
+✔ Orquesta UI y emite eventos
+*/
+
 export default function Agenda({
-  loading,
+  loading = false,
   date,
   box,
-  professionals,
-  agendaData,
+  professionals = [],        // [{ id, name }]
+  agendaData,               // { calendar: { [profId]: { slots } } }
+
+  // Toolbar
   onDateChange,
   onBoxChange,
   onProfessionalsChange,
-  onAgendaChanged,
+
+  // Eventos de slots (cerebro decide)
+  onSelectSlot,              // ({ professional, time, status, slot })
+  onCloseSlot,
 }) {
+  // =========================
+  // Estado UI local
+  // =========================
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
 
   // =========================
-  // CAN RENDER (NO SE DESMONTA CON LOADING)
+  // Condición render
   // =========================
   const canRenderAgenda =
     date &&
@@ -49,22 +66,24 @@ export default function Agenda({
     agendaData.calendar;
 
   // =========================
-  // SELECT SLOT (DEFENSIVO)
+  // Slot seleccionado (UI)
   // =========================
   function handleSelectSlot(slotInfo, profId) {
-    if (actionLoading) return;
     if (!slotInfo || !slotInfo.time) return;
 
-    setSelectedSlot({
+    const payload = {
       ...slotInfo,
       professional: profId,
-    });
+    };
+
+    setSelectedSlot(payload);
+    onSelectSlot?.(payload);
   }
 
   return (
     <section className="agenda-page">
       {/* =========================
-          TOOLBAR (FILTROS)
+          TOOLBAR (VISUAL)
          ========================= */}
       <AgendaToolbar
         date={date}
@@ -79,7 +98,7 @@ export default function Agenda({
           CONTENEDOR AGENDA
          ========================= */}
       <section className="agenda-container">
-        {/* ===== MENSAJES DE ESTADO ===== */}
+        {/* ===== MENSAJES ===== */}
         {!date || professionals.length === 0 ? (
           <div className="agenda-state">
             Selecciona fecha y profesional
@@ -90,7 +109,7 @@ export default function Agenda({
           </div>
         ) : null}
 
-        {/* ===== GRID PRINCIPAL (NUNCA SE DESMONTA POR LOADING) ===== */}
+        {/* ===== GRID ===== */}
         {canRenderAgenda && (
           <div className="agenda-grid">
             {professionals.map((prof) => {
@@ -115,7 +134,7 @@ export default function Agenda({
           </div>
         )}
 
-        {/* ===== OVERLAY LOADING ===== */}
+        {/* ===== LOADING VISUAL ===== */}
         {loading && (
           <div className="agenda-state agenda-loading">
             Cargando agenda…
@@ -124,72 +143,14 @@ export default function Agenda({
       </section>
 
       {/* =========================
-          MODAL
+          MODAL (VISUAL)
          ========================= */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
-        loading={actionLoading}
         onClose={() => {
-          if (!actionLoading) setSelectedSlot(null);
-        }}
-        onReserve={async ({ slot, patient }) => {
-          try {
-            setActionLoading(true);
-
-            await createSlot({
-              date,
-              box,
-              professional: slot.professional,
-              time: slot.time,
-              rut: patient.rut,
-              status: "reserved",
-            });
-
-            onAgendaChanged?.();
-          } finally {
-            setActionLoading(false);
-            setSelectedSlot(null);
-          }
-        }}
-        onConfirm={async ({ slot, patient }) => {
-          try {
-            setActionLoading(true);
-
-            await createSlot({
-              date,
-              box,
-              professional: slot.professional,
-              time: slot.time,
-              rut: patient.rut,
-              status: "confirmed",
-            });
-
-            onAgendaChanged?.();
-          } finally {
-            setActionLoading(false);
-            setSelectedSlot(null);
-          }
-        }}
-        onCancel={async () => {
-          try {
-            setActionLoading(true);
-
-            await cancelSlot({
-              date,
-              professional: selectedSlot.professional,
-              time: selectedSlot.time,
-            });
-
-            onAgendaChanged?.();
-          } finally {
-            setActionLoading(false);
-            setSelectedSlot(null);
-          }
-        }}
-        onReschedule={async () => {
-          alert("Reprogramación pendiente");
           setSelectedSlot(null);
+          onCloseSlot?.();
         }}
       />
     </section>
