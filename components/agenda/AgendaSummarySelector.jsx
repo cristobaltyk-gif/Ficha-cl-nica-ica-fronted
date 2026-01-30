@@ -6,22 +6,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
-
-✔ Carga profesionales: GET /professionals
-✔ Selector profesionales (1–4)
-✔ Botón Aplicar (único disparo)
-✔ Backend REAL:
-   - /agenda/summary/month?professional=...&start_date=YYYY-MM-DD
-   - /agenda/summary/week?professional=...&start_date=YYYY-MM-DD
-✔ Renderiza hasta 4 médicos en paralelo
-✔ Click día → onSelectDay({ professional, date })
 */
 
 export default function AgendaSummarySelector({
   max = 4,
-  defaultMode = "monthly", // "monthly" | "weekly"
-  startDate,               // opcional YYYY-MM-DD; si no, usa HOY
-  onSelectDay,             // ({ professional, date })
+  defaultMode = "monthly",
+  startDate,
+  onSelectDay,
 }) {
   // =========================
   // Estado
@@ -37,7 +28,7 @@ export default function AgendaSummarySelector({
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // Fecha base LOCAL (FIX REAL)
+  // Fecha base LOCAL (OK)
   // =========================
   function todayISO() {
     const d = new Date();
@@ -57,8 +48,15 @@ export default function AgendaSummarySelector({
     return p?.name || id;
   }
 
+  // ✅ FIX REAL: weekday LOCAL SIN UTC
+  function weekdayFromISO(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d); // LOCAL
+    return dt.toLocaleDateString("es-CL", { weekday: "short" });
+  }
+
   // =========================
-  // Cargar profesionales (REAL)
+  // Cargar profesionales
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +99,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // Cambiar vista (NO backend)
+  // Cambiar vista
   // =========================
   function changeMode(next) {
     setMode(next);
@@ -110,7 +108,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // APLICAR → BACKEND REAL
+  // APLICAR → BACKEND
   // =========================
   async function applySelection() {
     if (selectedProfessionals.length === 0) return;
@@ -154,9 +152,7 @@ export default function AgendaSummarySelector({
   // =========================
   return (
     <section className="agenda-summary-selector">
-      {/* =========================
-          SELECTOR VISTA
-      ========================= */}
+
       <div className="summary-mode">
         <button
           type="button"
@@ -175,9 +171,6 @@ export default function AgendaSummarySelector({
         </button>
       </div>
 
-      {/* =========================
-          PROFESIONALES
-      ========================= */}
       <div className="summary-professionals">
         {loadingProfessionals && (
           <div className="agenda-placeholder">
@@ -216,9 +209,6 @@ export default function AgendaSummarySelector({
           })}
       </div>
 
-      {/* =========================
-          FOOTER
-      ========================= */}
       <div className="summary-footer">
         <span>
           Seleccionados: {selectedProfessionals.length} / {max}
@@ -234,9 +224,6 @@ export default function AgendaSummarySelector({
         </button>
       </div>
 
-      {/* =========================
-          CALENDARIOS POR MÉDICO
-      ========================= */}
       {applied &&
         Object.entries(summaryByProfessional).map(
           ([professionalId, days]) => (
@@ -248,31 +235,26 @@ export default function AgendaSummarySelector({
               )}
 
               <div className="month-grid">
-                {Object.entries(days).map(([date, status]) => {
-                  const d = new Date(date);
-                  const weekday = d.toLocaleDateString("es-CL", {
-                    weekday: "short",
-                  });
-
-                  return (
-                    <button
-                      key={date}
-                      className={`day-cell ${status}`}
-                      onClick={() =>
-                        onSelectDay?.({
-                          professional: professionalId,
-                          date,
-                        })
-                      }
-                      title={date}
-                    >
-                      <div className="day-week">{weekday}</div>
-                      <div className="day-number">
-                        {date.slice(-2)}
-                      </div>
-                    </button>
-                  );
-                })}
+                {Object.entries(days).map(([date, status]) => (
+                  <button
+                    key={date}
+                    className={`day-cell ${status}`}
+                    onClick={() =>
+                      onSelectDay?.({
+                        professional: professionalId,
+                        date,
+                      })
+                    }
+                    title={date}
+                  >
+                    <div className="day-week">
+                      {weekdayFromISO(date)}
+                    </div>
+                    <div className="day-number">
+                      {date.slice(-2)}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           )
