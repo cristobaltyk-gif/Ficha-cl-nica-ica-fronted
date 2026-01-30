@@ -1,115 +1,95 @@
 /* ======================================================
-   CALENDAR (Month & Week)
-   Usado por:
-   - CalendarMonthView.jsx
-   - CalendarWeekView.jsx
-   - AgendaSummarySelector.jsx
+   CALENDAR — ICA (MES / SEMANA)
+   Compacto · Claro · Clínico
 ====================================================== */
 
-/* ===== CONTENEDOR PRINCIPAL ===== */
+/* ===== CONTENEDOR ===== */
 .month-calendar {
   width: 100%;
-  padding: 14px;
-  margin-bottom: 16px;
+  padding: 10px;
+  margin-bottom: 12px;
+
   background: #ffffff;
-  border: 2px solid #020617;
-  border-radius: 12px;
-  box-sizing: border-box;
+  border: 1.5px solid #0f172a;
+  border-radius: 10px;
 }
 
-/* ===== TÍTULO ===== */
-.month-calendar h3,
+/* ===== TÍTULO MÉDICO ===== */
 .month-calendar h4 {
   margin: 0 0 6px 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #020617;
+  text-transform: capitalize;
 }
 
-/* ===== SUBTEXTO ===== */
-.month-calendar p {
-  margin: 0 0 10px 0;
-  font-size: 13px;
+/* ===== CABECERA DÍAS SEMANA ===== */
+.month-grid-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.month-grid-header span {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
   color: #475569;
 }
 
-/* ===== GRID DE DÍAS ===== */
+/* ===== GRID ===== */
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px; /* más compacto */
-  margin-top: 8px;
+  gap: 4px;
 }
 
-/* ===== CELDA DE DÍA ===== */
+/* ===== CELDA ===== */
 .day-cell {
-  height: 48px;              /* ⬅️ reducido */
-  border-radius: 8px;
-  border: 1.5px solid #cbd5e1;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+
   background: #f8fafc;
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #020617;
 
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: background 0.12s ease;
+  cursor: pointer;
 }
 
-/* ===== TEXTO DÍA ===== */
-.day-cell .weekday {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  color: #475569;
-  text-transform: uppercase;
-}
-
-.day-cell .day-number {
-  font-size: 15px;
-  font-weight: 700;
-  color: #020617;
-}
-
-/* ===== HOVER ===== */
 .day-cell:hover {
-  background: #e2e8f0;
+  filter: brightness(0.95);
 }
 
-/* ===== ESTADOS DE OCUPACIÓN ===== */
-
-/* 🟢 LIBRE */
+/* ===== ESTADOS ===== */
 .day-cell.free {
-  background: #d1fae5;
-  border-color: #059669;
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #065f46;
 }
 
-/* 🟡 POCOS */
 .day-cell.low {
-  background: #fef3c7;
-  border-color: #f59e0b;
+  background: #fef9c3;
+  border-color: #facc15;
+  color: #713f12;
 }
 
-/* 🔴 LLENO */
 .day-cell.full {
   background: #fee2e2;
-  border-color: #dc2626;
+  border-color: #ef4444;
+  color: #7f1d1d;
 }
 
-/* ⚪ SIN AGENDA */
 .day-cell.empty {
   background: #e5e7eb;
   border-color: #9ca3af;
   color: #6b7280;
-}
-
-/* ===== DÍA SELECCIONADO ===== */
-.day-cell.selected {
-  outline: 3px solid #020617;
-  outline-offset: -3px;
 }
 
 /* ===== LEYENDA ===== */
@@ -117,18 +97,17 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 12px;
-  color: #334155;
 }
 
 .legend span {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.legend .free   { color: #059669; }
-.legend .low    { color: #d97706; }
-.legend .full   { color: #dc2626; }
-.legend .empty  { color: #64748b; }
+.legend .free { color: #16a34a; }
+.legend .low { color: #ca8a04; }
+.legend .full { color: #dc2626; }
+.legend .empty { color: #6b7280; }
