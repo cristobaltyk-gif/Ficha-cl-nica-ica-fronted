@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
-
-// 👉 componentes reales
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
@@ -14,22 +12,35 @@ DashboardAgenda — ESTRUCTURA PURA
 ✔ SOLO layout
 ✔ SOLO orquestación visual
 ✔ NO fetch
-✔ NO lógica de negocio
-✔ NO transformación de datos
-✔ Estado UI mínimo y explícito
+✔ NO lógica clínica
+✔ Estado UI mínimo
 */
 
 export default function DashboardAgenda() {
-  const { role } = useAuth();
+  const { role, session } = useAuth();
 
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
   // ===============================
-  // ESTADO VISUAL CLAVE
+  // ESTADO VISUAL
   // ===============================
   const [selectedDay, setSelectedDay] = useState(null);
   // { professional: string, date: "YYYY-MM-DD" }
+
+  // ===============================
+  // INIT VISUAL MÉDICO
+  // ===============================
+  useEffect(() => {
+    if (isMedico && session?.usuario) {
+      const today = new Date().toISOString().slice(0, 10);
+
+      setSelectedDay({
+        professional: session.usuario, // 👈 ID del médico
+        date: today
+      });
+    }
+  }, [isMedico, session]);
 
   return (
     <div className="dashboard-agenda">
@@ -46,12 +57,11 @@ export default function DashboardAgenda() {
       </header>
 
       {/* ===============================
-          SUMMARY (SECRETARIA)
+          SUMMARY (SOLO SECRETARIA)
       =============================== */}
       {isSecretaria && (
         <AgendaSummarySelector
           onSelectDay={(payload) => {
-            // payload = { professional, date }
             setSelectedDay(payload);
           }}
         />
@@ -68,7 +78,9 @@ export default function DashboardAgenda() {
           />
         ) : (
           <div className="agenda-placeholder">
-            Selecciona un día en el resumen
+            {isSecretaria
+              ? "Selecciona un día en el resumen"
+              : "Cargando agenda del día…"}
           </div>
         )}
       </main>
