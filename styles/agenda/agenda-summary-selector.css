@@ -1,89 +1,56 @@
 /* ======================================================
-   AGENDA SUMMARY SELECTOR — ICA BOUTIQUE
+   AGENDA SUMMARY SELECTOR — ICA
+   Boutique · Profesional · Legible
 ====================================================== */
 
-/* ===============================
-   CONTENEDOR PRINCIPAL
-=============================== */
 .agenda-summary-selector {
   width: 100%;
-  padding: 18px;
-  margin-bottom: 18px;
+  padding: 14px;
+  margin-bottom: 16px;
 
   background: #ffffff;
   border: 2px solid #020617;
-  border-radius: 14px;
-
-  box-sizing: border-box;
+  border-radius: 12px;
 }
 
-/* ===============================
-   MODO (Mensual / Semanal)
-=============================== */
+/* ===== MODO ===== */
 .summary-mode {
   display: flex;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .summary-mode button {
   flex: 1;
-  padding: 10px 0;
+  padding: 10px;
 
   border-radius: 8px;
-  border: 2px solid #cbd5e1;
-  background: #f8fafc;
+  border: 1.5px solid #020617;
+  background: #ffffff;
 
   font-size: 14px;
   font-weight: 600;
   color: #020617;
 
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.summary-mode button:hover {
-  background: #e2e8f0;
 }
 
 .summary-mode button.active {
   background: #020617;
   color: #ffffff;
-  border-color: #020617;
 }
 
-/* ===============================
-   LISTA DE PROFESIONALES
-=============================== */
+/* ===== PROFESIONALES ===== */
 .summary-professionals {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 
-  padding: 12px;
-  border: 1.5px dashed #94a3b8;
-  border-radius: 10px;
-
-  margin-bottom: 12px;
-  background: #f8fafc;
-}
-
-/* Placeholder */
-.agenda-placeholder {
-  width: 100%;
   padding: 10px;
-
-  font-size: 13px;
-  color: #475569;
-  background: #e5e7eb;
-
+  border: 1.5px dashed #94a3b8;
   border-radius: 8px;
-  text-align: center;
 }
 
-/* ===============================
-   PROFESIONAL (CARD)
-=============================== */
 .professional-item {
   display: flex;
   align-items: center;
@@ -92,79 +59,55 @@
   padding: 10px 14px;
   border-radius: 10px;
 
+  border: 1.5px solid #cbd5e1;
   background: #ffffff;
-  border: 2px solid #cbd5e1;
 
   font-size: 14px;
   font-weight: 600;
-  color: #020617;
-
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-/* Hover elegante */
-.professional-item:hover {
-  border-color: #020617;
-  background: #f1f5f9;
+.professional-item input {
+  accent-color: #020617;
 }
 
-/* Activo */
 .professional-item.active {
   background: #020617;
   color: #ffffff;
   border-color: #020617;
 }
 
-/* Deshabilitado */
 .professional-item.disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* Checkbox oculto visualmente */
-.professional-item input {
-  accent-color: #020617;
-  cursor: pointer;
-}
-
-/* ===============================
-   FOOTER
-=============================== */
+/* ===== FOOTER ===== */
 .summary-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  margin-top: 14px;
+  margin-top: 10px;
   font-size: 13px;
   color: #334155;
 }
 
-/* ===============================
-   BOTÓN APLICAR
-=============================== */
 .apply-btn {
   padding: 10px 18px;
 
+  border-radius: 10px;
+  border: none;
+
   background: #1d4ed8;
   color: #ffffff;
-
-  border: none;
-  border-radius: 10px;
-
   font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.apply-btn:hover {
-  background: #1e40af;
 }
 
 .apply-btn:disabled {
-  opacity: 0.4;
+  background: #94a3b8;
   cursor: not-allowed;
 }
