@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 
-import Agenda from "../components/agenda/Agenda";
+import AgendaDayController from "../components/agenda/AgendaDayController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,11 +9,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaPage — MÓDULO DIARIO (PRODUCCIÓN)
 
 ✔ Recibe professional + date desde Summary
-✔ Lee agenda_future.json vía backend REAL
-✔ NO inventa endpoints
-✔ NO calcula
-✔ Agenda es SOLO visual
-✔ Backend es la verdad
+✔ Orquesta carga diaria
+✔ NO pinta agenda
+✔ NO es cerebro clínico
+✔ Delegación correcta al controller
 */
 
 export default function AgendaPage({
@@ -38,6 +37,7 @@ export default function AgendaPage({
 
   // =========================
   // Fetch agenda diaria REAL
+  // (se mantiene para backward-compat / preload)
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -47,28 +47,14 @@ export default function AgendaPage({
       setAgendaData(null);
 
       try {
-        // ✅ ENDPOINT REAL (agenda.router)
         const res = await fetch(
           `${API_URL}/agenda?date=${encodeURIComponent(date)}`
         );
 
-        if (!res.ok) {
-          throw new Error("agenda");
-        }
+        if (!res.ok) throw new Error("agenda");
 
         const data = await res.json();
         if (cancelled) return;
-
-        /**
-         * Backend REAL:
-         * {
-         *   calendar: {
-         *     [professionalId]: {
-         *       slots: { "09:00": {...} }
-         *     }
-         *   }
-         * }
-         */
 
         setAgendaData({
           calendar: {
@@ -76,9 +62,7 @@ export default function AgendaPage({
           }
         });
       } catch {
-        if (!cancelled) {
-          setAgendaData(null);
-        }
+        if (!cancelled) setAgendaData(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -91,15 +75,15 @@ export default function AgendaPage({
   }, [professional, date]);
 
   // =========================
-  // Render
+  // 🔁 CAMBIO ÚNICO Y REAL
   // =========================
   return (
     <div className="agenda-page">
-      <Agenda
-        loading={loading}
+      <AgendaDayController
+        professional={professional}
         date={date}
-        professionals={[{ id: professional }]}
-        agendaData={agendaData}
+        preload={agendaData}   // 👈 opcional, NO rompe nada
+        loading={loading}
         user={session?.usuario}
         role={session?.role?.name}
       />
