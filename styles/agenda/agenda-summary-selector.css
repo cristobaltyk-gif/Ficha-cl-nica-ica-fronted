@@ -13,7 +13,9 @@
   border-radius: 12px;
 }
 
-/* ===== MODO ===== */
+/* ===============================
+   MODO (30 / 7 días)
+=============================== */
 .summary-mode {
   display: flex;
   gap: 10px;
@@ -22,7 +24,7 @@
 
 .summary-mode button {
   flex: 1;
-  padding: 10px;
+  padding: 10px 0;
 
   border-radius: 8px;
   border: 1.5px solid #020617;
@@ -33,14 +35,22 @@
   color: #020617;
 
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.summary-mode button:hover {
+  background: #f1f5f9;
 }
 
 .summary-mode button.active {
   background: #020617;
   color: #ffffff;
+  border-color: #020617;
 }
 
-/* ===== PROFESIONALES ===== */
+/* ===============================
+   PROFESIONALES
+=============================== */
 .summary-professionals {
   display: flex;
   flex-wrap: wrap;
@@ -64,7 +74,14 @@
 
   font-size: 14px;
   font-weight: 600;
+  color: #020617;
+
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.professional-item:hover {
+  background: #f8fafc;
 }
 
 .professional-item input {
@@ -82,32 +99,49 @@
   cursor: not-allowed;
 }
 
-/* ===== FOOTER ===== */
+/* ===============================
+   FOOTER
+=============================== */
 .summary-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  margin-top: 10px;
+  margin-top: 12px;
   font-size: 13px;
   color: #334155;
 }
 
+/* ===============================
+   BOTÓN APLICAR (CORREGIDO)
+=============================== */
 .apply-btn {
-  padding: 10px 18px;
+  padding: 10px 22px;
 
   border-radius: 10px;
   border: none;
 
-  background: #1d4ed8;
+  background: linear-gradient(
+    180deg,
+    #2563eb,
+    #1e40af
+  );
+
   color: #ffffff;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apply-btn:hover {
+  filter: brightness(1.08);
 }
 
 .apply-btn:disabled {
-  background: #94a3b8;
+  background: #cbd5e1;
+  color: #64748b;
   cursor: not-allowed;
 }
