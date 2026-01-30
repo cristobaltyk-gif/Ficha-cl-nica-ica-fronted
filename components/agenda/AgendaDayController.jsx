@@ -13,6 +13,7 @@ AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
 ✔ Lee backend REAL
 ✔ Ejecuta mutaciones reales
 ✔ Backend es la verdad
+✔ ADAPTA sin romper contratos
 */
 
 export default function AgendaDayController({ professional, date }) {
@@ -37,11 +38,9 @@ export default function AgendaDayController({ professional, date }) {
 
       const data = await res.json();
 
-      /**
-       * 🔒 ADAPTADOR CANÓNICO (NO ROMPER CONTRATOS)
-       * Agenda.jsx espera:
-       * agendaData.calendar[professional].slots
-       */
+      // 🔒 ADAPTADOR CANÓNICO
+      // Agenda.jsx espera:
+      // agendaData.calendar[professional].slots
       setAgendaData({
         calendar: {
           [professional]: data.calendar?.[professional] || { slots: {} }
@@ -78,7 +77,7 @@ export default function AgendaDayController({ professional, date }) {
     setLoading(true);
 
     try {
-      await fetch(`${API_URL}/agenda/set_slot`, {
+      await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,7 +102,7 @@ export default function AgendaDayController({ professional, date }) {
     setLoading(true);
 
     try {
-      await fetch(`${API_URL}/agenda/clear_slot`, {
+      await fetch(`${API_URL}/agenda/cancel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
