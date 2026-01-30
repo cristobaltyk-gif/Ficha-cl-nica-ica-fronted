@@ -5,34 +5,15 @@ import AgendaToolbar from "./AgendaToolbar";
 import AgendaColumn from "./AgendaColumn";
 import AgendaSlotModal from "./AgendaSlotModal";
 
-// =========================
-// HORARIOS CANÓNICOS (UI)
-// =========================
-const TIMES_15_MIN = (() => {
-  const out = [];
-  let cur = 9 * 60;
-  const end = 18 * 60;
-
-  while (cur < end) {
-    const hh = String(Math.floor(cur / 60)).padStart(2, "0");
-    const mm = String(cur % 60).padStart(2, "0");
-    out.push(`${hh}:${mm}`);
-    cur += 15;
-  }
-
-  return out;
-})();
-
 /*
-Agenda — MÓDULO VISUAL DE AGENDA DIARIA
+Agenda — MÓDULO VISUAL DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
-✔ Genérico
-✔ Reutilizable
-✔ Sin backend
-✔ Sin reglas
-✔ Sin fetch
-✔ Sin estado global
-✔ Orquesta UI y emite eventos
+✔ NO mock
+✔ NO horarios hardcodeados
+✔ NO backend
+✔ NO lógica clínica
+✔ SOLO pinta lo que el backend entrega
+✔ Si no viene → no existe
 */
 
 export default function Agenda({
@@ -42,12 +23,12 @@ export default function Agenda({
   professionals = [],        // [{ id, name }]
   agendaData,               // { calendar: { [profId]: { slots } } }
 
-  // Toolbar
+  // Toolbar (solo visual)
   onDateChange,
   onBoxChange,
   onProfessionalsChange,
 
-  // Eventos de slots (cerebro decide)
+  // Eventos de slots (cerebro externo)
   onSelectSlot,              // ({ professional, time, status, slot })
   onCloseSlot,
 }) {
@@ -57,23 +38,25 @@ export default function Agenda({
   const [selectedSlot, setSelectedSlot] = useState(null);
 
   // =========================
-  // Condición render
+  // Condición render REAL
   // =========================
   const canRenderAgenda =
     date &&
-    professionals.length > 0 &&
+    professionals.length === 1 &&
     agendaData &&
     agendaData.calendar;
 
   // =========================
   // Slot seleccionado (UI)
   // =========================
-  function handleSelectSlot(slotInfo, profId) {
-    if (!slotInfo || !slotInfo.time) return;
+  function handleSelectSlot(slot, time, professionalId) {
+    if (!slot || !time) return;
 
     const payload = {
-      ...slotInfo,
-      professional: profId,
+      professional: professionalId,
+      time,
+      status: slot.status,
+      slot
     };
 
     setSelectedSlot(payload);
@@ -82,9 +65,10 @@ export default function Agenda({
 
   return (
     <section className="agenda-page">
+
       {/* =========================
-          TOOLBAR (VISUAL)
-         ========================= */}
+          TOOLBAR (SOLO VISUAL)
+      ========================= */}
       <AgendaToolbar
         date={date}
         box={box}
@@ -96,12 +80,13 @@ export default function Agenda({
 
       {/* =========================
           CONTENEDOR AGENDA
-         ========================= */}
+      ========================= */}
       <section className="agenda-container">
+
         {/* ===== MENSAJES ===== */}
-        {!date || professionals.length === 0 ? (
+        {!date || professionals.length !== 1 ? (
           <div className="agenda-state">
-            Selecciona fecha y profesional
+            Selecciona un profesional y un día
           </div>
         ) : !agendaData ? (
           <div className="agenda-state">
@@ -109,24 +94,31 @@ export default function Agenda({
           </div>
         ) : null}
 
-        {/* ===== GRID ===== */}
+        {/* ===== GRID REAL ===== */}
         {canRenderAgenda && (
           <div className="agenda-grid">
             {professionals.map((prof) => {
               const profId = prof.id;
 
               const profCalendar =
-                agendaData.calendar[profId] || { slots: {} };
+                agendaData.calendar[profId];
+
+              if (!profCalendar || !profCalendar.slots) {
+                return (
+                  <div key={profId} className="agenda-state">
+                    Sin agenda definida para este profesional
+                  </div>
+                );
+              }
 
               return (
                 <AgendaColumn
                   key={profId}
                   professionalId={profId}
                   box={box}
-                  times={TIMES_15_MIN}
-                  slots={profCalendar.slots}
-                  onSelectSlot={(slotInfo) =>
-                    handleSelectSlot(slotInfo, profId)
+                  slots={profCalendar.slots} // 👈 SOLO backend
+                  onSelectSlot={(slot, time) =>
+                    handleSelectSlot(slot, time, profId)
                   }
                 />
               );
@@ -134,7 +126,7 @@ export default function Agenda({
           </div>
         )}
 
-        {/* ===== LOADING VISUAL ===== */}
+        {/* ===== LOADING ===== */}
         {loading && (
           <div className="agenda-state agenda-loading">
             Cargando agenda…
@@ -144,7 +136,7 @@ export default function Agenda({
 
       {/* =========================
           MODAL (VISUAL)
-         ========================= */}
+      ========================= */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
