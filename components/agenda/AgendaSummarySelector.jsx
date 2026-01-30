@@ -33,15 +33,18 @@ export default function AgendaSummarySelector({
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  // resumen por profesional
   const [summaryByProfessional, setSummaryByProfessional] = useState({});
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // Fecha base REAL
+  // Fecha base LOCAL (FIX REAL)
   // =========================
   function todayISO() {
-    return new Date().toISOString().slice(0, 10);
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
   const baseDate = startDate || todayISO();
