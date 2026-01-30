@@ -1,18 +1,18 @@
 import "../../styles/agenda/agenda.css";
-import { useState } from "react";
 
 import AgendaColumn from "./AgendaColumn";
-import AgendaSlotModal from "./AgendaSlotModal";
 
 /*
 Agenda — CEREBRO UI AGENDA DIARIA (PRODUCCIÓN REAL)
 
 ✔ NO mock
 ✔ NO backend
-✔ NO decide estados
-✔ NO inventa slots
+✔ NO estado local
+✔ NO modal
+✔ NO decide lógica
+✔ NO inventa mensajes
 ✔ SOLO pinta lo que el CONTROLLER entrega
-✔ PASA OBJETOS COMPLETOS
+✔ CLICK → sube payload COMPLETO al controller
 */
 
 export default function Agenda({
@@ -23,32 +23,26 @@ export default function Agenda({
 
   // Eventos hacia arriba (controller)
   onSelectSlot,
-  onCloseSlot,
 }) {
-  const [selectedSlot, setSelectedSlot] = useState(null);
-
-  // Guard rails mínimos (SIN MENSAJES INVENTADOS)
+  // Guard rails mínimos (silenciosos)
   if (!date || !agendaData?.calendar || professionals.length === 0) {
     return null;
   }
 
+  // CLICK DE SLOT → SUBE TODO AL CONTROLLER
   function handleSelectSlot(slot, time, professionalId) {
     if (!slot || !time) return;
 
-    const payload = {
+    onSelectSlot?.({
       professional: professionalId,
       time,
-      ...slot,          // 👈 OBJETO COMPLETO
-    };
-
-    setSelectedSlot(payload);
-    onSelectSlot?.(payload);
+      ...slot        // 👈 OBJETO COMPLETO DEL BACKEND
+    });
   }
 
   return (
     <section className="agenda-page">
       <section className="agenda-container">
-
         <div className="agenda-grid">
           {professionals.map((prof) => {
             const profId = prof.id;
@@ -59,8 +53,8 @@ export default function Agenda({
             return (
               <AgendaColumn
                 key={profId}
-                professional={prof}          // 👈 OBJETO COMPLETO
-                slots={calendar.slots}       // 👈 SOLO backend
+                professional={prof}            // 👈 objeto completo
+                slots={calendar.slots}         // 👈 SOLO backend
                 onSelectSlot={(slot, time) =>
                   handleSelectSlot(slot, time, profId)
                 }
@@ -75,15 +69,6 @@ export default function Agenda({
           </div>
         )}
       </section>
-
-      <AgendaSlotModal
-        open={!!selectedSlot}
-        slot={selectedSlot}
-        onClose={() => {
-          setSelectedSlot(null);
-          onCloseSlot?.();
-        }}
-      />
     </section>
   );
 }
