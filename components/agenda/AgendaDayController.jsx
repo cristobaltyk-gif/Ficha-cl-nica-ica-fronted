@@ -24,7 +24,6 @@ export default function AgendaDayController({ professional, date }) {
   // LOAD AGENDA REAL
   // =========================
   const loadAgenda = useCallback(async () => {
-    // ✅ CAMBIO REAL: no usar canLoad aquí
     if (!professional || !date) return;
 
     setLoading(true);
@@ -38,8 +37,16 @@ export default function AgendaDayController({ professional, date }) {
 
       const data = await res.json();
 
-      // ✅ OBJETO COMPLETO, SIN RECORTES
-      setAgendaData(data);
+      /**
+       * 🔒 ADAPTADOR CANÓNICO (NO ROMPER CONTRATOS)
+       * Agenda.jsx espera:
+       * agendaData.calendar[professional].slots
+       */
+      setAgendaData({
+        calendar: {
+          [professional]: data.calendar?.[professional] || { slots: {} }
+        }
+      });
     } catch {
       setAgendaData(null);
     } finally {
