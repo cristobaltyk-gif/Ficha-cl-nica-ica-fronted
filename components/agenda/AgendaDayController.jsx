@@ -9,11 +9,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
 ✔ Orquesta Agenda.jsx
-✔ Controla modal
-✔ Lee backend REAL
-✔ Ejecuta mutaciones reales
-✔ Backend es la verdad
-✔ ADAPTA sin romper contratos
+✔ Interpreta backend
+✔ Preconstruye slots del día
+✔ Backend = ocupación (verdad)
+✔ Frontend = visualización
 */
 
 export default function AgendaDayController({ professional, date }) {
@@ -22,7 +21,32 @@ export default function AgendaDayController({ professional, date }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
 
   // =========================
-  // LOAD AGENDA REAL
+  // CONFIG HORARIA (CLÍNICA)
+  // =========================
+  const START = "09:00";
+  const END = "18:00";
+  const INTERVAL = 15;
+
+  function buildDaySlots() {
+    const slots = {};
+    const [sh, sm] = START.split(":").map(Number);
+    const [eh, em] = END.split(":").map(Number);
+
+    let minutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+
+    while (minutes < endMinutes) {
+      const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+      const mm = String(minutes % 60).padStart(2, "0");
+      slots[`${hh}:${mm}`] = { status: "available" };
+      minutes += INTERVAL;
+    }
+
+    return slots;
+  }
+
+  // =========================
+  // LOAD + ADAPT AGENDA
   // =========================
   const loadAgenda = useCallback(async () => {
     if (!professional || !date) return;
@@ -33,17 +57,27 @@ export default function AgendaDayController({ professional, date }) {
       const res = await fetch(
         `${API_URL}/agenda?date=${encodeURIComponent(date)}`
       );
-
       if (!res.ok) throw new Error("agenda");
 
       const data = await res.json();
 
-      // 🔒 ADAPTADOR CANÓNICO
-      // Agenda.jsx espera:
-      // agendaData.calendar[professional].slots
+      const backendSlots =
+        data.calendar?.[professional]?.slots || {};
+
+      // 🔥 REGLA CLAVE:
+      // Backend vacío = TODO DISPONIBLE
+      const fullDaySlots = buildDaySlots();
+
+      // Sobrescribe con ocupación real
+      Object.entries(backendSlots).forEach(([time, slot]) => {
+        fullDaySlots[time] = slot;
+      });
+
       setAgendaData({
         calendar: {
-          [professional]: data.calendar?.[professional] || { slots: {} }
+          [professional]: {
+            slots: fullDaySlots
+          }
         }
       });
     } catch {
@@ -69,13 +103,12 @@ export default function AgendaDayController({ professional, date }) {
   }
 
   // =========================
-  // MUTACIONES REALES
+  // MUTACIONES
   // =========================
   async function setSlot({ status, patient }) {
     if (!selectedSlot) return;
 
     setLoading(true);
-
     try {
       await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
@@ -100,7 +133,6 @@ export default function AgendaDayController({ professional, date }) {
     if (!selectedSlot) return;
 
     setLoading(true);
-
     try {
       await fetch(`${API_URL}/agenda/cancel`, {
         method: "POST",
