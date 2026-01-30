@@ -3,12 +3,13 @@
    Usado por:
    - CalendarMonthView.jsx
    - CalendarWeekView.jsx
+   - AgendaSummarySelector.jsx
 ====================================================== */
 
 /* ===== CONTENEDOR PRINCIPAL ===== */
 .month-calendar {
   width: 100%;
-  padding: 16px;
+  padding: 14px;
   margin-bottom: 16px;
   background: #ffffff;
   border: 2px solid #020617;
@@ -17,15 +18,15 @@
 }
 
 /* ===== TÍTULO ===== */
-.month-calendar h3 {
+.month-calendar h3,
+.month-calendar h4 {
   margin: 0 0 6px 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #020617;
 }
 
 /* ===== SUBTEXTO ===== */
-.month-calendar .summary-sub,
 .month-calendar p {
   margin: 0 0 10px 0;
   font-size: 13px;
@@ -36,49 +37,73 @@
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 6px; /* más compacto */
   margin-top: 8px;
 }
 
 /* ===== CELDA DE DÍA ===== */
 .day-cell {
-  height: 42px;
+  height: 48px;              /* ⬅️ reducido */
   border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border: 1.5px solid #cbd5e1;
   background: #f8fafc;
-  font-size: 14px;
-  font-weight: 500;
-  color: #020617;
   cursor: pointer;
+
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: background 0.12s ease;
 }
 
+/* ===== TEXTO DÍA ===== */
+.day-cell .weekday {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.day-cell .day-number {
+  font-size: 15px;
+  font-weight: 700;
+  color: #020617;
+}
+
+/* ===== HOVER ===== */
 .day-cell:hover {
   background: #e2e8f0;
 }
 
 /* ===== ESTADOS DE OCUPACIÓN ===== */
+
+/* 🟢 LIBRE */
 .day-cell.free {
-  background: #ecfdf5;
-  border-color: #34d399;
+  background: #d1fae5;
+  border-color: #059669;
 }
 
+/* 🟡 POCOS */
 .day-cell.low {
-  background: #fffbeb;
-  border-color: #fbbf24;
+  background: #fef3c7;
+  border-color: #f59e0b;
 }
 
+/* 🔴 LLENO */
 .day-cell.full {
-  background: #fef2f2;
-  border-color: #f87171;
+  background: #fee2e2;
+  border-color: #dc2626;
 }
 
+/* ⚪ SIN AGENDA */
 .day-cell.empty {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #64748b;
+  background: #e5e7eb;
+  border-color: #9ca3af;
+  color: #6b7280;
 }
 
 /* ===== DÍA SELECCIONADO ===== */
@@ -103,7 +128,7 @@
   gap: 6px;
 }
 
-.legend .free { color: #059669; }
-.legend .low { color: #d97706; }
-.legend .full { color: #dc2626; }
-.legend .empty { color: #64748b; }
+.legend .free   { color: #059669; }
+.legend .low    { color: #d97706; }
+.legend .full   { color: #dc2626; }
+.legend .empty  { color: #64748b; }
