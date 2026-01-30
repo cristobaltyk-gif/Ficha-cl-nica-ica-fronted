@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../../auth/AuthContext";
 
 import Agenda from "./Agenda";
 import AgendaSlotModal from "./AgendaSlotModal";
@@ -11,34 +10,25 @@ AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
 ✔ Orquesta Agenda.jsx
 ✔ Controla modal
-✔ Lee agenda_future.json vía backend
-✔ Mutaciones reales (set_slot / clear_slot)
-✔ NO mock
-✔ NO hardcode
-✔ NO UI
+✔ Lee backend REAL
+✔ Ejecuta mutaciones reales
 ✔ Backend es la verdad
 */
 
 export default function AgendaDayController({ professional, date }) {
-  const { session } = useAuth();
-
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // =========================
-  // GUARD RAILS
-  // =========================
   const canLoad = professional && date;
 
   // =========================
-  // LOAD AGENDA DIARIA REAL
+  // LOAD AGENDA REAL
   // =========================
   const loadAgenda = useCallback(async () => {
     if (!canLoad) return;
 
     setLoading(true);
-    setAgendaData(null);
 
     try {
       const res = await fetch(
@@ -49,38 +39,21 @@ export default function AgendaDayController({ professional, date }) {
 
       const data = await res.json();
 
-      /**
-       * Backend REAL:
-       * {
-       *   calendar: {
-       *     [professionalId]: {
-       *       slots: {
-       *         "09:00": { status, rut? }
-       *       }
-       *     }
-       *   }
-       * }
-       */
-
-      setAgendaData({
-        calendar: {
-          [professional]: data.calendar?.[professional] || { slots: {} }
-        }
-      });
-    } catch (err) {
+      // ✅ OBJETO COMPLETO, SIN RECORTES
+      setAgendaData(data);
+    } catch {
       setAgendaData(null);
     } finally {
       setLoading(false);
     }
   }, [professional, date]);
 
-  // cargar al montar / cambiar
   useEffect(() => {
     loadAgenda();
   }, [loadAgenda]);
 
   // =========================
-  // SLOT SELECCIONADO (UI)
+  // SLOT UI
   // =========================
   function handleSelectSlot(payload) {
     setSelectedSlot(payload);
@@ -111,7 +84,6 @@ export default function AgendaDayController({ professional, date }) {
         })
       });
 
-      // 🔁 SIEMPRE
       await loadAgenda();
       setSelectedSlot(null);
     } finally {
@@ -135,7 +107,6 @@ export default function AgendaDayController({ professional, date }) {
         })
       });
 
-      // 🔁 SIEMPRE
       await loadAgenda();
       setSelectedSlot(null);
     } finally {
@@ -143,9 +114,6 @@ export default function AgendaDayController({ professional, date }) {
     }
   }
 
-  // =========================
-  // RENDER
-  // =========================
   if (!canLoad) {
     return (
       <div className="agenda-placeholder">
@@ -164,6 +132,7 @@ export default function AgendaDayController({ professional, date }) {
         onSelectSlot={handleSelectSlot}
       />
 
+      {/* ✅ UN SOLO MODAL, CONTROLADO AQUÍ */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
