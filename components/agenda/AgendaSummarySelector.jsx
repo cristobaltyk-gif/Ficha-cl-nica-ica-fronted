@@ -48,11 +48,17 @@ export default function AgendaSummarySelector({
     return p?.name || id;
   }
 
-  // ✅ FIX REAL: weekday LOCAL SIN UTC
   function weekdayFromISO(dateStr) {
     const [y, m, d] = dateStr.split("-").map(Number);
     const dt = new Date(y, m - 1, d); // LOCAL
     return dt.toLocaleDateString("es-CL", { weekday: "short" });
+  }
+
+  function weekdayIndexMondayFirst(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    const jsDay = dt.getDay(); // 0 domingo → 6 sábado
+    return jsDay === 0 ? 6 : jsDay - 1; // lunes = 0
   }
 
   // =========================
@@ -224,40 +230,69 @@ export default function AgendaSummarySelector({
         </button>
       </div>
 
+      {/* =========================
+          CALENDARIOS ORDENADOS
+      ========================= */}
       {applied &&
         Object.entries(summaryByProfessional).map(
-          ([professionalId, days]) => (
-            <div key={professionalId} className="month-calendar">
-              <h4>{getProfessionalName(professionalId)}</h4>
+          ([professionalId, days]) => {
+            const entries = Object.entries(days).sort(
+              ([a], [b]) => a.localeCompare(b)
+            );
 
-              {Object.keys(days).length === 0 && (
-                <p>No hay cupos disponibles.</p>
-              )}
+            if (entries.length === 0) {
+              return (
+                <div key={professionalId} className="month-calendar">
+                  <h4>{getProfessionalName(professionalId)}</h4>
+                  <p>No hay cupos disponibles.</p>
+                </div>
+              );
+            }
 
-              <div className="month-grid">
-                {Object.entries(days).map(([date, status]) => (
-                  <button
-                    key={date}
-                    className={`day-cell ${status}`}
-                    onClick={() =>
-                      onSelectDay?.({
-                        professional: professionalId,
-                        date,
-                      })
-                    }
-                    title={date}
-                  >
-                    <div className="day-week">
-                      {weekdayFromISO(date)}
-                    </div>
-                    <div className="day-number">
-                      {date.slice(-2)}
-                    </div>
-                  </button>
-                ))}
+            const firstDate = entries[0][0];
+            const offset = weekdayIndexMondayFirst(firstDate);
+
+            return (
+              <div key={professionalId} className="month-calendar">
+                <h4>{getProfessionalName(professionalId)}</h4>
+
+                <div className="month-grid">
+                  {/* Celdas vacías antes del lunes */}
+                  {Array.from({ length: offset }).map((_, i) => (
+                    <div key={`empty-${i}`} className="day-cell empty" />
+                  ))}
+
+                  {entries.map(([date, status]) => {
+                    const clickable =
+                      status === "free" || status === "low";
+
+                    return (
+                      <button
+                        key={date}
+                        className={`day-cell ${status}`}
+                        disabled={!clickable}
+                        onClick={() =>
+                          clickable &&
+                          onSelectDay?.({
+                            professional: professionalId,
+                            date,
+                          })
+                        }
+                        title={date}
+                      >
+                        <div className="day-week">
+                          {weekdayFromISO(date)}
+                        </div>
+                        <div className="day-number">
+                          {date.slice(-2)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )
+            );
+          }
         )}
 
       {applied && (
@@ -270,4 +305,4 @@ export default function AgendaSummarySelector({
       )}
     </section>
   );
-}
+            }
