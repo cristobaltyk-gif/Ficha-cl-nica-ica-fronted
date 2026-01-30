@@ -6,12 +6,13 @@
 /* ===== CONTENEDOR ===== */
 .month-calendar {
   width: 100%;
-  padding: 10px;
+  padding: 8px;
   margin-bottom: 12px;
 
   background: #ffffff;
   border: 1.5px solid #0f172a;
   border-radius: 10px;
+  box-sizing: border-box;
 }
 
 /* ===== TÍTULO MÉDICO ===== */
@@ -20,7 +21,6 @@
   font-size: 14px;
   font-weight: 600;
   color: #020617;
-  text-transform: capitalize;
 }
 
 /* ===== CABECERA DÍAS SEMANA ===== */
@@ -36,6 +36,7 @@
   font-weight: 600;
   text-align: center;
   color: #475569;
+  text-transform: uppercase;
 }
 
 /* ===== GRID ===== */
@@ -47,16 +48,17 @@
 
 /* ===== CELDA ===== */
 .day-cell {
-  height: 32px;
+  height: 30px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
 
   background: #f8fafc;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #020617;
 
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 
@@ -67,29 +69,40 @@
   filter: brightness(0.95);
 }
 
+/* ===== NÚMERO ===== */
+.day-cell .day-number {
+  line-height: 1;
+}
+
 /* ===== ESTADOS ===== */
 .day-cell.free {
-  background: #dcfce7;
+  background: #ecfdf3;
   border-color: #22c55e;
   color: #065f46;
 }
 
 .day-cell.low {
-  background: #fef9c3;
+  background: #fffbeb;
   border-color: #facc15;
   color: #713f12;
 }
 
 .day-cell.full {
-  background: #fee2e2;
+  background: #fef2f2;
   border-color: #ef4444;
   color: #7f1d1d;
 }
 
 .day-cell.empty {
-  background: #e5e7eb;
-  border-color: #9ca3af;
-  color: #6b7280;
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #64748b;
+}
+
+/* ===== SELECCIÓN ===== */
+.day-cell.selected {
+  outline: 2px solid #0f172a;
+  outline-offset: -2px;
 }
 
 /* ===== LEYENDA ===== */
@@ -99,6 +112,7 @@
   flex-wrap: wrap;
   margin-top: 8px;
   font-size: 12px;
+  color: #334155;
 }
 
 .legend span {
