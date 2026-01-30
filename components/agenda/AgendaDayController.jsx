@@ -20,13 +20,12 @@ export default function AgendaDayController({ professional, date }) {
   const [agendaData, setAgendaData] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  const canLoad = professional && date;
-
   // =========================
   // LOAD AGENDA REAL
   // =========================
   const loadAgenda = useCallback(async () => {
-    if (!canLoad) return;
+    // ✅ CAMBIO REAL: no usar canLoad aquí
+    if (!professional || !date) return;
 
     setLoading(true);
 
@@ -114,7 +113,10 @@ export default function AgendaDayController({ professional, date }) {
     }
   }
 
-  if (!canLoad) {
+  // =========================
+  // RENDER
+  // =========================
+  if (!professional || !date) {
     return (
       <div className="agenda-placeholder">
         Selecciona un profesional y un día
@@ -132,7 +134,6 @@ export default function AgendaDayController({ professional, date }) {
         onSelectSlot={handleSelectSlot}
       />
 
-      {/* ✅ UN SOLO MODAL, CONTROLADO AQUÍ */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
