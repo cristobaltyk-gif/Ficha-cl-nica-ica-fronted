@@ -1,52 +1,46 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "../auth/AuthContext";
-import Agenda from "../components/agenda/Agenda";
-import AgendaSlotModal from "../components/agenda/AgendaSlotModal";
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../../auth/AuthContext";
+
+import Agenda from "./Agenda";
+import AgendaSlotModal from "./AgendaSlotModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaDayController — CEREBRO DE AGENDA DIARIA
+AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
-✔ Recibe professional + date desde Summary
-✔ Lee agenda_future.json vía backend REAL
-✔ Decide acciones según status del slot
-✔ Llama backend para reservar / confirmar / anular / mover
-✔ Recarga agenda después de cada acción
-✔ Agenda.jsx es SOLO visual
+✔ Orquesta Agenda.jsx
+✔ Controla modal
+✔ Lee agenda_future.json vía backend
+✔ Mutaciones reales (set_slot / clear_slot)
+✔ NO mock
+✔ NO hardcode
+✔ NO UI
+✔ Backend es la verdad
 */
 
-export default function AgendaDayController({
-  professional, // string
-  date          // YYYY-MM-DD
-}) {
+export default function AgendaDayController({ professional, date }) {
   const { session } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
 
   // =========================
-  // GUARD RAIL
+  // GUARD RAILS
   // =========================
-  if (!professional || !date) {
-    return (
-      <div className="agenda-page">
-        Selecciona un profesional y un día
-      </div>
-    );
-  }
+  const canLoad = professional && date;
 
   // =========================
-  // CARGA AGENDA REAL
+  // LOAD AGENDA DIARIA REAL
   // =========================
-  async function loadAgenda() {
+  const loadAgenda = useCallback(async () => {
+    if (!canLoad) return;
+
     setLoading(true);
     setAgendaData(null);
 
     try {
-      // 🔴 ENDPOINT REAL EXISTENTE
       const res = await fetch(
         `${API_URL}/agenda?date=${encodeURIComponent(date)}`
       );
@@ -61,7 +55,7 @@ export default function AgendaDayController({
        *   calendar: {
        *     [professionalId]: {
        *       slots: {
-       *         "09:00": { status, rut?, ... }
+       *         "09:00": { status, rut? }
        *       }
        *     }
        *   }
@@ -73,94 +67,93 @@ export default function AgendaDayController({
           [professional]: data.calendar?.[professional] || { slots: {} }
         }
       });
-    } catch (e) {
+    } catch (err) {
       setAgendaData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [professional, date]);
+
+  // cargar al montar / cambiar
+  useEffect(() => {
+    loadAgenda();
+  }, [loadAgenda]);
+
+  // =========================
+  // SLOT SELECCIONADO (UI)
+  // =========================
+  function handleSelectSlot(payload) {
+    setSelectedSlot(payload);
+  }
+
+  function handleCloseModal() {
+    setSelectedSlot(null);
+  }
+
+  // =========================
+  // MUTACIONES REALES
+  // =========================
+  async function setSlot({ status, patient }) {
+    if (!selectedSlot) return;
+
+    setLoading(true);
+
+    try {
+      await fetch(`${API_URL}/agenda/set_slot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date,
+          time: selectedSlot.time,
+          professional,
+          status,
+          rut: patient?.rut || null
+        })
+      });
+
+      // 🔁 SIEMPRE
+      await loadAgenda();
+      setSelectedSlot(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function clearSlot() {
+    if (!selectedSlot) return;
+
+    setLoading(true);
+
+    try {
+      await fetch(`${API_URL}/agenda/clear_slot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date,
+          time: selectedSlot.time,
+          professional
+        })
+      });
+
+      // 🔁 SIEMPRE
+      await loadAgenda();
+      setSelectedSlot(null);
     } finally {
       setLoading(false);
     }
   }
 
   // =========================
-  // INIT / CHANGE
-  // =========================
-  useEffect(() => {
-    loadAgenda();
-  }, [professional, date]);
-
-  // =========================
-  // SLOT CLICK (desde Agenda.jsx)
-  // =========================
-  function handleSelectSlot(payload) {
-    // payload = { professional, time, status, slot }
-    setSelectedSlot(payload);
-  }
-
-  // =========================
-  // ACCIONES BACKEND
-  // =========================
-  async function callBackend(path, body) {
-    setActionLoading(true);
-
-    try {
-      const res = await fetch(`${API_URL}${path}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-
-      if (!res.ok) throw new Error(path);
-
-      await loadAgenda();
-    } finally {
-      setActionLoading(false);
-      setSelectedSlot(null);
-    }
-  }
-
-  // =========================
-  // ACCIONES DE SLOT
-  // =========================
-  function handleReserve({ slot, patient }) {
-    return callBackend("/agenda/reserve", {
-      date,
-      professional,
-      time: slot.time,
-      patient,
-      user: session?.usuario
-    });
-  }
-
-  function handleConfirm({ slot, patient }) {
-    return callBackend("/agenda/confirm", {
-      date,
-      professional,
-      time: slot.time,
-      patient,
-      user: session?.usuario
-    });
-  }
-
-  function handleCancel() {
-    return callBackend("/agenda/cancel", {
-      date,
-      professional,
-      time: selectedSlot.time,
-      user: session?.usuario
-    });
-  }
-
-  function handleReschedule() {
-    return callBackend("/agenda/reschedule", {
-      date,
-      professional,
-      time: selectedSlot.time,
-      user: session?.usuario
-    });
-  }
-
-  // =========================
   // RENDER
   // =========================
+  if (!canLoad) {
+    return (
+      <div className="agenda-placeholder">
+        Selecciona un profesional y un día
+      </div>
+    );
+  }
+
   return (
     <>
       <Agenda
@@ -174,12 +167,16 @@ export default function AgendaDayController({
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
-        loading={actionLoading}
-        onClose={() => setSelectedSlot(null)}
-        onReserve={handleReserve}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-        onReschedule={handleReschedule}
+        loading={loading}
+        onClose={handleCloseModal}
+        onReserve={({ patient }) =>
+          setSlot({ status: "reserved", patient })
+        }
+        onConfirm={({ patient }) =>
+          setSlot({ status: "confirmed", patient })
+        }
+        onCancel={clearSlot}
+        onReschedule={clearSlot}
       />
     </>
   );
