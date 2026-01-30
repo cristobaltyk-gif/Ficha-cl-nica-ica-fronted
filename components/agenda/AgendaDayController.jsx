@@ -9,8 +9,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
 ✔ Orquesta Agenda.jsx
-✔ Interpreta backend
-✔ Preconstruye slots del día
+✔ Lee horario REAL desde /professionals
+✔ Preconstruye slots del día según schedule
 ✔ Backend = ocupación (verdad)
 ✔ Frontend = visualización
 */
@@ -19,28 +19,63 @@ export default function AgendaDayController({ professional, date }) {
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const [professionalsMap, setProfessionalsMap] = useState({});
 
   // =========================
-  // CONFIG HORARIA (CLÍNICA)
+  // LOAD PROFESSIONALS (1 VEZ)
   // =========================
-  const START = "09:00";
-  const END = "18:00";
-  const INTERVAL = 15;
+  useEffect(() => {
+    async function loadProfessionals() {
+      try {
+        const res = await fetch(`${API_URL}/professionals`);
+        if (!res.ok) return;
 
-  function buildDaySlots() {
-    const slots = {};
-    const [sh, sm] = START.split(":").map(Number);
-    const [eh, em] = END.split(":").map(Number);
-
-    let minutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-
-    while (minutes < endMinutes) {
-      const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
-      const mm = String(minutes % 60).padStart(2, "0");
-      slots[`${hh}:${mm}`] = { status: "available" };
-      minutes += INTERVAL;
+        const data = await res.json();
+        const map = {};
+        data.forEach((p) => {
+          map[p.id] = p;
+        });
+        setProfessionalsMap(map);
+      } catch {}
     }
+
+    loadProfessionals();
+  }, []);
+
+  // =========================
+  // HELPERS
+  // =========================
+  function getWeekdayKey(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+  }
+
+  function buildSlotsFromSchedule(schedule, weekdayKey) {
+    const slots = {};
+
+    if (!schedule?.days?.[weekdayKey]) {
+      return slots; // no agenda ese día
+    }
+
+    const interval = schedule.slotMinutes;
+
+    schedule.days[weekdayKey].forEach(({ start, end }) => {
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+
+      let minutes = sh * 60 + sm;
+      const endMinutes = eh * 60 + em;
+
+      while (minutes < endMinutes) {
+        const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+        const mm = String(minutes % 60).padStart(2, "0");
+        slots[`${hh}:${mm}`] = { status: "available" };
+        minutes += interval;
+      }
+    });
 
     return slots;
   }
@@ -50,6 +85,9 @@ export default function AgendaDayController({ professional, date }) {
   // =========================
   const loadAgenda = useCallback(async () => {
     if (!professional || !date) return;
+
+    const prof = professionalsMap[professional];
+    if (!prof) return;
 
     setLoading(true);
 
@@ -61,22 +99,27 @@ export default function AgendaDayController({ professional, date }) {
 
       const data = await res.json();
 
+      const weekdayKey = getWeekdayKey(date);
+
+      // ⬅️ Slots BASE desde schedule
+      const baseSlots = buildSlotsFromSchedule(
+        prof.schedule,
+        weekdayKey
+      );
+
+      // ⬅️ Ocupación real backend
       const backendSlots =
         data.calendar?.[professional]?.slots || {};
 
-      // 🔥 REGLA CLAVE:
-      // Backend vacío = TODO DISPONIBLE
-      const fullDaySlots = buildDaySlots();
-
-      // Sobrescribe con ocupación real
+      // ⬅️ Backend solo sobrescribe
       Object.entries(backendSlots).forEach(([time, slot]) => {
-        fullDaySlots[time] = slot;
+        baseSlots[time] = slot;
       });
 
       setAgendaData({
         calendar: {
           [professional]: {
-            slots: fullDaySlots
+            slots: baseSlots
           }
         }
       });
@@ -85,7 +128,7 @@ export default function AgendaDayController({ professional, date }) {
     } finally {
       setLoading(false);
     }
-  }, [professional, date]);
+  }, [professional, date, professionalsMap]);
 
   useEffect(() => {
     loadAgenda();
@@ -188,4 +231,4 @@ export default function AgendaDayController({ professional, date }) {
       />
     </>
   );
-}
+        }
