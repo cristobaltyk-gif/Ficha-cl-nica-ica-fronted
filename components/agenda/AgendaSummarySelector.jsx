@@ -9,7 +9,6 @@ AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
 
 ✔ Carga profesionales: GET /professionals
 ✔ Selector profesionales (1–4)
-✔ Selector vista: 30 días / 7 días
 ✔ Botón Aplicar (único disparo)
 ✔ Backend REAL:
    - /agenda/summary/month?professional=...&start_date=YYYY-MM-DD
@@ -34,7 +33,7 @@ export default function AgendaSummarySelector({
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  // ⬇️ CAMBIO CLAVE: por profesional
+  // resumen por profesional
   const [summaryByProfessional, setSummaryByProfessional] = useState({});
   const [applied, setApplied] = useState(false);
 
@@ -46,6 +45,14 @@ export default function AgendaSummarySelector({
   }
 
   const baseDate = startDate || todayISO();
+
+  // =========================
+  // Helpers
+  // =========================
+  function getProfessionalName(id) {
+    const p = professionals.find((x) => x.id === id);
+    return p?.name || id;
+  }
 
   // =========================
   // Cargar profesionales (REAL)
@@ -91,7 +98,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // Cambiar vista (NO llama backend)
+  // Cambiar vista (NO backend)
   // =========================
   function changeMode(next) {
     setMode(next);
@@ -145,7 +152,7 @@ export default function AgendaSummarySelector({
   return (
     <section className="agenda-summary-selector">
       {/* =========================
-          SELECTOR VISTA (30 / 7)
+          SELECTOR VISTA
       ========================= */}
       <div className="summary-mode">
         <button
@@ -170,7 +177,9 @@ export default function AgendaSummarySelector({
       ========================= */}
       <div className="summary-professionals">
         {loadingProfessionals && (
-          <div className="agenda-placeholder">Cargando profesionales…</div>
+          <div className="agenda-placeholder">
+            Cargando profesionales…
+          </div>
         )}
 
         {!loadingProfessionals && professionals.length === 0 && (
@@ -205,7 +214,7 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          APLICAR
+          FOOTER
       ========================= */}
       <div className="summary-footer">
         <span>
@@ -229,28 +238,38 @@ export default function AgendaSummarySelector({
         Object.entries(summaryByProfessional).map(
           ([professionalId, days]) => (
             <div key={professionalId} className="month-calendar">
-              <h4>{professionalId}</h4>
+              <h4>{getProfessionalName(professionalId)}</h4>
 
               {Object.keys(days).length === 0 && (
                 <p>No hay cupos disponibles.</p>
               )}
 
               <div className="month-grid">
-                {Object.entries(days).map(([date, status]) => (
-                  <button
-                    key={date}
-                    className={`day-cell ${status}`}
-                    onClick={() =>
-                      onSelectDay?.({
-                        professional: professionalId,
-                        date,
-                      })
-                    }
-                    title={date}
-                  >
-                    {date.slice(-2)}
-                  </button>
-                ))}
+                {Object.entries(days).map(([date, status]) => {
+                  const d = new Date(date);
+                  const weekday = d.toLocaleDateString("es-CL", {
+                    weekday: "short",
+                  });
+
+                  return (
+                    <button
+                      key={date}
+                      className={`day-cell ${status}`}
+                      onClick={() =>
+                        onSelectDay?.({
+                          professional: professionalId,
+                          date,
+                        })
+                      }
+                      title={date}
+                    >
+                      <div className="day-week">{weekday}</div>
+                      <div className="day-number">
+                        {date.slice(-2)}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )
