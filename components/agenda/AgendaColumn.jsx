@@ -1,27 +1,38 @@
 import Slot from "./Slot";
 
 /*
-AgendaColumn — COLUMNA DE AGENDA DIARIA
+AgendaColumn — COLUMNA DE AGENDA DIARIA (PRODUCCIÓN REAL)
 
-✔ Visual
-✔ Reutilizable
-✔ Sin backend
-✔ Sin lógica de negocio
-✔ Emite eventos hacia arriba
+✔ SOLO visual
+✔ NO horarios hardcodeados
+✔ NO rellena slots
+✔ Pinta SOLO lo que el backend entrega
 */
 
 export default function AgendaColumn({
-  professionalId,      // string (id del profesional)
-  box,                 // string (solo visual)
-  times = [],          // ["09:00", "09:15", ...]
-  slots = {},          // { "09:15": { status, ... } }
-  onSelectSlot         // function(payload)
+  professionalId,   // string
+  box,              // string (solo visual)
+  slots = {},       // { "09:15": { status, ... } }
+  onSelectSlot
 }) {
+  const times = Object.keys(slots).sort();
+
+  if (times.length === 0) {
+    return (
+      <article className="agenda-column">
+        <header className="agenda-title">
+          <strong>{professionalId}</strong>
+        </header>
+        <div className="agenda-state">
+          Sin slots disponibles
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="agenda-column">
-      {/* =====================
-          HEADER COLUMNA
-         ===================== */}
+      {/* HEADER */}
       <header className="agenda-title">
         <strong>{professionalId}</strong>
         <span className="agenda-subtitle">
@@ -29,28 +40,18 @@ export default function AgendaColumn({
         </span>
       </header>
 
-      {/* =====================
-          SLOTS
-         ===================== */}
+      {/* SLOTS REALES */}
       <section className="agenda-slots">
         {times.map((time) => {
-          const slot = slots?.[time];
-          const status = slot?.status || "available";
+          const slot = slots[time];
 
           return (
             <Slot
               key={`${professionalId}-${time}`}
               time={time}
-              status={status}
-              onSelect={(selectedTime) => {
-                if (typeof onSelectSlot === "function") {
-                  onSelectSlot({
-                    professional: professionalId,
-                    time: selectedTime,
-                    status,
-                    slot
-                  });
-                }
+              status={slot.status}
+              onSelect={() => {
+                onSelectSlot?.(slot, time);
               }}
             />
           );
