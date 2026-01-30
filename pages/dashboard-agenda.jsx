@@ -3,10 +3,8 @@ import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
 
-// 👉 componentes reales que EXISTEN
+// 👉 componentes reales
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
-import CalendarMonthView from "../components/agenda/CalendarMonthView.jsx";
-import CalendarWeekView from "../components/agenda/CalendarWeekView.jsx";
 
 import "../styles/agenda/dashboard-agenda.css";
 
@@ -18,40 +16,20 @@ DashboardAgenda — ESTRUCTURA PURA
 ✔ NO fetch
 ✔ NO lógica de negocio
 ✔ NO transformación de datos
-✔ NO contratos implícitos
+✔ Estado UI mínimo y explícito
 */
 
-export default function DashboardAgenda({
-  availableProfessionals = [],        // [{ id, name }]
-  selectedProfessionals = [],         // [id]
-  selectedProfessionalObjects = [],   // [{ id, name }]
-  selectedDate = null,                // "YYYY-MM-DD" | null
-
-  summaryMode: summaryModeProp,       // "monthly" | "weekly"
-  onSummaryChange,                    // ({ mode, selectedProfessionals })
-  onSelectDate                        // (dateString)
-}) {
+export default function DashboardAgenda() {
   const { role } = useAuth();
 
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
 
   // ===============================
-  // Estado SOLO visual (fallback)
+  // ESTADO VISUAL CLAVE
   // ===============================
-  const [summaryModeLocal, setSummaryModeLocal] = useState(
-    summaryModeProp || (isMedico ? "weekly" : "monthly")
-  );
-
-  const summaryMode = summaryModeProp ?? summaryModeLocal;
-
-  function handleSummaryChange(payload) {
-    setSummaryModeLocal(payload.mode);
-    onSummaryChange?.(payload);
-  }
-
-  const singleProfessional =
-    selectedProfessionals.length === 1 ? selectedProfessionals[0] : null;
+  const [selectedDay, setSelectedDay] = useState(null);
+  // { professional: string, date: "YYYY-MM-DD" }
 
   return (
     <div className="dashboard-agenda">
@@ -62,83 +40,39 @@ export default function DashboardAgenda({
       <header className="agenda-header">
         <h1>Agenda</h1>
         <span className="agenda-mode">
-          {summaryMode === "monthly" && "Resumen mensual"}
-          {summaryMode === "weekly" && "Resumen semanal"}
+          {isSecretaria && "Resumen agenda"}
+          {isMedico && "Agenda médica"}
         </span>
       </header>
 
       {/* ===============================
-          SELECTOR (SECRETARIA)
+          SUMMARY (SECRETARIA)
       =============================== */}
       {isSecretaria && (
         <AgendaSummarySelector
-          professionals={availableProfessionals}
-          onChange={handleSummaryChange}
+          onSelectDay={(payload) => {
+            // payload = { professional, date }
+            setSelectedDay(payload);
+          }}
         />
       )}
 
       {/* ===============================
-          LAYOUT PRINCIPAL
+          AGENDA DIARIA
       =============================== */}
-      <div className="agenda-layout">
+      <main className="agenda-right">
+        {selectedDay ? (
+          <AgendaPage
+            professional={selectedDay.professional}
+            date={selectedDay.date}
+          />
+        ) : (
+          <div className="agenda-placeholder">
+            Selecciona un día en el resumen
+          </div>
+        )}
+      </main>
 
-        {/* ===============================
-            IZQUIERDA — RESÚMENES
-        =============================== */}
-        <aside className="agenda-left">
-
-          {/* ===== RESUMEN MENSUAL ===== */}
-          {summaryMode === "monthly" && singleProfessional && (
-            <CalendarMonthView
-              professional={singleProfessional}
-              month={
-                selectedDate
-                  ? selectedDate.slice(0, 7)
-                  : new Date().toISOString().slice(0, 7)
-              }
-              selectedDate={
-                selectedDate ? { date: selectedDate } : null
-              }
-              onSelectDate={({ date }) => onSelectDate?.(date)}
-            />
-          )}
-
-          {/* ===== RESUMEN SEMANAL (MÉDICO) ===== */}
-          {summaryMode === "weekly" && isMedico && singleProfessional && (
-            <CalendarWeekView
-              professional={singleProfessional}
-              weekStart={selectedDate}
-              selectedDate={
-                selectedDate ? { date: selectedDate } : null
-              }
-              onSelectDate={({ date }) => onSelectDate?.(date)}
-            />
-          )}
-
-          {!singleProfessional && (
-            <div className="agenda-placeholder">
-              Selecciona un profesional arriba
-            </div>
-          )}
-        </aside>
-
-        {/* ===============================
-            DERECHA — AGENDA DIARIA
-        =============================== */}
-        <main className="agenda-right">
-          {selectedDate && selectedProfessionalObjects.length > 0 ? (
-            <AgendaPage
-              forcedDate={selectedDate}
-              professionals={selectedProfessionalObjects}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              Selecciona un día en el resumen
-            </div>
-          )}
-        </main>
-
-      </div>
     </div>
   );
 }
