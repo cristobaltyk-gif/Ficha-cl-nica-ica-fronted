@@ -1,73 +1,42 @@
 import "../../styles/agenda/toolbar.css";
-import { useState, useEffect } from "react";
+
+/*
+AgendaToolbar — SOLO VISUAL (PRODUCCIÓN REAL)
+
+✔ NO estado local
+✔ NO input editable
+✔ NO select editable
+✔ NO emite eventos
+✔ NO cambia fecha
+✔ NO cambia profesional
+✔ SOLO muestra contexto elegido en el Summary
+*/
 
 export default function AgendaToolbar({
-  date,
-  professionals, // lista COMPLETA [{ id, name }]
-  onDateChange,
-  onProfessionalsChange,
+  date,                 // "YYYY-MM-DD"
+  professionals = [],   // [{ id, name }] → SIEMPRE 1 en agenda diaria
 }) {
-  // =========================
-  // FECHA LOCAL (ANTI-COLAPSO)
-  // =========================
-  const [localDate, setLocalDate] = useState(date || "");
+  const professional = professionals[0];
 
-  // sincronía si el padre cambia fecha
-  useEffect(() => {
-    setLocalDate(date || "");
-  }, [date]);
-
-  function handleDateChange(value) {
-    setLocalDate(value);
-
-    if (value && value !== date) {
-      onDateChange?.(value);
-    }
-  }
-
-  // =========================
-  // PROFESIONALES
-  // =========================
-  function handleSelectProfessional(value) {
-    if (!value) {
-      // “Todos”
-      onProfessionalsChange?.(professionals);
-      return;
-    }
-
-    const prof = professionals.find((p) => p.id === value);
-    if (prof) {
-      onProfessionalsChange?.([prof]);
-    }
-  }
-
-  // =========================
-  // RENDER
-  // =========================
   return (
     <div className="agenda-toolbar">
-      {/* FECHA */}
+
+      {/* FECHA (READ ONLY) */}
       <div className="toolbar-field">
         <label>Fecha</label>
-        <input
-          type="date"
-          value={localDate}
-          onChange={(e) => handleDateChange(e.target.value)}
-        />
+        <div className="toolbar-value">
+          {date || "—"}
+        </div>
       </div>
 
-      {/* PROFESIONAL */}
+      {/* PROFESIONAL (READ ONLY) */}
       <div className="toolbar-field">
         <label>Profesional</label>
-        <select onChange={(e) => handleSelectProfessional(e.target.value)}>
-          <option value="">— Todos —</option>
-          {professionals.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <div className="toolbar-value">
+          {professional?.name || professional?.id || "—"}
+        </div>
       </div>
+
     </div>
   );
 }
