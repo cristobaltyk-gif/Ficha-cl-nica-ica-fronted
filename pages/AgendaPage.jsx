@@ -9,8 +9,9 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaPage — MÓDULO DIARIO (PRODUCCIÓN)
 
 ✔ Recibe professional + date desde Summary
-✔ Hace fetch REAL al backend
-✔ Arma contracts correctos para <Agenda />
+✔ Lee agenda_future.json vía backend REAL
+✔ NO inventa endpoints
+✔ NO calcula
 ✔ Agenda es SOLO visual
 ✔ Backend es la verdad
 */
@@ -23,7 +24,6 @@ export default function AgendaPage({
 
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
-  const [professionals, setProfessionals] = useState([]);
 
   // =========================
   // Guard rails
@@ -47,39 +47,36 @@ export default function AgendaPage({
       setAgendaData(null);
 
       try {
+        // ✅ ENDPOINT REAL (agenda.router)
         const res = await fetch(
-          `${API_URL}/agenda/day?professional=${encodeURIComponent(
-            professional
-          )}&date=${encodeURIComponent(date)}`
+          `${API_URL}/agenda?date=${encodeURIComponent(date)}`
         );
 
         if (!res.ok) {
-          throw new Error("agenda/day");
+          throw new Error("agenda");
         }
 
         const data = await res.json();
-
         if (cancelled) return;
 
         /**
-         * Backend esperado:
+         * Backend REAL:
          * {
-         *   professional: { id, name },
          *   calendar: {
          *     [professionalId]: {
-         *       slots: { "09:00": {...}, ... }
+         *       slots: { "09:00": {...} }
          *     }
          *   }
          * }
          */
 
-        setProfessionals([data.professional]);
         setAgendaData({
-          calendar: data.calendar,
+          calendar: {
+            [professional]: data.calendar?.[professional] || { slots: {} }
+          }
         });
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setProfessionals([]);
           setAgendaData(null);
         }
       } finally {
@@ -88,7 +85,6 @@ export default function AgendaPage({
     }
 
     loadAgenda();
-
     return () => {
       cancelled = true;
     };
@@ -102,7 +98,7 @@ export default function AgendaPage({
       <Agenda
         loading={loading}
         date={date}
-        professionals={professionals}
+        professionals={[{ id: professional }]}
         agendaData={agendaData}
         user={session?.usuario}
         role={session?.role?.name}
