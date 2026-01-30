@@ -14,14 +14,15 @@ AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
 ✔ Backend REAL:
    - /agenda/summary/month?professional=...&start_date=YYYY-MM-DD
    - /agenda/summary/week?professional=...&start_date=YYYY-MM-DD
-✔ Click día → onSelectDay("YYYY-MM-DD")
+✔ Renderiza hasta 4 médicos en paralelo
+✔ Click día → onSelectDay({ professional, date })
 */
 
 export default function AgendaSummarySelector({
   max = 4,
   defaultMode = "monthly", // "monthly" | "weekly"
   startDate,               // opcional YYYY-MM-DD; si no, usa HOY
-  onSelectDay,             // (YYYY-MM-DD)
+  onSelectDay,             // ({ professional, date })
 }) {
   // =========================
   // Estado
@@ -33,7 +34,8 @@ export default function AgendaSummarySelector({
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
 
-  const [summaryDays, setSummaryDays] = useState({}); // { "YYYY-MM-DD": "free|low|full|empty" }
+  // ⬇️ CAMBIO CLAVE: por profesional
+  const [summaryByProfessional, setSummaryByProfessional] = useState({});
   const [applied, setApplied] = useState(false);
 
   // =========================
@@ -79,7 +81,7 @@ export default function AgendaSummarySelector({
   // =========================
   function toggleProfessional(id) {
     setApplied(false);
-    setSummaryDays({});
+    setSummaryByProfessional({});
 
     setSelectedProfessionals((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
@@ -94,27 +96,25 @@ export default function AgendaSummarySelector({
   function changeMode(next) {
     setMode(next);
     setApplied(false);
-    setSummaryDays({});
+    setSummaryByProfessional({});
   }
 
   // =========================
-  // APLICAR → BACKEND REAL (tus endpoints)
+  // APLICAR → BACKEND REAL
   // =========================
   async function applySelection() {
     if (selectedProfessionals.length === 0) return;
 
     setLoadingSummary(true);
-    setSummaryDays({});
+    setSummaryByProfessional({});
     setApplied(false);
 
-    // ✅ Endpoint REAL según tu router
     const endpoint =
-      mode === "weekly" ? "/agenda/summary/week" : "/agenda/summary/month";
+      mode === "weekly"
+        ? "/agenda/summary/week"
+        : "/agenda/summary/month";
 
-    // merge por "peor estado gana"
-    // free < low < full < empty
-    const order = ["free", "low", "full", "empty"];
-    const merged = {};
+    const result = {};
 
     try {
       for (const professionalId of selectedProfessionals) {
@@ -127,26 +127,13 @@ export default function AgendaSummarySelector({
         if (!res.ok) continue;
 
         const data = await res.json();
-
-        // ✅ Con tu router actualizado, ambos devuelven:
-        // { days: { "YYYY-MM-DD": "free|low|full|empty", ... } }
-        const days = data?.days || {};
-
-        Object.entries(days).forEach(([date, status]) => {
-          if (!merged[date]) {
-            merged[date] = status;
-            return;
-          }
-          if (order.indexOf(status) > order.indexOf(merged[date])) {
-            merged[date] = status;
-          }
-        });
+        result[professionalId] = data?.days || {};
       }
 
-      setSummaryDays(merged);
+      setSummaryByProfessional(result);
       setApplied(true);
     } catch {
-      setSummaryDays({});
+      setSummaryByProfessional({});
     } finally {
       setLoadingSummary(false);
     }
@@ -155,8 +142,6 @@ export default function AgendaSummarySelector({
   // =========================
   // Render
   // =========================
-  const dayEntries = Object.entries(summaryDays);
-
   return (
     <section className="agenda-summary-selector">
       {/* =========================
@@ -189,13 +174,16 @@ export default function AgendaSummarySelector({
         )}
 
         {!loadingProfessionals && professionals.length === 0 && (
-          <div className="agenda-placeholder">No hay profesionales cargados</div>
+          <div className="agenda-placeholder">
+            No hay profesionales cargados
+          </div>
         )}
 
         {!loadingProfessionals &&
           professionals.map((p) => {
             const checked = selectedProfessionals.includes(p.id);
-            const disabled = !checked && selectedProfessionals.length >= max;
+            const disabled =
+              !checked && selectedProfessionals.length >= max;
 
             return (
               <label
@@ -235,33 +223,47 @@ export default function AgendaSummarySelector({
       </div>
 
       {/* =========================
-          CALENDARIO RESULTADO
+          CALENDARIOS POR MÉDICO
       ========================= */}
+      {applied &&
+        Object.entries(summaryByProfessional).map(
+          ([professionalId, days]) => (
+            <div key={professionalId} className="month-calendar">
+              <h4>{professionalId}</h4>
+
+              {Object.keys(days).length === 0 && (
+                <p>No hay cupos disponibles.</p>
+              )}
+
+              <div className="month-grid">
+                {Object.entries(days).map(([date, status]) => (
+                  <button
+                    key={date}
+                    className={`day-cell ${status}`}
+                    onClick={() =>
+                      onSelectDay?.({
+                        professional: professionalId,
+                        date,
+                      })
+                    }
+                    title={date}
+                  >
+                    {date.slice(-2)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        )}
+
       {applied && (
-        <div className="month-calendar">
-          {dayEntries.length === 0 && <p>No hay cupos disponibles.</p>}
-
-          <div className="month-grid">
-            {dayEntries.map(([date, status]) => (
-              <button
-                key={date}
-                className={`day-cell ${status}`}
-                onClick={() => onSelectDay?.(date)}
-                title={date}
-              >
-                {date.slice(-2)}
-              </button>
-            ))}
-          </div>
-
-          <div className="legend">
-            <span className="free">🟢 libre</span>
-            <span className="low">🟡 pocos</span>
-            <span className="full">🔴 lleno</span>
-            <span className="empty">⚪ sin agenda</span>
-          </div>
+        <div className="legend">
+          <span className="free">🟢 libre</span>
+          <span className="low">🟡 pocos</span>
+          <span className="full">🔴 lleno</span>
+          <span className="empty">⚪ sin agenda</span>
         </div>
       )}
     </section>
   );
-         }
+}
