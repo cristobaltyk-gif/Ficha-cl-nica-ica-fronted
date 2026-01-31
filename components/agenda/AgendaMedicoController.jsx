@@ -4,16 +4,17 @@ import { useAuth } from "../../auth/AuthContext";
 import CalendarWeekView from "./CalendarWeekView";
 import AgendaDayController from "./AgendaDayController";
 
-/*
-AgendaMedicoController — PRODUCCIÓN REAL
+const API_URL = import.meta.env.VITE_API_URL;
 
-REGLAS (RESPETADAS):
-✔ NO selector
-✔ NO multi-médico
-✔ Profesional viene desde LOGIN
-✔ Resumen semanal SOLO orientativo
-✔ Agenda diaria SIEMPRE se construye desde schedule
-✔ Backend SOLO guarda lo ocupado
+/*
+AgendaMedicoController — PRODUCCIÓN REAL (CONTROLLER REAL)
+
+✔ Hace la pega (como secretaria)
+✔ Normaliza semana a LUNES
+✔ Calcula weekdays
+✔ Decide estados (free / empty / etc)
+✔ CalendarWeekView = vista pura
+✔ Agenda diaria se mantiene igual
 */
 
 export default function AgendaMedicoController() {
@@ -24,10 +25,10 @@ export default function AgendaMedicoController() {
   // ESTADO
   // =========================
   const [selectedDate, setSelectedDate] = useState(null);
-  // selectedDate = { date: "YYYY-MM-DD", key: number }
+  const [weekDays, setWeekDays] = useState([]); // [{ date, weekday, status }]
 
   // =========================
-  // SEGURIDAD DURA
+  // SEGURIDAD
   // =========================
   if (!professional) {
     return (
@@ -38,15 +39,79 @@ export default function AgendaMedicoController() {
   }
 
   // =========================
-  // FECHA BASE (UNA SOLA VEZ)
+  // FECHA BASE
   // =========================
   const today = new Date().toISOString().slice(0, 10);
+
+  // =========================
+  // HELPERS (copiados del patrón BUENO)
+  // =========================
+  function getMonday(dateISO) {
+    const d = new Date(dateISO);
+    const jsDay = d.getDay(); // 0 dom, 1 lun
+    const diff = jsDay === 0 ? -6 : 1 - jsDay;
+    d.setDate(d.getDate() + diff);
+    return d;
+  }
+
+  function weekdayFromDate(d) {
+    return d.toLocaleDateString("es-CL", { weekday: "short" });
+  }
+
+  // =========================
+  // CARGAR SUMMARY SEMANAL
+  // =========================
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadWeek() {
+      try {
+        const res = await fetch(
+          `${API_URL}/agenda/summary/week` +
+            `?professional=${encodeURIComponent(professional)}` +
+            `&start_date=${encodeURIComponent(today)}`
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const summary = data?.days || {};
+
+        // 🔑 NORMALIZAR SEMANA A LUNES
+        const monday = getMonday(today);
+        const days = [];
+
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+
+          const iso = d.toISOString().slice(0, 10);
+
+          days.push({
+            date: iso,
+            weekday: weekdayFromDate(d),
+            status: summary[iso] || "empty", // 👈 VERDE SI VIENE "free"
+          });
+        }
+
+        if (!cancelled) {
+          setWeekDays(days);
+        }
+      } catch (e) {
+        if (!cancelled) setWeekDays([]);
+      }
+    }
+
+    loadWeek();
+    return () => {
+      cancelled = true;
+    };
+  }, [professional, today]);
 
   // =========================
   // AUTO-SELECCIÓN INICIAL
   // =========================
   useEffect(() => {
-    // Fuerza activación real de agenda diaria
     setSelectedDate({
       date: today,
       key: Date.now(),
@@ -60,12 +125,11 @@ export default function AgendaMedicoController() {
     <section className="agenda-medico">
 
       {/* =========================
-          RESUMEN SEMANAL (VISUAL)
-          NO decide agenda diaria
+          RESUMEN SEMANAL (YA PROCESADO)
+          LUNES + WEEKDAY + STATUS
       ========================= */}
       <CalendarWeekView
-        professional={professional}
-        startDate={today}
+        days={weekDays}
         selectedDate={selectedDate}
         onSelectDate={({ date }) =>
           setSelectedDate({
@@ -77,8 +141,6 @@ export default function AgendaMedicoController() {
 
       {/* =========================
           AGENDA DIARIA REAL
-          Slots desde schedule
-          Backend solo pisa ocupados
       ========================= */}
       {selectedDate && (
         <AgendaDayController
