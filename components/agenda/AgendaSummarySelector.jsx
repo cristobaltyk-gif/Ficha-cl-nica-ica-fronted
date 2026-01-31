@@ -6,14 +6,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
-
-MODOS:
-- SECRETARIA (default): selector multi-médico, 30/7 días
-- MÉDICO: agenda fija de UN profesional (sin selector)
-
-REGLA:
-- Si professional viene → MODO MÉDICO
-- Si NO viene → MODO SECRETARIA
 */
 
 export default function AgendaSummarySelector({
@@ -21,207 +13,296 @@ export default function AgendaSummarySelector({
   defaultMode = "monthly",
   startDate,
   onSelectDay,
-  professional // 👈 SOLO se pasa desde /medico
 }) {
   // =========================
-  // MODO
-  // =========================
-  const isMedicoMode = professional !== undefined;
-
-  // =========================
-  // ESTADO
+  // Estado
   // =========================
   const [mode, setMode] = useState(defaultMode);
   const [professionals, setProfessionals] = useState([]);
-  const [selectedProfessionals, setSelectedProfessionals] = useState(
-    isMedicoMode ? [professional] : []
-  );
+  const [selectedProfessionals, setSelectedProfessionals] = useState([]);
 
   const [loadingProfessionals, setLoadingProfessionals] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
+
   const [summaryByProfessional, setSummaryByProfessional] = useState({});
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // FECHA BASE
+  // Fecha base LOCAL (OK)
   // =========================
   function todayISO() {
     const d = new Date();
-    return d.toISOString().slice(0, 10);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
   const baseDate = startDate || todayISO();
 
   // =========================
-  // HELPERS
+  // Helpers
   // =========================
+  function getProfessionalName(id) {
+    const p = professionals.find((x) => x.id === id);
+    return p?.name || id;
+  }
+
   function weekdayFromISO(dateStr) {
-    const dt = new Date(dateStr);
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d); // LOCAL
     return dt.toLocaleDateString("es-CL", { weekday: "short" });
   }
 
   function weekdayIndexMondayFirst(dateStr) {
-    const jsDay = new Date(dateStr).getDay();
-    return jsDay === 0 ? 6 : jsDay - 1;
-  }
-
-  function pickBestDate(days) {
-    const dates = Object.keys(days).sort();
-    if (!dates.length) return null;
-    const today = todayISO();
-    return dates.includes(today)
-      ? today
-      : dates.find(d => d > today) || dates[dates.length - 1];
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    const jsDay = dt.getDay(); // 0 domingo → 6 sábado
+    return jsDay === 0 ? 6 : jsDay - 1; // lunes = 0
   }
 
   // =========================
-  // CARGAR PROFESIONALES (SECRETARIA)
+  // Cargar profesionales
   // =========================
   useEffect(() => {
-    if (isMedicoMode) return;
+    let cancelled = false;
 
-    async function load() {
+    async function loadProfessionals() {
       setLoadingProfessionals(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
+        if (!res.ok) throw new Error("professionals");
+
         const data = await res.json();
-        setProfessionals(Array.isArray(data) ? data : []);
+        if (!cancelled) {
+          setProfessionals(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        if (!cancelled) setProfessionals([]);
       } finally {
-        setLoadingProfessionals(false);
+        if (!cancelled) setLoadingProfessionals(false);
       }
     }
 
-    load();
-  }, [isMedicoMode]);
+    loadProfessionals();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // =========================
-  // APPLY SECRETARIA
+  // Selección profesionales
   // =========================
-  async function applySelection() {
-    if (isMedicoMode || selectedProfessionals.length === 0) return;
+  function toggleProfessional(id) {
+    setApplied(false);
+    setSummaryByProfessional({});
 
-    setLoadingSummary(true);
-    const result = {};
-
-    for (const id of selectedProfessionals) {
-      const res = await fetch(
-        `${API_URL}/agenda/summary/${mode === "weekly" ? "week" : "month"}?professional=${id}&start_date=${baseDate}`
-      );
-      const data = await res.json();
-      result[id] = data?.days || {};
-    }
-
-    setSummaryByProfessional(result);
-    setApplied(true);
-    setLoadingSummary(false);
+    setSelectedProfessionals((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= max) return prev;
+      return [...prev, id];
+    });
   }
 
   // =========================
-  // AUTO APPLY MÉDICO
+  // Cambiar vista
   // =========================
-  useEffect(() => {
-    if (!isMedicoMode) return;
+  function changeMode(next) {
+    setMode(next);
+    setApplied(false);
+    setSummaryByProfessional({});
+  }
 
-    async function autoLoad() {
-      setLoadingSummary(true);
-      const res = await fetch(
-        `${API_URL}/agenda/summary/week?professional=${professional}&start_date=${baseDate}`
-      );
-      const data = await res.json();
-      const days = data?.days || {};
+  // =========================
+  // APLICAR → BACKEND
+  // =========================
+  async function applySelection() {
+    if (selectedProfessionals.length === 0) return;
 
-      setSummaryByProfessional({ [professional]: days });
+    setLoadingSummary(true);
+    setSummaryByProfessional({});
+    setApplied(false);
+
+    const endpoint =
+      mode === "weekly"
+        ? "/agenda/summary/week"
+        : "/agenda/summary/month";
+
+    const result = {};
+
+    try {
+      for (const professionalId of selectedProfessionals) {
+        const url =
+          `${API_URL}${endpoint}` +
+          `?professional=${encodeURIComponent(professionalId)}` +
+          `&start_date=${encodeURIComponent(baseDate)}`;
+
+        const res = await fetch(url);
+        if (!res.ok) continue;
+
+        const data = await res.json();
+        result[professionalId] = data?.days || {};
+      }
+
+      setSummaryByProfessional(result);
       setApplied(true);
-
-      const best = pickBestDate(days);
-      if (best) onSelectDay?.({ professional, date: best });
-
+    } catch {
+      setSummaryByProfessional({});
+    } finally {
       setLoadingSummary(false);
     }
-
-    autoLoad();
-  }, [isMedicoMode, professional, baseDate]);
+  }
 
   // =========================
-  // RENDER
+  // Render
   // =========================
   return (
     <section className="agenda-summary-selector">
 
-      {/* ===== SECRETARIA CONTROLES ===== */}
-      {!isMedicoMode && (
-        <>
-          <div className="summary-mode">
-            <button
-              className={mode === "monthly" ? "active" : ""}
-              onClick={() => setMode("monthly")}
-            >
-              30 días
-            </button>
-            <button
-              className={mode === "weekly" ? "active" : ""}
-              onClick={() => setMode("weekly")}
-            >
-              7 días
-            </button>
-          </div>
+      <div className="summary-mode">
+        <button
+          type="button"
+          className={mode === "monthly" ? "active" : ""}
+          onClick={() => changeMode("monthly")}
+        >
+          30 días
+        </button>
 
-          <div className="summary-professionals">
-            {loadingProfessionals && <div>Cargando…</div>}
-            {professionals.map(p => (
-              <label key={p.id}>
+        <button
+          type="button"
+          className={mode === "weekly" ? "active" : ""}
+          onClick={() => changeMode("weekly")}
+        >
+          7 días
+        </button>
+      </div>
+
+      <div className="summary-professionals">
+        {loadingProfessionals && (
+          <div className="agenda-placeholder">
+            Cargando profesionales…
+          </div>
+        )}
+
+        {!loadingProfessionals && professionals.length === 0 && (
+          <div className="agenda-placeholder">
+            No hay profesionales cargados
+          </div>
+        )}
+
+        {!loadingProfessionals &&
+          professionals.map((p) => {
+            const checked = selectedProfessionals.includes(p.id);
+            const disabled =
+              !checked && selectedProfessionals.length >= max;
+
+            return (
+              <label
+                key={p.id}
+                className={`professional-item ${checked ? "active" : ""} ${
+                  disabled ? "disabled" : ""
+                }`}
+              >
                 <input
                   type="checkbox"
-                  checked={selectedProfessionals.includes(p.id)}
-                  onChange={() =>
-                    setSelectedProfessionals(prev =>
-                      prev.includes(p.id)
-                        ? prev.filter(x => x !== p.id)
-                        : prev.length < max ? [...prev, p.id] : prev
-                    )
-                  }
+                  checked={checked}
+                  disabled={disabled}
+                  onChange={() => toggleProfessional(p.id)}
                 />
                 {p.name}
               </label>
-            ))}
-          </div>
+            );
+          })}
+      </div>
 
-          <button onClick={applySelection} disabled={loadingSummary}>
-            Aplicar
-          </button>
-        </>
-      )}
+      <div className="summary-footer">
+        <span>
+          Seleccionados: {selectedProfessionals.length} / {max}
+        </span>
 
-      {/* ===== CALENDARIO ===== */}
+        <button
+          type="button"
+          className="apply-btn"
+          disabled={selectedProfessionals.length === 0 || loadingSummary}
+          onClick={applySelection}
+        >
+          {loadingSummary ? "Cargando…" : "Aplicar"}
+        </button>
+      </div>
+
+      {/* =========================
+          CALENDARIOS ORDENADOS
+      ========================= */}
       {applied &&
-        Object.entries(summaryByProfessional).map(([profId, days]) => {
-          const entries = Object.entries(days).sort();
-          const offset = entries.length
-            ? weekdayIndexMondayFirst(entries[0][0])
-            : 0;
+        Object.entries(summaryByProfessional).map(
+          ([professionalId, days]) => {
+            const entries = Object.entries(days).sort(
+              ([a], [b]) => a.localeCompare(b)
+            );
 
-          return (
-            <div key={profId} className="month-calendar">
-              <div className="month-grid">
-                {Array.from({ length: offset }).map((_, i) => (
-                  <div key={i} className="day-cell empty" />
-                ))}
-                {entries.map(([date, status]) => (
-                  <button
-                    key={date}
-                    className={`day-cell ${status}`}
-                    onClick={() =>
-                      onSelectDay?.({ professional: profId, date })
-                    }
-                  >
-                    <div>{weekdayFromISO(date)}</div>
-                    <div>{date.slice(-2)}</div>
-                  </button>
-                ))}
+            if (entries.length === 0) {
+              return (
+                <div key={professionalId} className="month-calendar">
+                  <h4>{getProfessionalName(professionalId)}</h4>
+                  <p>No hay cupos disponibles.</p>
+                </div>
+              );
+            }
+
+            const firstDate = entries[0][0];
+            const offset = weekdayIndexMondayFirst(firstDate);
+
+            return (
+              <div key={professionalId} className="month-calendar">
+                <h4>{getProfessionalName(professionalId)}</h4>
+
+                <div className="month-grid">
+                  {/* Celdas vacías antes del lunes */}
+                  {Array.from({ length: offset }).map((_, i) => (
+                    <div key={`empty-${i}`} className="day-cell empty" />
+                  ))}
+
+                  {entries.map(([date, status]) => {
+                    const clickable =
+                      status === "free" || status === "low";
+
+                    return (
+                      <button
+                        key={date}
+                        className={`day-cell ${status}`}
+                        disabled={!clickable}
+                        onClick={() =>
+                          clickable &&
+                          onSelectDay?.({
+                            professional: professionalId,
+                            date,
+                          })
+                        }
+                        title={date}
+                      >
+                        <div className="day-week">
+                          {weekdayFromISO(date)}
+                        </div>
+                        <div className="day-number">
+                          {date.slice(-2)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          }
+        )}
+
+      {applied && (
+        <div className="legend">
+          <span className="free">🟢 libre</span>
+          <span className="low">🟡 pocos</span>
+          <span className="full">🔴 lleno</span>
+          <span className="empty">⚪ sin agenda</span>
+        </div>
+      )}
     </section>
   );
 }
