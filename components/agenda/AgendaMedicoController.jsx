@@ -1,31 +1,30 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 
-import CalendarWeekView from "./CalendarWeekView";
 import AgendaDayController from "./AgendaDayController";
+import "../../styles/agenda/calendar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 AgendaMedicoController — PRODUCCIÓN REAL (CONTROLLER REAL)
 
-✔ Hace la pega (como secretaria)
-✔ Normaliza semana a LUNES
-✔ Calcula weekdays
-✔ Decide estados (free / empty / etc)
-✔ CalendarWeekView = vista pura
-✔ Agenda diaria se mantiene igual
+✔ Copia patrón de AgendaSummarySelector
+✔ Semana LUNES → DOMINGO
+✔ Inserta vacíos antes del lunes
+✔ Pinta weekday (lun/mar/mié)
+✔ Decide estados (free / low / full / empty)
+✔ Agenda diaria intacta
 */
 
 export default function AgendaMedicoController() {
   const { professional } = useAuth();
-  // professional === "huerta"
 
   // =========================
   // ESTADO
   // =========================
+  const [weekEntries, setWeekEntries] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [weekDays, setWeekDays] = useState([]); // [{ date, weekday, status }]
 
   // =========================
   // SEGURIDAD
@@ -39,23 +38,32 @@ export default function AgendaMedicoController() {
   }
 
   // =========================
-  // FECHA BASE
+  // FECHA BASE LOCAL
   // =========================
-  const today = new Date().toISOString().slice(0, 10);
-
-  // =========================
-  // HELPERS (copiados del patrón BUENO)
-  // =========================
-  function getMonday(dateISO) {
-    const d = new Date(dateISO);
-    const jsDay = d.getDay(); // 0 dom, 1 lun
-    const diff = jsDay === 0 ? -6 : 1 - jsDay;
-    d.setDate(d.getDate() + diff);
-    return d;
+  function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
   }
 
-  function weekdayFromDate(d) {
-    return d.toLocaleDateString("es-CL", { weekday: "short" });
+  const today = todayISO();
+
+  // =========================
+  // HELPERS (IGUAL AL SELECTOR)
+  // =========================
+  function weekdayFromISO(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("es-CL", { weekday: "short" });
+  }
+
+  function weekdayIndexMondayFirst(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    const jsDay = dt.getDay(); // 0 domingo
+    return jsDay === 0 ? 6 : jsDay - 1; // lunes = 0
   }
 
   // =========================
@@ -66,39 +74,26 @@ export default function AgendaMedicoController() {
 
     async function loadWeek() {
       try {
-        const res = await fetch(
+        const url =
           `${API_URL}/agenda/summary/week` +
-            `?professional=${encodeURIComponent(professional)}` +
-            `&start_date=${encodeURIComponent(today)}`
-        );
+          `?professional=${encodeURIComponent(professional)}` +
+          `&start_date=${encodeURIComponent(today)}`;
 
+        const res = await fetch(url);
         if (!res.ok) return;
 
         const data = await res.json();
-        const summary = data?.days || {};
+        const days = data?.days || {};
 
-        // 🔑 NORMALIZAR SEMANA A LUNES
-        const monday = getMonday(today);
-        const days = [];
-
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(monday);
-          d.setDate(monday.getDate() + i);
-
-          const iso = d.toISOString().slice(0, 10);
-
-          days.push({
-            date: iso,
-            weekday: weekdayFromDate(d),
-            status: summary[iso] || "empty", // 👈 VERDE SI VIENE "free"
-          });
-        }
+        const entries = Object.entries(days).sort(
+          ([a], [b]) => a.localeCompare(b)
+        );
 
         if (!cancelled) {
-          setWeekDays(days);
+          setWeekEntries(entries);
         }
-      } catch (e) {
-        if (!cancelled) setWeekDays([]);
+      } catch {
+        if (!cancelled) setWeekEntries([]);
       }
     }
 
@@ -119,26 +114,66 @@ export default function AgendaMedicoController() {
   }, [today]);
 
   // =========================
+  // OFFSET LUNES
+  // =========================
+  const firstDate = weekEntries[0]?.[0];
+  const offset = firstDate
+    ? weekdayIndexMondayFirst(firstDate)
+    : 0;
+
+  // =========================
   // RENDER
   // =========================
   return (
     <section className="agenda-medico">
 
-      {/* =========================
-          RESUMEN SEMANAL (YA PROCESADO)
-          LUNES + WEEKDAY + STATUS
-      ========================= */}
-     <CalendarWeekView
-  professional={professional}
-  startDate={today}
-  selectedDate={selectedDate ? { date: selectedDate.date } : null}
-  onSelectDate={({ date }) =>
-    setSelectedDate({
-      date,
-      key: Date.now(),
-    })
-  }
-/> 
+      <div className="month-calendar">
+        <h3>📆 Semana</h3>
+
+        <div className="month-grid">
+          {/* Vacíos antes del lunes */}
+          {Array.from({ length: offset }).map((_, i) => (
+            <div key={`empty-${i}`} className="day-cell empty" />
+          ))}
+
+          {weekEntries.map(([date, status]) => {
+            const clickable =
+              status === "free" || status === "low";
+
+            return (
+              <button
+                key={date}
+                className={`day-cell ${status} ${
+                  selectedDate?.date === date ? "selected" : ""
+                }`}
+                disabled={!clickable}
+                onClick={() =>
+                  clickable &&
+                  setSelectedDate({
+                    date,
+                    key: Date.now(),
+                  })
+                }
+                title={date}
+              >
+                <div className="day-week">
+                  {weekdayFromISO(date)}
+                </div>
+                <div className="day-number">
+                  {date.slice(-2)}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="legend">
+          <span className="free">🟢 libre</span>
+          <span className="low">🟡 pocos</span>
+          <span className="full">🔴 lleno</span>
+          <span className="empty">⚪ sin agenda</span>
+        </div>
+      </div>
 
       {/* =========================
           AGENDA DIARIA REAL
@@ -152,4 +187,4 @@ export default function AgendaMedicoController() {
       )}
     </section>
   );
-}
+              }
