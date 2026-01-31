@@ -4,6 +4,15 @@ import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/*
+Login — PRODUCCIÓN REAL
+
+✔ Backend es la fuente de verdad
+✔ Guarda role COMPLETO
+✔ Guarda professional SOLO si viene
+✔ No inventa datos
+*/
+
 export default function Login() {
   const { login } = useAuth();
 
@@ -43,28 +52,23 @@ export default function Login() {
       }
 
       // ===============================
-      // 🔑 NORMALIZACIÓN DE ROLE (CLAVE)
+      // VALIDACIÓN DEFENSIVA MÍNIMA
       // ===============================
-      let role = data.role;
-
-      // 🛡️ Si backend manda string (legacy)
-      if (typeof role === "string") {
-        role = {
-          name: role,
-          entry: "/secretaria",
-          allow: ["agenda", "pacientes", "atencion", "documentos"]
-        };
+      if (!data.usuario || !data.role) {
+        throw new Error("Respuesta inválida del servidor");
       }
 
-      // 🚨 Validación mínima defensiva
-      if (!role.entry || !Array.isArray(role.allow)) {
+      if (!data.role.entry || !Array.isArray(data.role.allow)) {
         throw new Error("Rol inválido recibido desde backend");
       }
 
-      // ✅ LOGIN FINAL (UN SOLO PUNTO)
+      // ===============================
+      // LOGIN FINAL (ÚNICO PUNTO)
+      // ===============================
       login({
         usuario: data.usuario,
-        role
+        role: data.role,
+        professional: data.professional || null
       });
 
     } catch (err) {
