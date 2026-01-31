@@ -2,20 +2,24 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
 
 import AgendaDayController from "./AgendaDayController";
+
+// 👉 MISMOS CSS QUE EL SELECTOR
+import "../../styles/agenda/agenda-summary-selector.css";
 import "../../styles/agenda/calendar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaMedicoController — PRODUCCIÓN REAL (CONTROLLER REAL)
+AgendaMedicoController — PRODUCCIÓN REAL (FINAL)
 
-✔ Copia patrón de AgendaSummarySelector
+✔ Copia patrón AgendaSummarySelector
+✔ SOLO médico logueado
 ✔ Semana LUNES → DOMINGO
 ✔ Inserta vacíos antes del lunes
 ✔ Pinta weekday (lun/mar/mié)
+✔ Colores reales backend
 ✔ BLOQUEA solo días "empty"
-✔ Click en free / low / full → renderiza agenda diaria
-✔ Agenda diaria intacta
+✔ Click → abre agenda diaria
 */
 
 export default function AgendaMedicoController() {
@@ -126,7 +130,7 @@ export default function AgendaMedicoController() {
   // RENDER
   // =========================
   return (
-    <section className="agenda-medico">
+    <section className="agenda-medico agenda-summary-selector">
 
       <div className="month-calendar">
         <h3>📆 Semana</h3>
@@ -187,4 +191,4 @@ export default function AgendaMedicoController() {
       )}
     </section>
   );
-                                  }
+}
