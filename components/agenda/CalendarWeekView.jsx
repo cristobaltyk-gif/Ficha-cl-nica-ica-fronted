@@ -4,36 +4,58 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-CalendarWeekView (Secretaría / Médico)
+CalendarWeekView — VISTA PURA (SEMANA)
 
-✔ Vista de 7 días CONSECUTIVOS desde start_date
-✔ Días coloreados según disponibilidad real
-✔ Click → devuelve OBJETO { date }
+✔ Lógica idéntica al selector
+✔ Semana NORMALIZADA a lunes
+✔ Weekdays visibles (lun–dom)
+✔ Colores según backend real
+✔ Celdas vacías si corresponde
+✔ Click → { date }
 ✔ NO orquesta
-✔ NO decide flujos
-✔ Solo pinta + notifica
-✔ Contrato REAL backend (/agenda/summary/week?start_date=)
 */
 
 export default function CalendarWeekView({
-  professional,          // string ID profesional (ej: "medico1")
-  startDate,             // "YYYY-MM-DD" (fecha base REAL)
-  selectedDate,          // { date: "YYYY-MM-DD" } | null
-  onSelectDate           // function({ date })
+  professional,
+  startDate,
+  selectedDate,
+  onSelectDate,
 }) {
   const [days, setDays] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ============================
-  // Fecha base segura
-  // ============================
-  const baseDate =
-    startDate ||
-    new Date().toISOString().slice(0, 10); // hoy
+  // =========================
+  // Fecha base LOCAL
+  // =========================
+  function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
 
-  // ============================
-  // Cargar summary semanal REAL
-  // ============================
+  const baseDate = startDate || todayISO();
+
+  // =========================
+  // HELPERS (IGUALES AL SELECTOR)
+  // =========================
+  function weekdayFromISO(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("es-CL", { weekday: "short" });
+  }
+
+  function weekdayIndexMondayFirst(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    const jsDay = dt.getDay(); // 0 dom → 6 sáb
+    return jsDay === 0 ? 6 : jsDay - 1; // lunes = 0
+  }
+
+  // =========================
+  // CARGAR SUMMARY SEMANAL
+  // =========================
   useEffect(() => {
     if (!professional || !baseDate) return;
 
@@ -49,13 +71,13 @@ export default function CalendarWeekView({
           `&start_date=${encodeURIComponent(baseDate)}`;
 
         const res = await fetch(url);
-        const data = await res.json();
+        if (!res.ok) throw new Error("summary");
 
-        if (!cancelled && res.ok) {
-          setDays(data.days || {});
+        const data = await res.json();
+        if (!cancelled) {
+          setDays(data?.days || {});
         }
-      } catch (err) {
-        console.error("Error summary 7 días", err);
+      } catch {
         if (!cancelled) setDays({});
       } finally {
         if (!cancelled) setLoading(false);
@@ -63,16 +85,31 @@ export default function CalendarWeekView({
     }
 
     loadSummary();
-
     return () => {
       cancelled = true;
     };
   }, [professional, baseDate]);
 
-  // ============================
-  // Render
-  // ============================
-  const dayKeys = Object.keys(days);
+  // =========================
+  // RENDER
+  // =========================
+  const entries = Object.entries(days).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
+
+  if (!loading && entries.length === 0) {
+    return (
+      <div className="month-calendar">
+        <h3>📆 Disponibilidad próximos 7 días</h3>
+        <p>No hay agenda disponible.</p>
+      </div>
+    );
+  }
+
+  const firstDate = entries[0]?.[0];
+  const offset = firstDate
+    ? weekdayIndexMondayFirst(firstDate)
+    : 0;
 
   return (
     <div className="month-calendar">
@@ -80,24 +117,34 @@ export default function CalendarWeekView({
 
       {loading && <p>Cargando semana…</p>}
 
-      {!loading && dayKeys.length === 0 && (
-        <p>No hay agenda disponible.</p>
-      )}
-
       <div className="month-grid">
-        {dayKeys.map((day) => {
-          const status = days[day]; // free | low | full | empty
-          const isSelected = selectedDate?.date === day;
+        {/* Vacíos antes del lunes */}
+        {Array.from({ length: offset }).map((_, i) => (
+          <div key={`empty-${i}`} className="day-cell empty" />
+        ))}
+
+        {entries.map(([date, status]) => {
+          const clickable = status === "free" || status === "low";
+          const isSelected = selectedDate?.date === date;
 
           return (
             <button
-              key={day}
+              key={date}
               className={`day-cell ${status} ${
                 isSelected ? "selected" : ""
               }`}
-              onClick={() => onSelectDate?.({ date: day })}
+              disabled={!clickable}
+              onClick={() =>
+                clickable && onSelectDate?.({ date })
+              }
+              title={date}
             >
-              {day.slice(-2)}
+              <div className="day-week">
+                {weekdayFromISO(date)}
+              </div>
+              <div className="day-number">
+                {date.slice(-2)}
+              </div>
             </button>
           );
         })}
