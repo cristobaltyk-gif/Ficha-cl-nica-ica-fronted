@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaPage from "./AgendaPage.jsx";
@@ -28,20 +28,6 @@ export default function DashboardAgenda() {
   const [selectedDay, setSelectedDay] = useState(null);
   // { professional: string, date: "YYYY-MM-DD" }
 
-  // ===============================
-  // INIT VISUAL MÉDICO
-  // ===============================
-  useEffect(() => {
-    if (isMedico && session?.usuario) {
-      const today = new Date().toISOString().slice(0, 10);
-
-      setSelectedDay({
-        professional: session.usuario, // 👈 ID del médico
-        date: today
-      });
-    }
-  }, [isMedico, session]);
-
   return (
     <div className="dashboard-agenda">
 
@@ -57,11 +43,25 @@ export default function DashboardAgenda() {
       </header>
 
       {/* ===============================
-          SUMMARY (SOLO SECRETARIA)
+          SUMMARY
+          - Secretaria: comportamiento actual (NO TOCAR)
+          - Médico: resumen semanal propio
       =============================== */}
       {isSecretaria && (
         <AgendaSummarySelector
           onSelectDay={(payload) => {
+            // payload = { professional, date }
+            setSelectedDay(payload);
+          }}
+        />
+      )}
+
+      {isMedico && (
+        <AgendaSummarySelector
+          professional={session?.usuario} // médico fijo
+          mode="week"                     // resumen semanal
+          onSelectDay={(payload) => {
+            // payload = { professional, date }
             setSelectedDay(payload);
           }}
         />
@@ -69,6 +69,7 @@ export default function DashboardAgenda() {
 
       {/* ===============================
           AGENDA DIARIA
+          (solo después de elegir día)
       =============================== */}
       <main className="agenda-right">
         {selectedDay ? (
@@ -78,9 +79,7 @@ export default function DashboardAgenda() {
           />
         ) : (
           <div className="agenda-placeholder">
-            {isSecretaria
-              ? "Selecciona un día en el resumen"
-              : "Cargando agenda del día…"}
+            Selecciona un día en el resumen
           </div>
         )}
       </main>
