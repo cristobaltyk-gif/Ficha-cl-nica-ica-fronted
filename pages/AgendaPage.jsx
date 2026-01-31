@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaDayController from "../components/agenda/AgendaDayController";
+import AgendaMedicoController from "../components/agenda/AgendaMedicoController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaPage — MÓDULO DIARIO (PRODUCCIÓN)
+AgendaPage — ROUTER DE AGENDA (PRODUCCIÓN REAL)
 
-✔ Recibe professional + date desde Summary
-✔ Orquesta carga diaria
+✔ Decide flujo por ROL
+✔ Secretaria → AgendaDayController (selector manda)
+✔ Médico → AgendaMedicoController (control propio)
 ✔ NO pinta agenda
-✔ NO es cerebro clínico
-✔ Delegación correcta al controller
+✔ NO decide clínica
+✔ NO rompe contratos existentes
 */
 
 export default function AgendaPage({
@@ -20,12 +22,13 @@ export default function AgendaPage({
   date          // string YYYY-MM-DD
 }) {
   const { session } = useAuth();
+  const role = session?.role?.name;
 
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
 
   // =========================
-  // Guard rails
+  // GUARD RAILS
   // =========================
   if (!professional || !date) {
     return (
@@ -36,8 +39,19 @@ export default function AgendaPage({
   }
 
   // =========================
-  // Fetch agenda diaria REAL
-  // (se mantiene para backward-compat / preload)
+  // 🔐 FLUJO MÉDICO
+  // =========================
+  if (role === "MEDICO") {
+    return (
+      <div className="agenda-page">
+        <AgendaMedicoController />
+      </div>
+    );
+  }
+
+  // =========================
+  // 📅 FLUJO SECRETARIA / ADMIN
+  // (MISMO DE SIEMPRE)
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -74,18 +88,15 @@ export default function AgendaPage({
     };
   }, [professional, date]);
 
-  // =========================
-  // 🔁 CAMBIO ÚNICO Y REAL
-  // =========================
   return (
     <div className="agenda-page">
       <AgendaDayController
         professional={professional}
         date={date}
-        preload={agendaData}   // 👈 opcional, NO rompe nada
+        preload={agendaData}   // backward-compatible
         loading={loading}
         user={session?.usuario}
-        role={session?.role?.name}
+        role={role}
       />
     </div>
   );
