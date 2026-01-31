@@ -17,14 +17,14 @@ REGLAS (RESPETADAS):
 */
 
 export default function AgendaMedicoController() {
-  const { professional } = useAuth(); 
+  const { professional } = useAuth();
   // professional === "huerta"
 
   // =========================
   // ESTADO
   // =========================
   const [selectedDate, setSelectedDate] = useState(null);
-  // selectedDate = { date: "YYYY-MM-DD" }
+  // selectedDate = { date: "YYYY-MM-DD", key: number }
 
   // =========================
   // SEGURIDAD DURA
@@ -46,9 +46,11 @@ export default function AgendaMedicoController() {
   // AUTO-SELECCIÓN INICIAL
   // =========================
   useEffect(() => {
-    // Aunque el summary salga "empty",
-    // la agenda diaria igual se construye desde schedule
-    setSelectedDate({ date: today });
+    // Fuerza activación real de agenda diaria
+    setSelectedDate({
+      date: today,
+      key: Date.now(),
+    });
   }, [today]);
 
   // =========================
@@ -66,7 +68,10 @@ export default function AgendaMedicoController() {
         startDate={today}
         selectedDate={selectedDate}
         onSelectDate={({ date }) =>
-          setSelectedDate({ date })
+          setSelectedDate({
+            date,
+            key: Date.now(),
+          })
         }
       />
 
@@ -77,6 +82,7 @@ export default function AgendaMedicoController() {
       ========================= */}
       {selectedDate && (
         <AgendaDayController
+          key={selectedDate.key}
           professional={professional}
           date={selectedDate.date}
         />
