@@ -10,16 +10,16 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaPage — ROUTER DE AGENDA (PRODUCCIÓN REAL)
 
 ✔ Decide flujo por ROL
-✔ Secretaria → AgendaDayController (selector manda)
 ✔ Médico → AgendaMedicoController (control propio)
+✔ Secretaria/Admin → Selector → AgendaDayController
 ✔ NO pinta agenda
 ✔ NO decide clínica
-✔ NO rompe contratos existentes
+✔ NO rompe contratos
 */
 
 export default function AgendaPage({
-  professional, // string (id profesional)
-  date          // string YYYY-MM-DD
+  professional, // string (id profesional) — SOLO secretaria/admin
+  date          // string YYYY-MM-DD — SOLO secretaria/admin
 }) {
   const { session } = useAuth();
   const role = session?.role?.name;
@@ -28,18 +28,7 @@ export default function AgendaPage({
   const [agendaData, setAgendaData] = useState(null);
 
   // =========================
-  // GUARD RAILS
-  // =========================
-  if (!professional || !date) {
-    return (
-      <div className="agenda-page">
-        <p>Selecciona un profesional y un día.</p>
-      </div>
-    );
-  }
-
-  // =========================
-  // 🔐 FLUJO MÉDICO
+  // 🔐 FLUJO MÉDICO (PRIMERO)
   // =========================
   if (role === "MEDICO") {
     return (
@@ -50,8 +39,18 @@ export default function AgendaPage({
   }
 
   // =========================
+  // GUARD RAILS (SOLO SECRETARIA / ADMIN)
+  // =========================
+  if (!professional || !date) {
+    return (
+      <div className="agenda-page">
+        <p>Selecciona un profesional y un día.</p>
+      </div>
+    );
+  }
+
+  // =========================
   // 📅 FLUJO SECRETARIA / ADMIN
-  // (MISMO DE SIEMPRE)
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +71,8 @@ export default function AgendaPage({
 
         setAgendaData({
           calendar: {
-            [professional]: data.calendar?.[professional] || { slots: {} }
+            [professional]:
+              data.calendar?.[professional] || { slots: {} }
           }
         });
       } catch {
