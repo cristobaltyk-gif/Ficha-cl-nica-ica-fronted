@@ -237,9 +237,6 @@ export default function AgendaSummarySelector({
   return (
     <section className="agenda-summary-selector">
 
-      {/* =========================
-          MODO (SOLO SECRETARIA)
-      ========================= */}
       {!isMedicoMode && (
         <div className="summary-mode">
           <button
@@ -260,9 +257,6 @@ export default function AgendaSummarySelector({
         </div>
       )}
 
-      {/* =========================
-          PROFESIONALES (SOLO SECRETARIA)
-      ========================= */}
       {!isMedicoMode && (
         <div className="summary-professionals">
           {loadingProfessionals && (
@@ -303,9 +297,6 @@ export default function AgendaSummarySelector({
         </div>
       )}
 
-      {/* =========================
-          FOOTER (SOLO SECRETARIA)
-      ========================= */}
       {!isMedicoMode && (
         <div className="summary-footer">
           <span>
@@ -323,9 +314,6 @@ export default function AgendaSummarySelector({
         </div>
       )}
 
-      {/* =========================
-          CALENDARIOS
-      ========================= */}
       {applied &&
         Object.entries(summaryByProfessional).map(
           ([professionalId, days]) => {
@@ -358,7 +346,9 @@ export default function AgendaSummarySelector({
 
                   {entries.map(([date, status]) => {
                     const clickable =
-                      status === "free" || status === "low";
+                      status === "free" ||
+                      status === "low" ||
+                      status === "full";
 
                     return (
                       <button
@@ -398,4 +388,4 @@ export default function AgendaSummarySelector({
       )}
     </section>
   );
-                }
+            }
