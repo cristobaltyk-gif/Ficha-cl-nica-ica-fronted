@@ -1,34 +1,43 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../auth/AuthContext";
+import AgendaDayController from "./AgendaDayController";
+
 import "../../styles/agenda/agenda-summary-selector.css";
 import "../../styles/agenda/calendar.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
+AgendaMedicoController — FINAL REAL
+
+✔ Un solo médico (logueado)
+✔ Mismo patrón que AgendaSummarySelector
+✔ Modo semanal / mensual
+✔ Semana parte en lunes
+✔ Rellena días blancos
+✔ Colores reales backend
+✔ Bloquea solo EMPTY
+✔ Click abre agenda diaria
 */
 
-export default function AgendaSummarySelector({
-  max = 4,
-  defaultMode = "monthly",
-  startDate,
-  onSelectDay,
-}) {
-  // =========================
-  // Estado
-  // =========================
-  const [mode, setMode] = useState(defaultMode);
-  const [professionals, setProfessionals] = useState([]);
-  const [selectedProfessionals, setSelectedProfessionals] = useState([]);
-
-  const [loadingProfessionals, setLoadingProfessionals] = useState(false);
-  const [loadingSummary, setLoadingSummary] = useState(false);
-
-  const [summaryByProfessional, setSummaryByProfessional] = useState({});
-  const [applied, setApplied] = useState(false);
+export default function AgendaMedicoController() {
+  const { professional } = useAuth();
 
   // =========================
-  // Fecha base LOCAL (OK)
+  // ESTADO
+  // =========================
+  const [mode, setMode] = useState("weekly"); // weekly | monthly
+  const [summaryDays, setSummaryDays] = useState({});
+  const [entries, setEntries] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  if (!professional) {
+    return <div className="agenda-placeholder">Médico sin profesional</div>;
+  }
+
+  // =========================
+  // FECHA BASE LOCAL
   // =========================
   function todayISO() {
     const d = new Date();
@@ -38,132 +47,102 @@ export default function AgendaSummarySelector({
     return `${y}-${m}-${day}`;
   }
 
-  const baseDate = startDate || todayISO();
+  const baseDate = todayISO();
 
   // =========================
-  // Helpers
+  // HELPERS (IGUALES AL SELECTOR)
   // =========================
-  function getProfessionalName(id) {
-    const p = professionals.find((x) => x.id === id);
-    return p?.name || id;
-  }
-
   function weekdayFromISO(dateStr) {
     const [y, m, d] = dateStr.split("-").map(Number);
-    const dt = new Date(y, m - 1, d); // LOCAL
+    const dt = new Date(y, m - 1, d);
     return dt.toLocaleDateString("es-CL", { weekday: "short" });
   }
 
   function weekdayIndexMondayFirst(dateStr) {
     const [y, m, d] = dateStr.split("-").map(Number);
     const dt = new Date(y, m - 1, d);
-    const jsDay = dt.getDay(); // 0 domingo → 6 sábado
+    const jsDay = dt.getDay(); // 0 domingo
     return jsDay === 0 ? 6 : jsDay - 1; // lunes = 0
   }
 
   // =========================
-  // Cargar profesionales
+  // CARGAR SUMMARY (SEMANA / MES)
   // =========================
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfessionals() {
-      setLoadingProfessionals(true);
+    async function loadSummary() {
+      setLoading(true);
+      setEntries({});
+      setSelectedDate(null);
+
+      const endpoint =
+        mode === "weekly"
+          ? "/agenda/summary/week"
+          : "/agenda/summary/month";
+
       try {
-        const res = await fetch(`${API_URL}/professionals`);
-        if (!res.ok) throw new Error("professionals");
-
-        const data = await res.json();
-        if (!cancelled) {
-          setProfessionals(Array.isArray(data) ? data : []);
-        }
-      } catch {
-        if (!cancelled) setProfessionals([]);
-      } finally {
-        if (!cancelled) setLoadingProfessionals(false);
-      }
-    }
-
-    loadProfessionals();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // =========================
-  // Selección profesionales
-  // =========================
-  function toggleProfessional(id) {
-    setApplied(false);
-    setSummaryByProfessional({});
-
-    setSelectedProfessionals((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= max) return prev;
-      return [...prev, id];
-    });
-  }
-
-  // =========================
-  // Cambiar vista
-  // =========================
-  function changeMode(next) {
-    setMode(next);
-    setApplied(false);
-    setSummaryByProfessional({});
-  }
-
-  // =========================
-  // APLICAR → BACKEND
-  // =========================
-  async function applySelection() {
-    if (selectedProfessionals.length === 0) return;
-
-    setLoadingSummary(true);
-    setSummaryByProfessional({});
-    setApplied(false);
-
-    const endpoint =
-      mode === "weekly"
-        ? "/agenda/summary/week"
-        : "/agenda/summary/month";
-
-    const result = {};
-
-    try {
-      for (const professionalId of selectedProfessionals) {
         const url =
           `${API_URL}${endpoint}` +
-          `?professional=${encodeURIComponent(professionalId)}` +
+          `?professional=${encodeURIComponent(professional)}` +
           `&start_date=${encodeURIComponent(baseDate)}`;
 
         const res = await fetch(url);
-        if (!res.ok) continue;
+        if (!res.ok) return;
 
         const data = await res.json();
-        result[professionalId] = data?.days || {};
-      }
+        const days = data?.days || {};
 
-      setSummaryByProfessional(result);
-      setApplied(true);
-    } catch {
-      setSummaryByProfessional({});
-    } finally {
-      setLoadingSummary(false);
+        const ordered = Object.entries(days).sort(
+          ([a], [b]) => a.localeCompare(b)
+        );
+
+        if (!cancelled) {
+          setSummaryDays(days);
+          setEntries(ordered);
+
+          // auto seleccionar primer día válido
+          const firstValid = ordered.find(
+            ([, status]) => status !== "empty"
+          );
+          if (firstValid) {
+            setSelectedDate({
+              date: firstValid[0],
+              key: Date.now(),
+            });
+          }
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }
+
+    loadSummary();
+    return () => {
+      cancelled = true;
+    };
+  }, [professional, mode, baseDate]);
 
   // =========================
-  // Render
+  // OFFSET LUNES
+  // =========================
+  const firstDate = entries[0]?.[0];
+  const offset = firstDate ? weekdayIndexMondayFirst(firstDate) : 0;
+
+  // =========================
+  // RENDER
   // =========================
   return (
-    <section className="agenda-summary-selector">
+    <section className="agenda-medico">
 
+      {/* =========================
+          SELECTOR SEMANA / MES
+      ========================= */}
       <div className="summary-mode">
         <button
           type="button"
           className={mode === "monthly" ? "active" : ""}
-          onClick={() => changeMode("monthly")}
+          onClick={() => setMode("monthly")}
         >
           30 días
         </button>
@@ -171,138 +150,78 @@ export default function AgendaSummarySelector({
         <button
           type="button"
           className={mode === "weekly" ? "active" : ""}
-          onClick={() => changeMode("weekly")}
+          onClick={() => setMode("weekly")}
         >
           7 días
         </button>
       </div>
 
-      <div className="summary-professionals">
-        {loadingProfessionals && (
-          <div className="agenda-placeholder">
-            Cargando profesionales…
-          </div>
+      {/* =========================
+          CALENDARIO
+      ========================= */}
+      <div className="month-calendar">
+        <h3>📆 {mode === "weekly" ? "Semana" : "Mes"}</h3>
+
+        {loading && <p>Cargando…</p>}
+
+        {!loading && entries.length === 0 && (
+          <p>No hay agenda disponible.</p>
         )}
 
-        {!loadingProfessionals && professionals.length === 0 && (
-          <div className="agenda-placeholder">
-            No hay profesionales cargados
-          </div>
-        )}
+        <div className="month-grid">
+          {/* Vacíos antes del lunes */}
+          {Array.from({ length: offset }).map((_, i) => (
+            <div key={`empty-${i}`} className="day-cell empty" />
+          ))}
 
-        {!loadingProfessionals &&
-          professionals.map((p) => {
-            const checked = selectedProfessionals.includes(p.id);
-            const disabled =
-              !checked && selectedProfessionals.length >= max;
+          {entries.map(([date, status]) => {
+            const clickable = status !== "empty";
 
             return (
-              <label
-                key={p.id}
-                className={`professional-item ${checked ? "active" : ""} ${
-                  disabled ? "disabled" : ""
+              <button
+                key={date}
+                className={`day-cell ${status} ${
+                  selectedDate?.date === date ? "selected" : ""
                 }`}
+                disabled={!clickable}
+                onClick={() =>
+                  clickable &&
+                  setSelectedDate({
+                    date,
+                    key: Date.now(),
+                  })
+                }
+                title={date}
               >
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  disabled={disabled}
-                  onChange={() => toggleProfessional(p.id)}
-                />
-                {p.name}
-              </label>
+                <div className="day-week">
+                  {weekdayFromISO(date)}
+                </div>
+                <div className="day-number">
+                  {date.slice(-2)}
+                </div>
+              </button>
             );
           })}
-      </div>
+        </div>
 
-      <div className="summary-footer">
-        <span>
-          Seleccionados: {selectedProfessionals.length} / {max}
-        </span>
-
-        <button
-          type="button"
-          className="apply-btn"
-          disabled={selectedProfessionals.length === 0 || loadingSummary}
-          onClick={applySelection}
-        >
-          {loadingSummary ? "Cargando…" : "Aplicar"}
-        </button>
-      </div>
-
-      {/* =========================
-          CALENDARIOS ORDENADOS
-      ========================= */}
-      {applied &&
-        Object.entries(summaryByProfessional).map(
-          ([professionalId, days]) => {
-            const entries = Object.entries(days).sort(
-              ([a], [b]) => a.localeCompare(b)
-            );
-
-            if (entries.length === 0) {
-              return (
-                <div key={professionalId} className="month-calendar">
-                  <h4>{getProfessionalName(professionalId)}</h4>
-                  <p>No hay cupos disponibles.</p>
-                </div>
-              );
-            }
-
-            const firstDate = entries[0][0];
-            const offset = weekdayIndexMondayFirst(firstDate);
-
-            return (
-              <div key={professionalId} className="month-calendar">
-                <h4>{getProfessionalName(professionalId)}</h4>
-
-                <div className="month-grid">
-                  {/* Celdas vacías antes del lunes */}
-                  {Array.from({ length: offset }).map((_, i) => (
-                    <div key={`empty-${i}`} className="day-cell empty" />
-                  ))}
-
-                  {entries.map(([date, status]) => {
-                    const clickable =
-                      status === "free" || status === "low";
-
-                    return (
-                      <button
-                        key={date}
-                        className={`day-cell ${status}`}
-                        disabled={!clickable}
-                        onClick={() =>
-                          clickable &&
-                          onSelectDay?.({
-                            professional: professionalId,
-                            date,
-                          })
-                        }
-                        title={date}
-                      >
-                        <div className="day-week">
-                          {weekdayFromISO(date)}
-                        </div>
-                        <div className="day-number">
-                          {date.slice(-2)}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          }
-        )}
-
-      {applied && (
         <div className="legend">
           <span className="free">🟢 libre</span>
           <span className="low">🟡 pocos</span>
           <span className="full">🔴 lleno</span>
           <span className="empty">⚪ sin agenda</span>
         </div>
+      </div>
+
+      {/* =========================
+          AGENDA DIARIA
+      ========================= */}
+      {selectedDate && (
+        <AgendaDayController
+          key={selectedDate.key}
+          professional={professional}
+          date={selectedDate.date}
+        />
       )}
     </section>
   );
-}
+      }
