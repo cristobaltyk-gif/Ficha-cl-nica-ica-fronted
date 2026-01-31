@@ -9,18 +9,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 /*
 AgendaPage — ROUTER DE AGENDA (PRODUCCIÓN REAL)
 
-✔ Decide flujo por ROL
-✔ Médico → AgendaMedicoController (selector propio)
-✔ Secretaria/Admin → Selector → AgendaDayController
-✔ ÚNICO punto que renderiza AgendaDayController
-✔ NO pinta agenda
-✔ NO decide clínica
-✔ NO rompe contratos existentes
+✔ Hooks SIEMPRE arriba
+✔ Médico → AgendaMedicoController
+✔ Secretaria/Admin → AgendaDayController
+✔ NO rompe reglas de React
 */
 
 export default function AgendaPage({
-  professional, // string (id profesional) — SOLO secretaria/admin
-  date          // string YYYY-MM-DD — SOLO secretaria/admin
+  professional, // SOLO secretaria/admin
+  date          // SOLO secretaria/admin
 }) {
   const { session } = useAuth();
   const role = session?.role?.name;
@@ -29,32 +26,12 @@ export default function AgendaPage({
   const [agendaData, setAgendaData] = useState(null);
 
   // =========================
-  // 🔐 FLUJO MÉDICO (PRIMERO)
-  // =========================
-  if (role === "MEDICO") {
-    return (
-      <div className="agenda-page">
-        <AgendaMedicoController />
-      </div>
-    );
-  }
-
-  // =========================
-  // 🛡️ GUARD RAILS
-  // SOLO SECRETARIA / ADMIN
-  // =========================
-  if (!professional || !date) {
-    return (
-      <div className="agenda-page">
-        <p>Selecciona un profesional y un día.</p>
-      </div>
-    );
-  }
-
-  // =========================
-  // 📅 FLUJO SECRETARIA / ADMIN
+  // 📅 CARGA AGENDA (SOLO SECRETARIA / ADMIN)
   // =========================
   useEffect(() => {
+    if (role === "MEDICO") return;
+    if (!professional || !date) return;
+
     let cancelled = false;
 
     async function loadAgenda() {
@@ -88,17 +65,33 @@ export default function AgendaPage({
     return () => {
       cancelled = true;
     };
-  }, [professional, date]);
+  }, [role, professional, date]);
 
   // =========================
-  // 🧠 AGENDA DIARIA (ÚNICO LUGAR)
+  // 🧭 RENDER POR ROL
   // =========================
+  if (role === "MEDICO") {
+    return (
+      <div className="agenda-page">
+        <AgendaMedicoController />
+      </div>
+    );
+  }
+
+  if (!professional || !date) {
+    return (
+      <div className="agenda-page">
+        <p>Selecciona un profesional y un día.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="agenda-page">
       <AgendaDayController
         professional={professional}
         date={date}
-        preload={agendaData}     // backward-compatible
+        preload={agendaData}
         loading={loading}
         user={session?.usuario}
         role={role}
