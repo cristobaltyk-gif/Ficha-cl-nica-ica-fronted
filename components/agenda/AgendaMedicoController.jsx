@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-
-import AgendaDayController from "./AgendaDayController";
+import { useNavigate } from "react-router-dom";
 
 // 👉 MISMOS CSS QUE EL SELECTOR
 import "../../styles/agenda/agenda-summary-selector.css";
@@ -12,24 +11,27 @@ const API_URL = import.meta.env.VITE_API_URL;
 /*
 AgendaMedicoController — PRODUCCIÓN REAL (FINAL)
 
-✔ Copia patrón AgendaSummarySelector
-✔ SOLO médico logueado
+✔ Selector de agenda EXCLUSIVO para médico logueado
+✔ Copia exacta del patrón AgendaSummarySelector
 ✔ Semana LUNES → DOMINGO
 ✔ Inserta vacíos antes del lunes
 ✔ Pinta weekday (lun/mar/mié)
-✔ Colores reales backend
+✔ Colores reales desde backend
 ✔ BLOQUEA solo días "empty"
-✔ Click → abre agenda diaria
+✔ Click → navega a AgendaPage
+✔ NO renderiza agenda diaria
+✔ NO mezcla responsabilidades
 */
 
 export default function AgendaMedicoController() {
   const { professional } = useAuth();
+  const navigate = useNavigate();
 
   // =========================
   // ESTADO
   // =========================
   const [weekEntries, setWeekEntries] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // =========================
   // SEGURIDAD
@@ -53,7 +55,7 @@ export default function AgendaMedicoController() {
     return `${y}-${m}-${day}`;
   }
 
-  const today = todayISO();
+  const baseDate = todayISO();
 
   // =========================
   // HELPERS (IGUALES AL SELECTOR)
@@ -78,11 +80,12 @@ export default function AgendaMedicoController() {
     let cancelled = false;
 
     async function loadWeek() {
+      setLoading(true);
       try {
         const url =
           `${API_URL}/agenda/summary/week` +
           `?professional=${encodeURIComponent(professional)}` +
-          `&start_date=${encodeURIComponent(today)}`;
+          `&start_date=${encodeURIComponent(baseDate)}`;
 
         const res = await fetch(url);
         if (!res.ok) return;
@@ -90,15 +93,17 @@ export default function AgendaMedicoController() {
         const data = await res.json();
         const days = data?.days || {};
 
-        const entries = Object.entries(days).sort(
+        const ordered = Object.entries(days).sort(
           ([a], [b]) => a.localeCompare(b)
         );
 
         if (!cancelled) {
-          setWeekEntries(entries);
+          setWeekEntries(ordered);
         }
       } catch {
         if (!cancelled) setWeekEntries([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -106,17 +111,7 @@ export default function AgendaMedicoController() {
     return () => {
       cancelled = true;
     };
-  }, [professional, today]);
-
-  // =========================
-  // AUTO-SELECCIÓN INICIAL
-  // =========================
-  useEffect(() => {
-    setSelectedDate({
-      date: today,
-      key: Date.now(),
-    });
-  }, [today]);
+  }, [professional, baseDate]);
 
   // =========================
   // OFFSET PARA PARTIR EN LUNES
@@ -135,6 +130,12 @@ export default function AgendaMedicoController() {
       <div className="month-calendar">
         <h3>📆 Semana</h3>
 
+        {loading && <p>Cargando semana…</p>}
+
+        {!loading && weekEntries.length === 0 && (
+          <p>No hay agenda disponible.</p>
+        )}
+
         <div className="month-grid">
           {/* Vacíos antes del lunes */}
           {Array.from({ length: offset }).map((_, i) => (
@@ -147,18 +148,18 @@ export default function AgendaMedicoController() {
             return (
               <button
                 key={date}
-                className={`day-cell ${status} ${
-                  selectedDate?.date === date ? "selected" : ""
-                }`}
+                className={`day-cell ${status}`}
                 disabled={blocked}
+                title={date}
                 onClick={() =>
                   !blocked &&
-                  setSelectedDate({
-                    date,
-                    key: Date.now(),
+                  navigate("/agenda", {
+                    state: {
+                      professional,
+                      date
+                    }
                   })
                 }
-                title={date}
               >
                 <div className="day-week">
                   {weekdayFromISO(date)}
@@ -178,17 +179,6 @@ export default function AgendaMedicoController() {
           <span className="empty">⚪ sin agenda</span>
         </div>
       </div>
-
-      {/* =========================
-          AGENDA DIARIA REAL
-      ========================= */}
-      {selectedDate && (
-        <AgendaDayController
-          key={selectedDate.key}
-          professional={professional}
-          date={selectedDate.date}
-        />
-      )}
     </section>
   );
 }
