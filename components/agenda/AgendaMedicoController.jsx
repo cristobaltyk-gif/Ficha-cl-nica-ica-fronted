@@ -128,16 +128,17 @@ export default function AgendaMedicoController() {
           RESUMEN SEMANAL (YA PROCESADO)
           LUNES + WEEKDAY + STATUS
       ========================= */}
-      <CalendarWeekView
-        days={weekDays}
-        selectedDate={selectedDate}
-        onSelectDate={({ date }) =>
-          setSelectedDate({
-            date,
-            key: Date.now(),
-          })
-        }
-      />
+     <CalendarWeekView
+  professional={professional}
+  startDate={today}
+  selectedDate={selectedDate ? { date: selectedDate.date } : null}
+  onSelectDate={({ date }) =>
+    setSelectedDate({
+      date,
+      key: Date.now(),
+    })
+  }
+/> 
 
       {/* =========================
           AGENDA DIARIA REAL
