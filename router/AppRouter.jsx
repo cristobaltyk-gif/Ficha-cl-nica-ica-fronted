@@ -28,6 +28,11 @@ import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
 import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
 
 /* ===============================
+   CONTROLADOR MÉDICO (AGENDA)
+   =============================== */
+import AgendaMedicoController from "../components/agenda/AgendaMedicoController.jsx";
+
+/* ===============================
    HELPERS
    =============================== */
 function resolveHome(session, role) {
@@ -88,7 +93,6 @@ export default function AppRouter() {
 
         {/* ===============================
             🔒 APP PRIVADA (Layout Global)
-            Todo lo interno vive aquí
            =============================== */}
         <Route
           element={
@@ -109,7 +113,11 @@ export default function AppRouter() {
             path="/agenda"
             element={
               <RoleGuard session={session} role={role} route="agenda">
-                <DashboardAgenda />
+                {role?.name === "medico" ? (
+                  <AgendaMedicoController />
+                ) : (
+                  <DashboardAgenda />
+                )}
               </RoleGuard>
             }
           />
