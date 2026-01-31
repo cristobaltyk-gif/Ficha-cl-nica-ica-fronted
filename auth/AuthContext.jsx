@@ -3,18 +3,17 @@ import { createContext, useContext, useState } from "react";
 /*
 AuthContext (CANÓNICO FINAL)
 
-Reglas REALES:
-- Mantiene sesión al RECARGAR
-- Borra sesión SOLO al cerrar pestaña / navegador
-- Usa sessionStorage (NO localStorage)
-- NO borra sesión en navegación interna
+- Sesión persiste en sessionStorage
+- Se borra solo al cerrar pestaña
+- Backend es la fuente de verdad
 */
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+
   // =========================
-  // ESTADO (hidrata desde sessionStorage)
+  // ESTADO
   // =========================
   const [session, setSession] = useState(() => {
     const stored = sessionStorage.getItem("session");
@@ -26,25 +25,38 @@ export function AuthProvider({ children }) {
     return stored ? JSON.parse(stored) : null;
   });
 
+  const [professional, setProfessional] = useState(() => {
+    return sessionStorage.getItem("professional");
+  });
+
   // =========================
   // LOGIN / LOGOUT
   // =========================
-  function login({ usuario, role }) {
+  function login({ usuario, role, professional }) {
     const sessionData = { usuario };
 
     setSession(sessionData);
     setRole(role);
+    setProfessional(professional || null);
 
     sessionStorage.setItem("session", JSON.stringify(sessionData));
     sessionStorage.setItem("role", JSON.stringify(role));
+
+    if (professional) {
+      sessionStorage.setItem("professional", professional);
+    } else {
+      sessionStorage.removeItem("professional");
+    }
   }
 
   function logout() {
     setSession(null);
     setRole(null);
+    setProfessional(null);
 
     sessionStorage.removeItem("session");
     sessionStorage.removeItem("role");
+    sessionStorage.removeItem("professional");
   }
 
   return (
@@ -52,6 +64,7 @@ export function AuthProvider({ children }) {
       value={{
         session,
         role,
+        professional,
         login,
         logout
       }}
