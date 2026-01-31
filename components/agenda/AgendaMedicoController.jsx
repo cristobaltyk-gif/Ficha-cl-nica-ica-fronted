@@ -4,8 +4,6 @@ import { useAuth } from "../../auth/AuthContext";
 import CalendarWeekView from "./CalendarWeekView";
 import AgendaDayController from "./AgendaDayController";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 /*
 AgendaMedicoController — PRODUCCIÓN REAL
 
@@ -22,7 +20,11 @@ export default function AgendaMedicoController() {
   const { professional } = useAuth(); 
   // professional === "huerta"
 
+  // =========================
+  // ESTADO
+  // =========================
   const [selectedDate, setSelectedDate] = useState(null);
+  // selectedDate = { date: "YYYY-MM-DD" }
 
   // =========================
   // SEGURIDAD DURA
@@ -36,21 +38,18 @@ export default function AgendaMedicoController() {
   }
 
   // =========================
-  // FECHA BASE
+  // FECHA BASE (UNA SOLA VEZ)
   // =========================
-  function todayISO() {
-    return new Date().toISOString().slice(0, 10);
-  }
+  const today = new Date().toISOString().slice(0, 10);
 
   // =========================
   // AUTO-SELECCIÓN INICIAL
   // =========================
   useEffect(() => {
-    // 🔑 IMPORTANTE:
-    // Aunque summary diga "empty",
-    // igual hay agenda si el schedule existe
-    setSelectedDate(todayISO());
-  }, []);
+    // Aunque el summary salga "empty",
+    // la agenda diaria igual se construye desde schedule
+    setSelectedDate({ date: today });
+  }, [today]);
 
   // =========================
   // RENDER
@@ -64,11 +63,11 @@ export default function AgendaMedicoController() {
       ========================= */}
       <CalendarWeekView
         professional={professional}
-        startDate={todayISO()}
-        selectedDate={
-          selectedDate ? { date: selectedDate } : null
+        startDate={today}
+        selectedDate={selectedDate}
+        onSelectDate={({ date }) =>
+          setSelectedDate({ date })
         }
-        onSelectDate={({ date }) => setSelectedDate(date)}
       />
 
       {/* =========================
@@ -79,7 +78,7 @@ export default function AgendaMedicoController() {
       {selectedDate && (
         <AgendaDayController
           professional={professional}
-          date={selectedDate}
+          date={selectedDate.date}
         />
       )}
     </section>
