@@ -10,11 +10,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 AgendaPage — ROUTER DE AGENDA (PRODUCCIÓN REAL)
 
 ✔ Decide flujo por ROL
-✔ Médico → AgendaMedicoController (control propio)
+✔ Médico → AgendaMedicoController (selector propio)
 ✔ Secretaria/Admin → Selector → AgendaDayController
+✔ ÚNICO punto que renderiza AgendaDayController
 ✔ NO pinta agenda
 ✔ NO decide clínica
-✔ NO rompe contratos
+✔ NO rompe contratos existentes
 */
 
 export default function AgendaPage({
@@ -39,7 +40,8 @@ export default function AgendaPage({
   }
 
   // =========================
-  // GUARD RAILS (SOLO SECRETARIA / ADMIN)
+  // 🛡️ GUARD RAILS
+  // SOLO SECRETARIA / ADMIN
   // =========================
   if (!professional || !date) {
     return (
@@ -88,12 +90,15 @@ export default function AgendaPage({
     };
   }, [professional, date]);
 
+  // =========================
+  // 🧠 AGENDA DIARIA (ÚNICO LUGAR)
+  // =========================
   return (
     <div className="agenda-page">
       <AgendaDayController
         professional={professional}
         date={date}
-        preload={agendaData}   // backward-compatible
+        preload={agendaData}     // backward-compatible
         loading={loading}
         user={session?.usuario}
         role={role}
