@@ -10,6 +10,10 @@ AgendaSummarySelector — AUTÓNOMO (REAL BACKEND)
 MODOS:
 - SECRETARIA (default): multi-médico, 30/7 días, botón aplicar
 - MÉDICO: un médico fijo, semanal, auto-carga, auto-selección de día
+
+REGLA DE SEGURIDAD:
+- Médico SIN professional válido → NO VE AGENDA
+- Médico JAMÁS cae en modo secretaria
 */
 
 export default function AgendaSummarySelector({
@@ -17,16 +21,30 @@ export default function AgendaSummarySelector({
   defaultMode = "monthly",
   startDate,
   onSelectDay,
-  professional,   // 👈 si viene, estamos en modo MÉDICO
-  mode: forcedMode // 👈 opcional (ej: "week")
+  professional,   // 👈 ID profesional (ej: "huerta")
+  mode: forcedMode
 }) {
   // =========================
-  // Flags de modo
+  // FLAGS DE MODO (SEGUROS)
   // =========================
-  const isMedicoMode = !!professional;
+  const isMedicoMode =
+    typeof professional === "string" && professional.length > 0;
 
   // =========================
-  // Estado
+  // BLOQUEO DE SEGURIDAD
+  // =========================
+  if (professional !== undefined && !isMedicoMode) {
+    return (
+      <section className="agenda-summary-selector">
+        <div className="agenda-placeholder">
+          Usuario médico sin profesional asignado
+        </div>
+      </section>
+    );
+  }
+
+  // =========================
+  // ESTADO
   // =========================
   const [mode, setMode] = useState(
     forcedMode === "week" ? "weekly" : defaultMode
@@ -44,7 +62,7 @@ export default function AgendaSummarySelector({
   const [applied, setApplied] = useState(false);
 
   // =========================
-  // Fecha base LOCAL
+  // FECHA BASE LOCAL
   // =========================
   function todayISO() {
     const d = new Date();
@@ -57,7 +75,7 @@ export default function AgendaSummarySelector({
   const baseDate = startDate || todayISO();
 
   // =========================
-  // Helpers
+  // HELPERS
   // =========================
   function getProfessionalName(id) {
     const p = professionals.find((x) => x.id === id);
@@ -82,7 +100,6 @@ export default function AgendaSummarySelector({
     if (dates.length === 0) return null;
 
     const today = todayISO();
-
     if (dates.includes(today)) return today;
 
     const future = dates.find((d) => d > today);
@@ -92,7 +109,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // Cargar profesionales (SOLO SECRETARIA)
+  // CARGAR PROFESIONALES (SOLO SECRETARIA)
   // =========================
   useEffect(() => {
     if (isMedicoMode) return;
@@ -123,7 +140,7 @@ export default function AgendaSummarySelector({
   }, [isMedicoMode]);
 
   // =========================
-  // Selección profesionales (SECRETARIA)
+  // TOGGLE PROFESIONALES (SECRETARIA)
   // =========================
   function toggleProfessional(id) {
     if (isMedicoMode) return;
@@ -139,7 +156,7 @@ export default function AgendaSummarySelector({
   }
 
   // =========================
-  // Cambiar vista (SECRETARIA)
+  // CAMBIAR MODO (SECRETARIA)
   // =========================
   function changeMode(next) {
     if (isMedicoMode) return;
@@ -183,8 +200,6 @@ export default function AgendaSummarySelector({
 
       setSummaryByProfessional(result);
       setApplied(true);
-    } catch {
-      setSummaryByProfessional({});
     } finally {
       setLoadingSummary(false);
     }
@@ -211,17 +226,12 @@ export default function AgendaSummarySelector({
         const data = await res.json();
         const days = data?.days || {};
 
-        setSummaryByProfessional({
-          [professional]: days
-        });
+        setSummaryByProfessional({ [professional]: days });
         setApplied(true);
 
         const bestDate = pickBestDate(days);
         if (bestDate) {
-          onSelectDay?.({
-            professional,
-            date: bestDate
-          });
+          onSelectDay?.({ professional, date: bestDate });
         }
       } finally {
         setLoadingSummary(false);
@@ -232,7 +242,7 @@ export default function AgendaSummarySelector({
   }, [isMedicoMode, professional, baseDate]);
 
   // =========================
-  // Render
+  // RENDER
   // =========================
   return (
     <section className="agenda-summary-selector">
@@ -246,70 +256,12 @@ export default function AgendaSummarySelector({
           >
             30 días
           </button>
-
           <button
             type="button"
             className={mode === "weekly" ? "active" : ""}
             onClick={() => changeMode("weekly")}
           >
             7 días
-          </button>
-        </div>
-      )}
-
-      {!isMedicoMode && (
-        <div className="summary-professionals">
-          {loadingProfessionals && (
-            <div className="agenda-placeholder">
-              Cargando profesionales…
-            </div>
-          )}
-
-          {!loadingProfessionals && professionals.length === 0 && (
-            <div className="agenda-placeholder">
-              No hay profesionales cargados
-            </div>
-          )}
-
-          {!loadingProfessionals &&
-            professionals.map((p) => {
-              const checked = selectedProfessionals.includes(p.id);
-              const disabled =
-                !checked && selectedProfessionals.length >= max;
-
-              return (
-                <label
-                  key={p.id}
-                  className={`professional-item ${checked ? "active" : ""} ${
-                    disabled ? "disabled" : ""
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    disabled={disabled}
-                    onChange={() => toggleProfessional(p.id)}
-                  />
-                  {p.name}
-                </label>
-              );
-            })}
-        </div>
-      )}
-
-      {!isMedicoMode && (
-        <div className="summary-footer">
-          <span>
-            Seleccionados: {selectedProfessionals.length} / {max}
-          </span>
-
-          <button
-            type="button"
-            className="apply-btn"
-            disabled={selectedProfessionals.length === 0 || loadingSummary}
-            onClick={applySelection}
-          >
-            {loadingSummary ? "Cargando…" : "Aplicar"}
           </button>
         </div>
       )}
@@ -324,7 +276,6 @@ export default function AgendaSummarySelector({
             if (entries.length === 0) {
               return (
                 <div key={professionalId} className="month-calendar">
-                  <h4>{getProfessionalName(professionalId)}</h4>
                   <p>No hay cupos disponibles.</p>
                 </div>
               );
@@ -335,13 +286,9 @@ export default function AgendaSummarySelector({
 
             return (
               <div key={professionalId} className="month-calendar">
-                {!isMedicoMode && (
-                  <h4>{getProfessionalName(professionalId)}</h4>
-                )}
-
                 <div className="month-grid">
                   {Array.from({ length: offset }).map((_, i) => (
-                    <div key={`empty-${i}`} className="day-cell empty" />
+                    <div key={i} className="day-cell empty" />
                   ))}
 
                   {entries.map(([date, status]) => {
@@ -357,10 +304,7 @@ export default function AgendaSummarySelector({
                         disabled={!clickable}
                         onClick={() =>
                           clickable &&
-                          onSelectDay?.({
-                            professional: professionalId,
-                            date
-                          })
+                          onSelectDay?.({ professional: professionalId, date })
                         }
                       >
                         <div className="day-week">
@@ -388,4 +332,4 @@ export default function AgendaSummarySelector({
       )}
     </section>
   );
-            }
+}
