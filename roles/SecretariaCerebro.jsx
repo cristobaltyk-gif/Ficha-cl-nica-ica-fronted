@@ -5,8 +5,6 @@ import { useAuth } from "../auth/AuthContext";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
 
-import "../styles/layout/medico.css";
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
