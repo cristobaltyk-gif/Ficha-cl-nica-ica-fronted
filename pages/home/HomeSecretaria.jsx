@@ -14,7 +14,7 @@ export default function HomeSecretaria() {
       <section className="home-grid">
         <button
           className="home-card"
-          onClick={() => navigate("/agenda")}
+          onClick={() => navigate("agenda")}
           aria-label="Agenda"
         >
           <span className="icon">📅</span>
@@ -24,7 +24,7 @@ export default function HomeSecretaria() {
 
         <button
           className="home-card"
-          onClick={() => navigate("/pacientes")}
+          onClick={() => navigate("pacientes")}
           aria-label="Pacientes"
         >
           <span className="icon">👥</span>
@@ -34,7 +34,7 @@ export default function HomeSecretaria() {
 
         <button
           className="home-card"
-          onClick={() => navigate("/medicos")}
+          onClick={() => navigate("medicos")}
           aria-label="Médicos"
         >
           <span className="icon">🩺</span>
@@ -44,7 +44,7 @@ export default function HomeSecretaria() {
 
         <button
           className="home-card"
-          onClick={() => navigate("/administracion")}
+          onClick={() => navigate("administracion")}
           aria-label="Administración"
         >
           <span className="icon">⚙️</span>
