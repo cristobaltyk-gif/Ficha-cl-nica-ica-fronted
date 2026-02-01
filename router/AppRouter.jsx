@@ -14,9 +14,9 @@ import AppLayout from "./AppLayout";
 /* ===============================
    CEREBROS (YA SON ROUTERS)
 =============================== */
-import SecretariaRouter from "./roles/SecretariaRouter";
-import MedicoRouter from "./roles/MedicoRouter";
-import KineRouter from "./roles/KineRouter";
+import SecretariaCerebro from "../roles/SecretariaCerebro.jsx";
+import MedicoCerebro from "../roles/MedicoCerebro.jsx";
+import KineCerebro from "../roles/KineCerebro.jsx";
 
 /* ===============================
    HELPERS
@@ -65,21 +65,22 @@ export default function AppRouter() {
           }
         >
           {/* ===============================
-              ENTREGA DE MANDO AL CEREBRO
+              ENTREGA DE MANDO A CADA CEREBRO
           =============================== */}
+
           <Route
-            path="/*"
-            element={
-              role?.name === "secretaria" ? (
-                <SecretariaRouter />
-              ) : role?.name === "medico" ? (
-                <MedicoRouter />
-              ) : role?.name === "kinesiologia" ? (
-                <KineRouter />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
+            path="/secretaria/*"
+            element={<SecretariaCerebro />}
+          />
+
+          <Route
+            path="/medico/*"
+            element={<MedicoCerebro />}
+          />
+
+          <Route
+            path="/kine/*"
+            element={<KineCerebro />}
           />
         </Route>
 
