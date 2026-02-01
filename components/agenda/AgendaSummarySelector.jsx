@@ -5,17 +5,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-/*
-AgendaSummarySelector — PRODUCCIÓN REAL (ALINEADO A CSS)
-
-✔ 1 médico: carga directa
-✔ >1 médicos: selector + botón Aplicar
-✔ Semana Lun–Dom
-✔ Mes alineado a lunes
-✔ NO auto-selecciona día
-✔ Emite { professional, date } SOLO por click
-*/
-
 export default function AgendaSummarySelector({
   professionals = [],
   mode = "monthly",
@@ -28,26 +17,36 @@ export default function AgendaSummarySelector({
   const baseDate = startDate || new Date().toISOString().slice(0, 10);
   const isSingle = professionals.length === 1;
 
-  const [selectedProfessionalId, setSelectedProfessionalId] = useState(
-    professionals[0]?.id || ""
+  /* ========= SELECTOR (CAMBIO REAL) ========= */
+  const [selectedIds, setSelectedIds] = useState(
+    isSingle ? [professionals[0]?.id] : []
   );
-  const [appliedProfessionalId, setAppliedProfessionalId] = useState(
-    isSingle ? professionals[0]?.id : ""
+  const [appliedIds, setAppliedIds] = useState(
+    isSingle ? [professionals[0]?.id] : []
   );
 
   useEffect(() => {
-    const first = professionals[0]?.id || "";
-    setSelectedProfessionalId(first);
-    setAppliedProfessionalId(isSingle ? first : "");
+    if (isSingle && professionals[0]?.id) {
+      setSelectedIds([professionals[0].id]);
+      setAppliedIds([professionals[0].id]);
+    }
   }, [professionals, isSingle]);
 
-  function handleApply() {
-    setAppliedProfessionalId(selectedProfessionalId);
+  function toggleProfessional(id) {
+    setSelectedIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((x) => x !== id);
+      }
+      if (prev.length >= 4) return prev; // 🔒 máximo 4
+      return [...prev, id];
+    });
   }
 
-  /* =========================
-     GRILLA MENSUAL (LUNES)
-     ========================= */
+  function handleApply() {
+    setAppliedIds(selectedIds);
+  }
+
+  /* ========= GRILLA MENSUAL (IGUAL) ========= */
   const month = useMemo(() => {
     const y = Number(baseDate.slice(0, 4));
     const m = Number(baseDate.slice(5, 7));
@@ -71,13 +70,12 @@ export default function AgendaSummarySelector({
     return `${month.y}-${mm}-${dd}`;
   }
 
-  /* =========================
-     BACKEND
-     ========================= */
+  /* ========= BACKEND (IGUAL) ========= */
   useEffect(() => {
     let cancelled = false;
 
-    async function load(professionalId) {
+    async function loadMany(ids) {
+      if (!ids.length) return;
       setLoading(true);
 
       const endpoint =
@@ -86,17 +84,26 @@ export default function AgendaSummarySelector({
           : "/agenda/summary/month";
 
       try {
-        const res = await fetch(
-          `${API_URL}${endpoint}?professional=${professionalId}&start_date=${baseDate}`
+        const results = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const res = await fetch(
+                `${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`
+              );
+              const data = res.ok ? await res.json() : { days: {} };
+              return [id, data.days || {}];
+            } catch {
+              return [id, {}];
+            }
+          })
         );
 
-        const data = res.ok ? await res.json() : { days: {} };
-
         if (!cancelled) {
-          setDaysByProfessional((prev) => ({
-            ...prev,
-            [professionalId]: data.days || {}
-          }));
+          setDaysByProfessional((prev) => {
+            const next = { ...prev };
+            results.forEach(([id, days]) => (next[id] = days));
+            return next;
+          });
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -104,56 +111,63 @@ export default function AgendaSummarySelector({
     }
 
     if (isSingle) {
-      load(professionals[0].id);
-    } else if (appliedProfessionalId) {
-      load(appliedProfessionalId);
+      loadMany([professionals[0].id]);
+    } else {
+      loadMany(appliedIds);
     }
 
     return () => (cancelled = true);
-  }, [professionals, appliedProfessionalId, baseDate, mode, isSingle]);
+  }, [professionals, appliedIds, baseDate, mode, isSingle]);
 
   const visibleProfessionals = isSingle
     ? professionals
-    : appliedProfessionalId
-      ? professionals.filter((p) => p.id === appliedProfessionalId)
-      : [];
+    : professionals.filter((p) => appliedIds.includes(p.id));
 
-  /* =========================
-     RENDER (ALINEADO A CSS)
-     ========================= */
+  /* ========= RENDER ========= */
   return (
     <div className="agenda-summary-selector">
 
+      {/* ===== SELECTOR CORREGIDO ===== */}
       {!isSingle && (
-        <div className="summary-professionals">
-          <select
-            value={selectedProfessionalId}
-            onChange={(e) => setSelectedProfessionalId(e.target.value)}
-          >
-            {professionals.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+        <>
+          <div className="summary-professionals">
+            {professionals.map((p) => {
+              const active = selectedIds.includes(p.id);
+              const disabled = !active && selectedIds.length >= 4;
 
-          <button
-            className="apply-btn"
-            onClick={handleApply}
-            disabled={!selectedProfessionalId}
-          >
-            Aplicar
-          </button>
-        </div>
+              return (
+                <label
+                  key={p.id}
+                  className={`professional-item ${active ? "active" : ""} ${
+                    disabled ? "disabled" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    disabled={disabled}
+                    onChange={() => toggleProfessional(p.id)}
+                  />
+                  {p.name}
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="summary-footer">
+            <span>{selectedIds.length} / 4 seleccionados</span>
+            <button
+              className="apply-btn"
+              onClick={handleApply}
+              disabled={selectedIds.length === 0}
+            >
+              Aplicar
+            </button>
+          </div>
+        </>
       )}
 
       {loading && <p>Cargando agenda…</p>}
-
-      {!isSingle && !appliedProfessionalId && !loading && (
-        <p className="agenda-empty">
-          Selecciona un médico y presiona “Aplicar”.
-        </p>
-      )}
 
       {visibleProfessionals.map((p) => {
         const backendDays = daysByProfessional[p.id] || {};
@@ -163,14 +177,14 @@ export default function AgendaSummarySelector({
             <h4>{p.name}</h4>
 
             <div className="month-weekdays">
-              {WEEKDAYS.map((d) => <div key={d}>{d}</div>)}
+              {WEEKDAYS.map((d) => (
+                <div key={d}>{d}</div>
+              ))}
             </div>
 
             <div className="month-grid">
               {month.cells.map((day, i) => {
-                if (!day) {
-                  return <div key={i} className="day-cell empty" />;
-                }
+                if (!day) return <div key={i} className="day-cell empty" />;
 
                 const dateISO = isoForDay(day);
                 const status = backendDays[dateISO] || "empty";
@@ -194,4 +208,4 @@ export default function AgendaSummarySelector({
       })}
     </div>
   );
-}
+                    }
