@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
-import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
+import AgendaSummary from "../components/agenda/AgendaSummary";
 import AgendaPage from "../pages/AgendaPage";
 
 import "../styles/layout/secretaria.css";
@@ -9,7 +9,7 @@ import "../styles/layout/secretaria.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-SecretariaCerebro — PRODUCCIÓN REAL
+SecretariaCerebro — PRODUCCIÓN REAL (CORREGIDO)
 
 ✔ Cerebro único del rol secretaria
 ✔ Orquesta datos
@@ -23,59 +23,60 @@ export default function SecretariaCerebro() {
   const navigate = useNavigate();
 
   // =========================
-  // ESTADO GLOBAL SECRETARIA
+  // ESTADO
   // =========================
   const [professionals, setProfessionals] = useState([]);
-  const [schedules, setSchedules] = useState({});
   const [loading, setLoading] = useState(true);
 
   const [selectedDay, setSelectedDay] = useState(null);
   // { professional, date }
 
   // =========================
-  // CARGA INICIAL (BACKEND)
+  // CARGA PROFESIONALES
   // =========================
   useEffect(() => {
     let cancelled = false;
 
-    async function loadBaseData() {
+    async function loadProfessionals() {
       setLoading(true);
 
       try {
-        // 1️⃣ PROFESIONALES
-        const profRes = await fetch(`${API_URL}/professionals`);
-        if (!profRes.ok) throw new Error("professionals");
-        const profData = await profRes.json();
+        const res = await fetch(`${API_URL}/professionals`);
+        if (!res.ok) throw new Error("professionals");
 
-        // 2️⃣ SCHEDULES
-        const schedulesMap = {};
-        profData.forEach((p) => {
-          schedulesMap[p.id] = p.schedule || null;
-        });
+        const data = await res.json();
+
+        // 🔑 TRANSFORMACIÓN CANÓNICA PARA AgendaSummary
+        const mapped = data.map((p) => ({
+          id: p.id,
+          name: p.name
+        }));
 
         if (!cancelled) {
-          setProfessionals(profData);
-          setSchedules(schedulesMap);
+          setProfessionals(mapped);
         }
       } catch {
-        if (!cancelled) {
-          setProfessionals([]);
-          setSchedules({});
-        }
+        if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
-    loadBaseData();
+    loadProfessionals();
     return () => {
       cancelled = true;
     };
   }, []);
 
   // =========================
-  // HANDLERS DE NAVEGACIÓN
+  // HANDLERS
   // =========================
+  function handleSelectDay(payload) {
+    // payload = { professional, date }
+    setSelectedDay(payload);
+    navigate("agenda/dia");
+  }
+
   function goAgenda() {
     navigate("agenda");
   }
@@ -85,32 +86,19 @@ export default function SecretariaCerebro() {
   }
 
   // =========================
-  // HANDLER SELECCIÓN DÍA
-  // =========================
-  function handleSelectDay(payload) {
-    // payload = { professional, date }
-    setSelectedDay(payload);
-    navigate("agenda/dia");
-  }
-
-  // =========================
   // RENDER
   // =========================
   return (
     <div className="secretaria-layout">
 
-      {/* =========================
-          SIDEBAR
-      ========================= */}
+      {/* SIDEBAR */}
       <aside className="secretaria-sidebar">
         <h2>Secretaría</h2>
         <button onClick={goAgenda}>Agenda</button>
         <button onClick={goPacientes}>Pacientes</button>
       </aside>
 
-      {/* =========================
-          CONTENIDO
-      ========================= */}
+      {/* CONTENIDO */}
       <main className="secretaria-content">
         <Routes>
 
@@ -118,7 +106,7 @@ export default function SecretariaCerebro() {
           <Route index element={<Navigate to="agenda" replace />} />
 
           {/* =========================
-              AGENDA (SUMMARY)
+              AGENDA SUMMARY
           ========================= */}
           <Route
             path="agenda"
@@ -128,9 +116,8 @@ export default function SecretariaCerebro() {
                   Cargando agenda…
                 </div>
               ) : (
-                <AgendaSummarySelector
+                <AgendaSummary
                   professionals={professionals}
-                  schedules={schedules}
                   onSelectDay={handleSelectDay}
                 />
               )
@@ -156,9 +143,7 @@ export default function SecretariaCerebro() {
             }
           />
 
-          {/* =========================
-              PACIENTES
-          ========================= */}
+          {/* PACIENTES */}
           <Route
             path="pacientes"
             element={<div>Pacientes (pendiente)</div>}
