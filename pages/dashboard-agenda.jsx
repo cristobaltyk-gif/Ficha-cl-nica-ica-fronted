@@ -17,7 +17,7 @@ DashboardAgenda — ESTRUCTURA PURA
 */
 
 export default function DashboardAgenda() {
-  const { role, session } = useAuth();
+  const { role, professional } = useAuth(); // ✅ USAR professional REAL
 
   const isSecretaria = role?.name === "secretaria";
   const isMedico = role?.name === "medico";
@@ -58,8 +58,8 @@ export default function DashboardAgenda() {
 
       {isMedico && (
         <AgendaSummarySelector
-          professional={session?.usuario} // médico fijo
-          mode="week"                     // resumen semanal
+          professional={professional}   // ✅ CORRECTO
+          mode="week"
           onSelectDay={(payload) => {
             // payload = { professional, date }
             setSelectedDay(payload);
