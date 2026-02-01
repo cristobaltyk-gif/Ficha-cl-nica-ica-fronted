@@ -1,33 +1,22 @@
-import { useState } from "react";
-import { useAuth } from "../auth/AuthContext";
-
-import AgendaPage from "./AgendaPage.jsx";
-import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector.jsx";
-
 import "../styles/agenda/dashboard-agenda.css";
 
 /*
-DashboardAgenda — ESTRUCTURA PURA
+DashboardAgenda — LAYOUT PURO
 
-✔ SOLO layout
-✔ SOLO orquestación visual
+✔ NO lógica
+✔ NO roles
 ✔ NO fetch
-✔ NO lógica clínica
-✔ Estado UI mínimo
+✔ NO estado
+✔ SOLO composición visual
+✔ Pinta lo que le entreguen
 */
 
-export default function DashboardAgenda() {
-  const { role, professional } = useAuth(); // ✅ USAR professional REAL
-
-  const isSecretaria = role?.name === "secretaria";
-  const isMedico = role?.name === "medico";
-
-  // ===============================
-  // ESTADO VISUAL
-  // ===============================
-  const [selectedDay, setSelectedDay] = useState(null);
-  // { professional: string, date: "YYYY-MM-DD" }
-
+export default function DashboardAgenda({
+  headerTitle = "Agenda",
+  headerMode = "",
+  Summary,
+  Day
+}) {
   return (
     <div className="dashboard-agenda">
 
@@ -35,51 +24,28 @@ export default function DashboardAgenda() {
           HEADER
       =============================== */}
       <header className="agenda-header">
-        <h1>Agenda</h1>
-        <span className="agenda-mode">
-          {isSecretaria && "Resumen agenda"}
-          {isMedico && "Agenda médica"}
-        </span>
+        <h1>{headerTitle}</h1>
+        {headerMode && (
+          <span className="agenda-mode">{headerMode}</span>
+        )}
       </header>
 
       {/* ===============================
-          SUMMARY
-          - Secretaria: comportamiento actual (NO TOCAR)
-          - Médico: resumen semanal propio
+          SUMMARY (CEREBRO EXTERNO)
       =============================== */}
-      {isSecretaria && (
-        <AgendaSummarySelector
-          onSelectDay={(payload) => {
-            // payload = { professional, date }
-            setSelectedDay(payload);
-          }}
-        />
-      )}
-
-      {isMedico && (
-        <AgendaSummarySelector
-          professional={professional}   // ✅ CORRECTO
-          mode="week"
-          onSelectDay={(payload) => {
-            // payload = { professional, date }
-            setSelectedDay(payload);
-          }}
-        />
+      {Summary && (
+        <section className="agenda-left">
+          {Summary}
+        </section>
       )}
 
       {/* ===============================
-          AGENDA DIARIA
-          (solo después de elegir día)
+          AGENDA DIARIA (CEREBRO EXTERNO)
       =============================== */}
       <main className="agenda-right">
-        {selectedDay ? (
-          <AgendaPage
-            professional={selectedDay.professional}
-            date={selectedDay.date}
-          />
-        ) : (
+        {Day || (
           <div className="agenda-placeholder">
-            Selecciona un día en el resumen
+            Selecciona un día
           </div>
         )}
       </main>
