@@ -6,12 +6,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 /*
-AgendaSummarySelector — PRODUCCIÓN REAL (ORDENADO)
+AgendaSummarySelector — PRODUCCIÓN REAL (ALINEADO A CSS)
 
-✔ 1 médico: carga directa, sin selector
+✔ 1 médico: carga directa
 ✔ >1 médicos: selector + botón Aplicar
 ✔ Semana Lun–Dom
-✔ Mes alineado a lunes, con vacíos
+✔ Mes alineado a lunes
 ✔ NO auto-selecciona día
 ✔ Emite { professional, date } SOLO por click
 */
@@ -25,10 +25,7 @@ export default function AgendaSummarySelector({
   const [loading, setLoading] = useState(false);
   const [daysByProfessional, setDaysByProfessional] = useState({});
 
-  // ===== FECHA BASE =====
   const baseDate = startDate || new Date().toISOString().slice(0, 10);
-
-  // ===== SELECTOR (solo secretaría) =====
   const isSingle = professionals.length === 1;
 
   const [selectedProfessionalId, setSelectedProfessionalId] = useState(
@@ -48,7 +45,9 @@ export default function AgendaSummarySelector({
     setAppliedProfessionalId(selectedProfessionalId);
   }
 
-  // ===== GRILLA MENSUAL (LUNES) =====
+  /* =========================
+     GRILLA MENSUAL (LUNES)
+     ========================= */
   const month = useMemo(() => {
     const y = Number(baseDate.slice(0, 4));
     const m = Number(baseDate.slice(5, 7));
@@ -56,8 +55,7 @@ export default function AgendaSummarySelector({
     const first = new Date(Date.UTC(y, m - 1, 1));
     const last = new Date(Date.UTC(y, m, 0));
 
-    const jsDay = first.getUTCDay(); // 0=Dom
-    const offset = (jsDay + 6) % 7;  // Lun=0
+    const offset = (first.getUTCDay() + 6) % 7;
 
     const cells = [];
     for (let i = 0; i < offset; i++) cells.push(null);
@@ -73,7 +71,9 @@ export default function AgendaSummarySelector({
     return `${month.y}-${mm}-${dd}`;
   }
 
-  // ===== BACKEND =====
+  /* =========================
+     BACKEND
+     ========================= */
   useEffect(() => {
     let cancelled = false;
 
@@ -112,29 +112,36 @@ export default function AgendaSummarySelector({
     return () => (cancelled = true);
   }, [professionals, appliedProfessionalId, baseDate, mode, isSingle]);
 
-  // ===== QUIÉN SE MUESTRA =====
   const visibleProfessionals = isSingle
     ? professionals
     : appliedProfessionalId
       ? professionals.filter((p) => p.id === appliedProfessionalId)
       : [];
 
-  // ===== UI =====
+  /* =========================
+     RENDER (ALINEADO A CSS)
+     ========================= */
   return (
-    <div className="agenda-summary-root">
+    <div className="agenda-summary-selector">
 
       {!isSingle && (
-        <div className="agenda-summary-toolbar">
+        <div className="summary-professionals">
           <select
             value={selectedProfessionalId}
             onChange={(e) => setSelectedProfessionalId(e.target.value)}
           >
             {professionals.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
           </select>
 
-          <button onClick={handleApply} disabled={!selectedProfessionalId}>
+          <button
+            className="apply-btn"
+            onClick={handleApply}
+            disabled={!selectedProfessionalId}
+          >
             Aplicar
           </button>
         </div>
