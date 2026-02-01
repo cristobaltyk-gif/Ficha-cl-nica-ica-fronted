@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
+import HomeSecretaria from "../pages/home/HomeSecretaria"; // ✅ NUEVO (única import)
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
 
@@ -45,7 +46,6 @@ export default function SecretariaCerebro() {
 
         const data = await res.json();
 
-        // 🔑 FORMATO CANÓNICO PARA AgendaSummarySelector
         const mapped = data.map((p) => ({
           id: p.id,
           name: p.name
@@ -71,7 +71,6 @@ export default function SecretariaCerebro() {
   // HANDLERS
   // =========================
   function handleSelectDay(payload) {
-    // payload = { professional, date }
     setSelectedDay(payload);
     navigate("agenda/dia");
   }
@@ -98,8 +97,8 @@ export default function SecretariaCerebro() {
       <main className="secretaria-content">
         <Routes>
 
-          {/* DEFAULT */}
-          <Route index element={<Navigate to="agenda" replace />} />
+          {/* DEFAULT → HOME (ÚNICO CAMBIO REAL) */}
+          <Route index element={<HomeSecretaria />} />
 
           {/* AGENDA SUMMARY */}
           <Route
