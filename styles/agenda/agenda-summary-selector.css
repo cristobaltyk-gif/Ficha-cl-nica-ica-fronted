@@ -49,71 +49,34 @@
 }
 
 /* ===============================
-   PROFESIONALES
+   PROFESIONALES (SELECTOR)
 =============================== */
 .summary-professionals {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 
   padding: 10px;
+  margin-bottom: 14px;
+
   border: 1.5px dashed #94a3b8;
   border-radius: 8px;
 }
 
-.professional-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.summary-professionals select {
+  flex: 1;
+  padding: 10px 12px;
 
-  padding: 10px 14px;
-  border-radius: 10px;
-
-  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  border: 1.5px solid #020617;
   background: #ffffff;
 
   font-size: 14px;
   font-weight: 600;
-  color: #020617;
-
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.professional-item:hover {
-  background: #f8fafc;
-}
-
-.professional-item input {
-  accent-color: #020617;
-}
-
-.professional-item.active {
-  background: #020617;
-  color: #ffffff;
-  border-color: #020617;
-}
-
-.professional-item.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* ===============================
-   FOOTER
-=============================== */
-.summary-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-top: 12px;
-  font-size: 13px;
-  color: #334155;
-}
-
-/* ===============================
-   BOTÓN APLICAR (CORREGIDO)
+   BOTÓN APLICAR
 =============================== */
 .apply-btn {
   padding: 10px 22px;
@@ -144,4 +107,105 @@
   background: #cbd5e1;
   color: #64748b;
   cursor: not-allowed;
+}
+
+/* ======================================================
+   CALENDARIO
+====================================================== */
+
+.month-calendar {
+  margin-top: 16px;
+}
+
+.month-calendar h4 {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #020617;
+}
+
+/* ===============================
+   DÍAS DE LA SEMANA
+=============================== */
+.month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: #334155;
+}
+
+/* ===============================
+   GRILLA DE DÍAS
+=============================== */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+/* ===============================
+   CELDAS
+=============================== */
+.day-cell {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #020617;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.day-cell:hover {
+  background: #f1f5f9;
+}
+
+/* ===============================
+   ESTADOS
+=============================== */
+.day-cell.empty {
+  background: #f8fafc;
+  border-style: dashed;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.day-cell.free {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #065f46;
+}
+
+.day-cell.low {
+  background: #fffbeb;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.day-cell.full {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+/* ===============================
+   MENSAJES
+=============================== */
+.agenda-empty {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #64748b;
 }
