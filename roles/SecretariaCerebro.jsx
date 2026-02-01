@@ -27,7 +27,6 @@ export default function SecretariaCerebro() {
   // =========================
   const [professionals, setProfessionals] = useState([]);
   const [schedules, setSchedules] = useState({});
-  const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
 
   const [selectedDay, setSelectedDay] = useState(null);
@@ -48,7 +47,7 @@ export default function SecretariaCerebro() {
         if (!profRes.ok) throw new Error("professionals");
         const profData = await profRes.json();
 
-        // 2️⃣ SCHEDULES (desde professionals.json)
+        // 2️⃣ SCHEDULES
         const schedulesMap = {};
         profData.forEach((p) => {
           schedulesMap[p.id] = p.schedule || null;
@@ -58,7 +57,7 @@ export default function SecretariaCerebro() {
           setProfessionals(profData);
           setSchedules(schedulesMap);
         }
-      } catch (e) {
+      } catch {
         if (!cancelled) {
           setProfessionals([]);
           setSchedules({});
@@ -91,6 +90,7 @@ export default function SecretariaCerebro() {
   function handleSelectDay(payload) {
     // payload = { professional, date }
     setSelectedDay(payload);
+    navigate("agenda/dia");
   }
 
   // =========================
@@ -104,7 +104,6 @@ export default function SecretariaCerebro() {
       ========================= */}
       <aside className="secretaria-sidebar">
         <h2>Secretaría</h2>
-
         <button onClick={goAgenda}>Agenda</button>
         <button onClick={goPacientes}>Pacientes</button>
       </aside>
