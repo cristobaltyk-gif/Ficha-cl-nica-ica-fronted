@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
 
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
@@ -8,17 +7,18 @@ import AgendaPage from "../pages/AgendaPage";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-MedicoCerebro — PRODUCCIÓN REAL (CORREGIDO)
+SecretariaCerebro — PRODUCCIÓN REAL
 
-✔ Cerebro único del rol médico
-✔ Un solo profesional (logueado)
-✔ Usa MISMO AgendaSummarySelector
-✔ NO duplica lógica
-✔ NO inventa componentes
+✔ Cerebro único del rol secretaria
+✔ Orquesta datos base
+✔ Llama backend
+✔ Entrega datos a módulos
+✔ NO lógica visual
+✔ NO lógica clínica
+✔ NO decide UI
 */
 
-export default function MedicoCerebro() {
-  const { professional } = useAuth();
+export default function SecretariaCerebro() {
   const navigate = useNavigate();
 
   // =========================
@@ -26,26 +26,17 @@ export default function MedicoCerebro() {
   // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [selectedDay, setSelectedDay] = useState(null);
+  // { professional, date }
 
   // =========================
-  // SEGURIDAD
-  // =========================
-  if (!professional) {
-    return (
-      <div className="agenda-placeholder">
-        Médico sin profesional asignado
-      </div>
-    );
-  }
-
-  // =========================
-  // CARGA PROFESIONAL ÚNICO
+  // CARGA PROFESIONALES
   // =========================
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfessional() {
+    async function loadProfessionals() {
       setLoading(true);
 
       try {
@@ -53,13 +44,15 @@ export default function MedicoCerebro() {
         if (!res.ok) throw new Error("professionals");
 
         const data = await res.json();
-        const prof = data.find((p) => p.id === professional);
 
-        if (!cancelled && prof) {
-          // 🔑 MISMO FORMATO QUE SECRETARIA, PERO 1 SOLO
-          setProfessionals([
-            { id: prof.id, name: prof.name }
-          ]);
+        // 🔑 FORMATO CANÓNICO PARA AgendaSummarySelector
+        const mapped = data.map((p) => ({
+          id: p.id,
+          name: p.name
+        }));
+
+        if (!cancelled) {
+          setProfessionals(mapped);
         }
       } catch {
         if (!cancelled) setProfessionals([]);
@@ -68,16 +61,17 @@ export default function MedicoCerebro() {
       }
     }
 
-    loadProfessional();
+    loadProfessionals();
     return () => {
       cancelled = true;
     };
-  }, [professional]);
+  }, []);
 
   // =========================
   // HANDLERS
   // =========================
   function handleSelectDay(payload) {
+    // payload = { professional, date }
     setSelectedDay(payload);
     navigate("agenda/dia");
   }
@@ -86,26 +80,28 @@ export default function MedicoCerebro() {
     navigate("agenda");
   }
 
+  function goPacientes() {
+    navigate("pacientes");
+  }
+
   // =========================
   // RENDER
   // =========================
   return (
-    <div className="medico-layout">
-
-      <header className="medico-header">
-        <h2>Agenda médica</h2>
+    <div className="secretaria-layout">
+      <aside className="secretaria-sidebar">
+        <h2>Secretaría</h2>
         <button onClick={goAgenda}>Agenda</button>
-      </header>
+        <button onClick={goPacientes}>Pacientes</button>
+      </aside>
 
-      <main className="medico-content">
+      <main className="secretaria-content">
         <Routes>
 
           {/* DEFAULT */}
           <Route index element={<Navigate to="agenda" replace />} />
 
-          {/* =========================
-              AGENDA SUMMARY (MISMO COMPONENTE)
-          ========================= */}
+          {/* AGENDA SUMMARY */}
           <Route
             path="agenda"
             element={
@@ -122,9 +118,7 @@ export default function MedicoCerebro() {
             }
           />
 
-          {/* =========================
-              AGENDA DIARIA
-          ========================= */}
+          {/* AGENDA DIARIA */}
           <Route
             path="agenda/dia"
             element={
@@ -139,6 +133,12 @@ export default function MedicoCerebro() {
                 </div>
               )
             }
+          />
+
+          {/* PACIENTES */}
+          <Route
+            path="pacientes"
+            element={<div>Pacientes (pendiente)</div>}
           />
 
         </Routes>
