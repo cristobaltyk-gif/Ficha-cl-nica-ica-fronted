@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation
+} from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 import AgendaSummaryMedico from "../components/agenda/AgendaSummaryMedico";
@@ -10,25 +16,24 @@ import "../styles/layout/medico.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-MedicoCerebro — PRODUCCIÓN REAL
+MedicoCerebro — PRODUCCIÓN REAL (CORREGIDO)
 
 ✔ Cerebro único del rol médico
 ✔ Un solo profesional (logueado)
-✔ Orquesta navegación
-✔ Orquesta datos
-✔ NO pinta
-✔ NO fetch clínico diario
+✔ La RUTA es la fuente de verdad
+✔ NO depende de estado volátil
+✔ AgendaPage siempre recibe props válidas
 */
 
 export default function MedicoCerebro() {
   const { professional } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // =========================
   // ESTADO
   // =========================
   const [schedule, setSchedule] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // =========================
@@ -77,15 +82,25 @@ export default function MedicoCerebro() {
   // =========================
   // HANDLERS
   // =========================
-  function handleSelectDay(payload) {
-    // payload = { professional, date }
-    setSelectedDay(payload);
-    navigate("agenda/dia");
+  function handleSelectDay({ date }) {
+    navigate("agenda/dia", {
+      state: {
+        professional,
+        date
+      }
+    });
   }
 
   function goAgenda() {
     navigate("agenda");
   }
+
+  // =========================
+  // DATOS DESDE RUTA
+  // =========================
+  const routeState = location.state;
+  const selectedProfessional = routeState?.professional;
+  const selectedDate = routeState?.date;
 
   // =========================
   // RENDER
@@ -136,15 +151,13 @@ export default function MedicoCerebro() {
           <Route
             path="agenda/dia"
             element={
-              selectedDay ? (
+              selectedProfessional && selectedDate ? (
                 <AgendaPage
-                  professional={selectedDay.professional}
-                  date={selectedDay.date}
+                  professional={selectedProfessional}
+                  date={selectedDate}
                 />
               ) : (
-                <div className="agenda-placeholder">
-                  Selecciona un día
-                </div>
+                <Navigate to="../agenda" replace />
               )
             }
           />
