@@ -8,20 +8,20 @@ import {
 } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
-import AgendaSummaryMedico from "../components/agenda/AgendaSummaryMedico";
+import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
-
-import "../styles/layout/medico.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-MedicoCerebro — PRODUCCIÓN REAL (CORREGIDO)
+MedicoCerebro — PRODUCCIÓN REAL (FINAL)
 
 ✔ Cerebro único del rol médico
 ✔ Un solo profesional (logueado)
-✔ La RUTA es la fuente de verdad
-✔ NO depende de estado volátil
+✔ Usa AgendaSummarySelector (MISMO que secretaría)
+✔ NO inventa componentes
+✔ NO importa CSS
+✔ Backend es la verdad
 ✔ AgendaPage siempre recibe props válidas
 */
 
@@ -33,7 +33,7 @@ export default function MedicoCerebro() {
   // =========================
   // ESTADO
   // =========================
-  const [schedule, setSchedule] = useState(null);
+  const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // =========================
@@ -48,7 +48,7 @@ export default function MedicoCerebro() {
   }
 
   // =========================
-  // CARGA BASE (SCHEDULE)
+  // CARGA PROFESIONAL ÚNICO
   // =========================
   useEffect(() => {
     let cancelled = false;
@@ -63,11 +63,17 @@ export default function MedicoCerebro() {
         const data = await res.json();
         const prof = data.find((p) => p.id === professional);
 
-        if (!cancelled) {
-          setSchedule(prof?.schedule || null);
+        if (!cancelled && prof) {
+          // MISMO FORMATO QUE SECRETARIA, PERO 1 SOLO
+          setProfessionals([
+            {
+              id: prof.id,
+              name: prof.name
+            }
+          ]);
         }
       } catch {
-        if (!cancelled) setSchedule(null);
+        if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -82,7 +88,7 @@ export default function MedicoCerebro() {
   // =========================
   // HANDLERS
   // =========================
-  function handleSelectDay({ date }) {
+  function handleSelectDay({ professional, date }) {
     navigate("agenda/dia", {
       state: {
         professional,
@@ -108,17 +114,13 @@ export default function MedicoCerebro() {
   return (
     <div className="medico-layout">
 
-      {/* =========================
-          HEADER
-      ========================= */}
+      {/* HEADER */}
       <header className="medico-header">
         <h2>Agenda médica</h2>
         <button onClick={goAgenda}>Agenda</button>
       </header>
 
-      {/* =========================
-          CONTENIDO
-      ========================= */}
+      {/* CONTENIDO */}
       <main className="medico-content">
         <Routes>
 
@@ -126,7 +128,7 @@ export default function MedicoCerebro() {
           <Route index element={<Navigate to="agenda" replace />} />
 
           {/* =========================
-              SUMMARY MÉDICO
+              AGENDA SUMMARY
           ========================= */}
           <Route
             path="agenda"
@@ -136,9 +138,8 @@ export default function MedicoCerebro() {
                   Cargando agenda…
                 </div>
               ) : (
-                <AgendaSummaryMedico
-                  professional={professional}
-                  schedule={schedule}
+                <AgendaSummarySelector
+                  professionals={professionals}
                   onSelectDay={handleSelectDay}
                 />
               )
