@@ -4,16 +4,17 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaSummary — COMPONENTE PURO (FINAL)
+AgendaSummarySelector — COMPONENTE PURO (PRODUCCIÓN)
 
 ✔ Funciona con 1 o muchos profesionales
 ✔ Backend es la verdad
 ✔ NO lógica clínica
 ✔ NO cerebro
-✔ Auto-selecciona SOLO si hay 1 profesional y 1 día disponible
+✔ NO auto-selecciona día
+✔ Emite { professional, date } SOLO por acción del usuario
 */
 
-export default function AgendaSummary({
+export default function AgendaSummarySelector({
   professionals = [],
   mode = "monthly",
   startDate,
@@ -24,6 +25,9 @@ export default function AgendaSummary({
 
   const baseDate = startDate || new Date().toISOString().slice(0, 10);
 
+  // =========================
+  // CARGA RESUMEN DESDE BACKEND
+  // =========================
   useEffect(() => {
     let cancelled = false;
 
@@ -37,16 +41,21 @@ export default function AgendaSummary({
           : "/agenda/summary/month";
 
       for (const { id } of professionals) {
-        const res = await fetch(
-          `${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`
-        );
-        if (!res.ok) {
-          result[id] = {};
-          continue;
-        }
+        try {
+          const res = await fetch(
+            `${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`
+          );
 
-        const data = await res.json();
-        result[id] = data.days || {};
+          if (!res.ok) {
+            result[id] = {};
+            continue;
+          }
+
+          const data = await res.json();
+          result[id] = data.days || {};
+        } catch {
+          result[id] = {};
+        }
       }
 
       if (!cancelled) {
@@ -59,31 +68,18 @@ export default function AgendaSummary({
       loadSummary();
     }
 
-    return () => (cancelled = true);
+    return () => {
+      cancelled = true;
+    };
   }, [professionals, mode, baseDate]);
 
-  /* =========================
-     AUTO-SELECCIÓN (1 médico)
-     ========================= */
-  useEffect(() => {
-    if (professionals.length !== 1) return;
+  if (loading) {
+    return <p>Cargando agenda…</p>;
+  }
 
-    const prof = professionals[0];
-    const days = daysByProfessional[prof.id];
-    if (!days) return;
-
-    const available = Object.entries(days).filter(
-      ([_, status]) => status !== "empty"
-    );
-
-    if (available.length === 1) {
-      const [date] = available[0];
-      onSelectDay({ professional: prof.id, date });
-    }
-  }, [daysByProfessional, professionals, onSelectDay]);
-
-  if (loading) return <p>Cargando agenda…</p>;
-
+  // =========================
+  // RENDER
+  // =========================
   return (
     <>
       {professionals.map((p) => {
@@ -109,7 +105,10 @@ export default function AgendaSummary({
                     disabled={status === "empty"}
                     onClick={() =>
                       status !== "empty" &&
-                      onSelectDay({ professional: p.id, date })
+                      onSelectDay({
+                        professional: p.id,
+                        date
+                      })
                     }
                   >
                     {date.slice(-2)}
