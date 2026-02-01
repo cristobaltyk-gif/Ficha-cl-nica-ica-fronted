@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
-import AgendaSummary from "../components/agenda/AgendaSummary";
+import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
 
 import "../styles/layout/secretaria.css";
