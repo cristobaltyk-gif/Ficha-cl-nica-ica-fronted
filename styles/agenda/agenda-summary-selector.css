@@ -11,6 +11,8 @@
   background: #ffffff;
   border: 2px solid #020617;
   border-radius: 12px;
+
+  box-sizing: border-box;
 }
 
 /* ===============================
@@ -50,29 +52,73 @@
 
 /* ===============================
    PROFESIONALES (SELECTOR)
+   Pensado para checklist máx. 4
 =============================== */
 .summary-professionals {
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: center;
 
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 14px;
 
   border: 1.5px dashed #94a3b8;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #f8fafc;
+
+  box-sizing: border-box;
 }
 
-.summary-professionals select {
-  flex: 1;
-  padding: 10px 12px;
+/* lista de médicos */
+.summary-professionals .professionals-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
 
+/* item médico */
+.professional-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
   border-radius: 8px;
-  border: 1.5px solid #020617;
+  border: 1.5px solid #cbd5e1;
   background: #ffffff;
 
   font-size: 14px;
   font-weight: 600;
+  color: #020617;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  box-sizing: border-box;
+}
+
+.professional-item:hover {
+  background: #f1f5f9;
+}
+
+.professional-item input {
+  accent-color: #020617;
+}
+
+.professional-item.selected {
+  background: #020617;
+  color: #ffffff;
+  border-color: #020617;
+}
+
+/* footer selector (contador + botón) */
+.summary-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  font-size: 13px;
+  color: #334155;
 }
 
 /* ===============================
@@ -126,16 +172,25 @@
 
 /* ===============================
    DÍAS DE LA SEMANA
+   ⚠️ alineación exacta con la grilla
 =============================== */
 .month-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
   margin-bottom: 6px;
 
   font-size: 12px;
   font-weight: 700;
   text-align: center;
   color: #334155;
+
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.month-weekdays > div {
+  box-sizing: border-box;
 }
 
 /* ===============================
@@ -145,6 +200,9 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
+
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* ===============================
@@ -167,6 +225,8 @@
 
   cursor: pointer;
   transition: all 0.15s ease;
+
+  box-sizing: border-box;
 }
 
 .day-cell:hover {
