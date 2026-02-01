@@ -46,15 +46,13 @@ export default function SecretariaCerebro() {
 
         const data = await res.json();
 
-        // 🔑 TRANSFORMACIÓN CANÓNICA PARA AgendaSummary
+        // 🔑 FORMATO EXACTO QUE ESPERA AgendaSummarySelector
         const mapped = data.map((p) => ({
           id: p.id,
           name: p.name
         }));
 
-        if (!cancelled) {
-          setProfessionals(mapped);
-        }
+        if (!cancelled) setProfessionals(mapped);
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
@@ -116,7 +114,7 @@ export default function SecretariaCerebro() {
                   Cargando agenda…
                 </div>
               ) : (
-                <AgendaSummary
+                <AgendaSummarySelector
                   professionals={professionals}
                   onSelectDay={handleSelectDay}
                 />
