@@ -8,7 +8,7 @@ import "../../styles/agenda/calendar.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaMedicoController — FINAL REAL
+AgendaMedicoController — FINAL REAL (CORREGIDO)
 
 ✔ Un solo médico (logueado)
 ✔ Mismo patrón que AgendaSummarySelector
@@ -27,11 +27,13 @@ export default function AgendaMedicoController() {
   // ESTADO
   // =========================
   const [mode, setMode] = useState("weekly"); // weekly | monthly
-  const [summaryDays, setSummaryDays] = useState({});
   const [entries, setEntries] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // =========================
+  // SEGURIDAD
+  // =========================
   if (!professional) {
     return <div className="agenda-placeholder">Médico sin profesional</div>;
   }
@@ -73,7 +75,7 @@ export default function AgendaMedicoController() {
 
     async function loadSummary() {
       setLoading(true);
-      setEntries({});
+      setEntries([]);          // ✅ FIX CRÍTICO
       setSelectedDate(null);
 
       const endpoint =
@@ -98,13 +100,13 @@ export default function AgendaMedicoController() {
         );
 
         if (!cancelled) {
-          setSummaryDays(days);
           setEntries(ordered);
 
           // auto seleccionar primer día válido
           const firstValid = ordered.find(
             ([, status]) => status !== "empty"
           );
+
           if (firstValid) {
             setSelectedDate({
               date: firstValid[0],
@@ -124,7 +126,7 @@ export default function AgendaMedicoController() {
   }, [professional, mode, baseDate]);
 
   // =========================
-  // OFFSET LUNES
+  // OFFSET PARA PARTIR EN LUNES
   // =========================
   const firstDate = entries[0]?.[0];
   const offset = firstDate ? weekdayIndexMondayFirst(firstDate) : 0;
@@ -193,12 +195,8 @@ export default function AgendaMedicoController() {
                 }
                 title={date}
               >
-                <div className="day-week">
-                  {weekdayFromISO(date)}
-                </div>
-                <div className="day-number">
-                  {date.slice(-2)}
-                </div>
+                <div className="day-week">{weekdayFromISO(date)}</div>
+                <div className="day-number">{date.slice(-2)}</div>
               </button>
             );
           })}
@@ -224,4 +222,4 @@ export default function AgendaMedicoController() {
       )}
     </section>
   );
-      }
+}
