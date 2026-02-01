@@ -2,69 +2,41 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 
 /* ===============================
-   PÁGINA PÚBLICA
-   =============================== */
+   PÚBLICO
+=============================== */
 import Login from "../pages/Login";
 
 /* ===============================
-   LAYOUT GLOBAL (TopBar + Outlet)
-   =============================== */
+   LAYOUT GLOBAL
+=============================== */
 import AppLayout from "./AppLayout";
 
 /* ===============================
-   HOMES
-   =============================== */
-import HomeSecretaria from "../pages/home/HomeSecretaria";
-import HomeMedico from "../pages/home/HomeMedico";
-import HomeKinesiologia from "../pages/home/HomeKinesiologia";
-
-/* ===============================
-   MÓDULOS
-   =============================== */
-import DashboardAgenda from "../pages/dashboard-agenda.jsx";
-import DashboardPacientes from "../pages/dashboard-pacientes.jsx";
-import DashboardAtencion from "../pages/dashboard-atencion.jsx";
-import DashboardDocumentos from "../pages/dashboard-documentos.jsx";
-import DashboardAdministracion from "../pages/dashboard-administracion.jsx";
-
-/* ===============================
-   CONTROLADOR MÉDICO (AGENDA)
-   =============================== */
-import AgendaMedicoController from "../components/agenda/AgendaMedicoController.jsx";
+   CEREBROS (YA SON ROUTERS)
+=============================== */
+import SecretariaRouter from "./roles/SecretariaRouter";
+import MedicoRouter from "./roles/MedicoRouter";
+import KineRouter from "./roles/KineRouter";
 
 /* ===============================
    HELPERS
-   =============================== */
+=============================== */
 function resolveHome(session, role) {
   if (session && role?.entry) return role.entry;
   return "/login";
 }
 
 /* ===============================
-   GUARDS
-   =============================== */
+   GUARD
+=============================== */
 function AuthGuard({ session, children }) {
   if (!session) return <Navigate to="/login" replace />;
   return children;
 }
 
-function RoleGuard({ session, role, route, children }) {
-  if (!session) return <Navigate to="/login" replace />;
-
-  // ⏳ Esperar role cargado desde sessionStorage
-  if (!role) return null;
-
-  // 🚫 Sin permiso → vuelve al home del rol
-  if (!role.allow?.includes(route)) {
-    return <Navigate to={role.entry} replace />;
-  }
-
-  return children;
-}
-
 /* ===============================
-   ROUTER PRINCIPAL (FINAL ICA)
-   =============================== */
+   APP ROUTER — FINAL ICA
+=============================== */
 export default function AppRouter() {
   const { session, role } = useAuth();
   const home = resolveHome(session, role);
@@ -72,28 +44,19 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ===============================
-            🔓 LOGIN (única ruta pública)
-           =============================== */}
+
+        {/* 🔓 LOGIN */}
         <Route
           path="/login"
           element={
-            session ? (
-              <Navigate to={home} replace />
-            ) : (
-              <Login />
-            )
+            session ? <Navigate to={home} replace /> : <Login />
           }
         />
 
-        {/* ===============================
-            🧭 ROOT
-           =============================== */}
+        {/* 🧭 ROOT */}
         <Route path="/" element={<Navigate to={home} replace />} />
 
-        {/* ===============================
-            🔒 APP PRIVADA (Layout Global)
-           =============================== */}
+        {/* 🔒 APP PRIVADA */}
         <Route
           element={
             <AuthGuard session={session}>
@@ -101,72 +64,28 @@ export default function AppRouter() {
             </AuthGuard>
           }
         >
-          {/* ===== HOMES ===== */}
-          <Route path="/secretaria" element={<HomeSecretaria />} />
-          <Route path="/medico" element={<HomeMedico />} />
-          <Route path="/kine" element={<HomeKinesiologia />} />
-
-          {/* ===== MÓDULOS ===== */}
-
-          {/* 📅 Agenda */}
+          {/* ===============================
+              ENTREGA DE MANDO AL CEREBRO
+          =============================== */}
           <Route
-            path="/agenda"
+            path="/*"
             element={
-              <RoleGuard session={session} role={role} route="agenda">
-                {role?.name === "medico" ? (
-                  <AgendaMedicoController />
-                ) : (
-                  <DashboardAgenda />
-                )}
-              </RoleGuard>
-            }
-          />
-
-          {/* 👥 Pacientes */}
-          <Route
-            path="/pacientes"
-            element={
-              <RoleGuard session={session} role={role} route="pacientes">
-                <DashboardPacientes />
-              </RoleGuard>
-            }
-          />
-
-          {/* 🩺 Atención */}
-          <Route
-            path="/atencion"
-            element={
-              <RoleGuard session={session} role={role} route="atencion">
-                <DashboardAtencion />
-              </RoleGuard>
-            }
-          />
-
-          {/* 📄 Documentos */}
-          <Route
-            path="/documentos"
-            element={
-              <RoleGuard session={session} role={role} route="documentos">
-                <DashboardDocumentos />
-              </RoleGuard>
-            }
-          />
-
-          {/* ⚙️ Administración */}
-          <Route
-            path="/administracion"
-            element={
-              <RoleGuard session={session} role={role} route="administracion">
-                <DashboardAdministracion />
-              </RoleGuard>
+              role?.name === "secretaria" ? (
+                <SecretariaRouter />
+              ) : role?.name === "medico" ? (
+                <MedicoRouter />
+              ) : role?.name === "kinesiologia" ? (
+                <KineRouter />
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
         </Route>
 
-        {/* ===============================
-            🚫 FALLBACK
-           =============================== */}
+        {/* 🚫 FALLBACK */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
     </BrowserRouter>
   );
