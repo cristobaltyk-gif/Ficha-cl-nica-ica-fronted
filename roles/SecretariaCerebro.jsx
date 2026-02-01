@@ -1,25 +1,26 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
 
-import "../styles/layout/secretaria.css";
+import "../styles/layout/medico.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-SecretariaCerebro — PRODUCCIÓN REAL (CORREGIDO)
+MedicoCerebro — PRODUCCIÓN REAL (CORREGIDO)
 
-✔ Cerebro único del rol secretaria
-✔ Orquesta datos
-✔ Llama backend
-✔ Entrega datos a módulos
-✔ NO lógica visual
-✔ NO lógica clínica
+✔ Cerebro único del rol médico
+✔ Un solo profesional (logueado)
+✔ Usa MISMO AgendaSummarySelector
+✔ NO duplica lógica
+✔ NO inventa componentes
 */
 
-export default function SecretariaCerebro() {
+export default function MedicoCerebro() {
+  const { professional } = useAuth();
   const navigate = useNavigate();
 
   // =========================
@@ -27,17 +28,26 @@ export default function SecretariaCerebro() {
   // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [selectedDay, setSelectedDay] = useState(null);
-  // { professional, date }
 
   // =========================
-  // CARGA PROFESIONALES
+  // SEGURIDAD
+  // =========================
+  if (!professional) {
+    return (
+      <div className="agenda-placeholder">
+        Médico sin profesional asignado
+      </div>
+    );
+  }
+
+  // =========================
+  // CARGA PROFESIONAL ÚNICO
   // =========================
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfessionals() {
+    async function loadProfessional() {
       setLoading(true);
 
       try {
@@ -45,14 +55,14 @@ export default function SecretariaCerebro() {
         if (!res.ok) throw new Error("professionals");
 
         const data = await res.json();
+        const prof = data.find((p) => p.id === professional);
 
-        // 🔑 FORMATO EXACTO QUE ESPERA AgendaSummarySelector
-        const mapped = data.map((p) => ({
-          id: p.id,
-          name: p.name
-        }));
-
-        if (!cancelled) setProfessionals(mapped);
+        if (!cancelled && prof) {
+          // 🔑 MISMO FORMATO QUE SECRETARIA, PERO 1 SOLO
+          setProfessionals([
+            { id: prof.id, name: prof.name }
+          ]);
+        }
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
@@ -60,17 +70,16 @@ export default function SecretariaCerebro() {
       }
     }
 
-    loadProfessionals();
+    loadProfessional();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [professional]);
 
   // =========================
   // HANDLERS
   // =========================
   function handleSelectDay(payload) {
-    // payload = { professional, date }
     setSelectedDay(payload);
     navigate("agenda/dia");
   }
@@ -79,32 +88,25 @@ export default function SecretariaCerebro() {
     navigate("agenda");
   }
 
-  function goPacientes() {
-    navigate("pacientes");
-  }
-
   // =========================
   // RENDER
   // =========================
   return (
-    <div className="secretaria-layout">
+    <div className="medico-layout">
 
-      {/* SIDEBAR */}
-      <aside className="secretaria-sidebar">
-        <h2>Secretaría</h2>
+      <header className="medico-header">
+        <h2>Agenda médica</h2>
         <button onClick={goAgenda}>Agenda</button>
-        <button onClick={goPacientes}>Pacientes</button>
-      </aside>
+      </header>
 
-      {/* CONTENIDO */}
-      <main className="secretaria-content">
+      <main className="medico-content">
         <Routes>
 
           {/* DEFAULT */}
           <Route index element={<Navigate to="agenda" replace />} />
 
           {/* =========================
-              AGENDA SUMMARY
+              AGENDA SUMMARY (MISMO COMPONENTE)
           ========================= */}
           <Route
             path="agenda"
@@ -139,12 +141,6 @@ export default function SecretariaCerebro() {
                 </div>
               )
             }
-          />
-
-          {/* PACIENTES */}
-          <Route
-            path="pacientes"
-            element={<div>Pacientes (pendiente)</div>}
           />
 
         </Routes>
