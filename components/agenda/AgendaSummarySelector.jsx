@@ -1,38 +1,13 @@
-import { useState, useEffect } from "react";
-import "../../styles/agenda/calendar.css";
-
-const API_URL = import.meta.env.VITE_API_URL;
-
-/*
-AgendaSummary — COMPONENTE PURO
-
-✔ SOLO UI
-✔ SOLO pinta lo que recibe
-✔ Schedule viene desde cerebro
-✔ EMPTY = fuera de schedule
-*/
-
 export default function AgendaSummary({
-  professionals = [],      // [{ id, name, schedule }]
-  mode = "monthly",        // weekly | monthly
+  professionals = [],
+  mode = "monthly",
   startDate,
   onSelectDay
 }) {
   const [daysByProfessional, setDaysByProfessional] = useState({});
   const [loading, setLoading] = useState(false);
 
-  function todayISO() {
-    const d = new Date();
-    return d.toISOString().slice(0, 10);
-  }
-
-  const baseDate = startDate || todayISO();
-
-  function weekdayKey(dateStr) {
-    return new Date(dateStr)
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-  }
+  const baseDate = startDate || new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,31 +21,20 @@ export default function AgendaSummary({
           ? "/agenda/summary/week"
           : "/agenda/summary/month";
 
-      for (const prof of professionals) {
-        const { id, schedule } = prof;
-        if (!schedule?.days) continue;
-
+      for (const { id } of professionals) {
         const res = await fetch(
           `${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`
         );
         if (!res.ok) continue;
 
         const data = await res.json();
-        const backendDays = data.days || {};
-        const finalDays = {};
-
-        for (const [date, status] of Object.entries(backendDays)) {
-          const wk = weekdayKey(date);
-          const worksThatDay = !!schedule.days[wk];
-
-          finalDays[date] = worksThatDay ? status : "empty";
-        }
-
-        result[id] = finalDays;
+        result[id] = data.days || {};
       }
 
-      if (!cancelled) setDaysByProfessional(result);
-      setLoading(false);
+      if (!cancelled) {
+        setDaysByProfessional(result);
+        setLoading(false);
+      }
     }
 
     loadSummary();
