@@ -143,8 +143,11 @@ export default function AgendaDayController({
   // =========================
   
   function handleSelectSlot(slot) {
-  // Siempre emitimos el slot al cerebro
-  onAttend?.(slot);
+  onAttend?.({
+    ...slot,
+    professional,
+    date
+  });
   }
 
   // =========================
