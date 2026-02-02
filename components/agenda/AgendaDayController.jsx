@@ -143,7 +143,9 @@ export default function AgendaDayController({
   // =========================
   function handleSelectSlot(slot) {
     // 👉 el cerebro decide qué hacer
-    onAttend?.(slot);
+    if (slot?.status === "available") {
+  onAttend?.(slot);
+    }
   }
 
   // =========================
