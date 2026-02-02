@@ -1,4 +1,4 @@
-import "../../styles/modal.css";
+import "../../styles/agenda/agenda-slot-modal.css";
 import { useState, useEffect } from "react";
 import PatientForm from "../patient/PatientForm";
 
