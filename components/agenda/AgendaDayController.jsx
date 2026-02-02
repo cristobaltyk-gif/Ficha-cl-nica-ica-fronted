@@ -141,11 +141,10 @@ export default function AgendaDayController({
   // =========================
   // SLOT CLICK (PURO → EMITE)
   // =========================
+  
   function handleSelectSlot(slot) {
-    // 👉 el cerebro decide qué hacer
-    if (slot?.status === "available") {
+  // Siempre emitimos el slot al cerebro
   onAttend?.(slot);
-    }
   }
 
   // =========================
