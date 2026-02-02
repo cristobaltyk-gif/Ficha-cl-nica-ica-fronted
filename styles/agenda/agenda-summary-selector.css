@@ -52,7 +52,7 @@
 
 /* ===============================
    PROFESIONALES (SELECTOR)
-   Pensado para checklist máx. 4
+   Checklist máx. 4
 =============================== */
 .summary-professionals {
   display: flex;
@@ -111,7 +111,7 @@
   border-color: #020617;
 }
 
-/* footer selector (contador + botón) */
+/* footer selector */
 .summary-footer {
   display: flex;
   justify-content: space-between;
@@ -161,6 +161,7 @@
 
 .month-calendar {
   margin-top: 16px;
+  padding: 0;
 }
 
 .month-calendar h4 {
@@ -172,13 +173,12 @@
 
 /* ===============================
    DÍAS DE LA SEMANA
-   ⚠️ alineación exacta con la grilla
 =============================== */
 .month-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
-  margin-bottom: 6px;
+  margin: 0 0 6px 0;
 
   font-size: 12px;
   font-weight: 700;
@@ -190,6 +190,10 @@
 }
 
 .month-weekdays > div {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
 }
 
@@ -209,6 +213,7 @@
    CELDAS
 =============================== */
 .day-cell {
+  width: 100%;
   height: 42px;
 
   display: flex;
