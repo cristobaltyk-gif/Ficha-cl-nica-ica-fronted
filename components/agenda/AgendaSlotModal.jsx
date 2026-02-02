@@ -2,21 +2,34 @@ import "../../styles/modal.css";
 import { useState, useEffect } from "react";
 import PatientForm from "../patient/PatientForm";
 
+/*
+AgendaSlotModal — PRODUCCIÓN REAL
+
+✔ Punto único de acciones por slot
+✔ Secretaría y Médico diferenciados
+✔ NO backend
+✔ NO navegación
+✔ Emite eventos claros al controller
+*/
+
 export default function AgendaSlotModal({
   open,
   slot,
   loading = false,
+  role, // "MEDICO" | "SECRETARIA"
 
   onClose,
   onReserve,
   onConfirm,
   onCancel,
-  onReschedule
+  onReschedule,
+  onAttend,     // 👈 MÉDICO
+  onNoShow      // 👈 MÉDICO
 }) {
   const [mode, setMode] = useState("actions"); // actions | form
   const [formAction, setFormAction] = useState(null); // reserve | confirm
 
-  // Reset al abrir/cerrar
+  // Reset al abrir
   useEffect(() => {
     if (open) {
       setMode("actions");
@@ -26,7 +39,7 @@ export default function AgendaSlotModal({
 
   if (!open || !slot) return null;
 
-  const { professional, time, status } = slot;
+  const { professional, time, status, patient } = slot;
 
   // =========================
   // Submit paciente
@@ -60,12 +73,18 @@ export default function AgendaSlotModal({
 
         {/* ======================
             HEADER
-           ====================== */}
+        ====================== */}
         <h3>🕒 Hora {time}</h3>
 
         <p>
           <strong>Profesional:</strong> {professional}
         </p>
+
+        {patient && (
+          <p>
+            <strong>Paciente:</strong> {patient.nombre || patient.rut}
+          </p>
+        )}
 
         <p>
           <strong>Estado:</strong>{" "}
@@ -77,7 +96,7 @@ export default function AgendaSlotModal({
 
         {/* ======================
             FORMULARIO PACIENTE
-           ====================== */}
+        ====================== */}
         {mode === "form" && (
           <PatientForm
             onSubmit={handlePatientSubmit}
@@ -92,12 +111,14 @@ export default function AgendaSlotModal({
 
         {/* ======================
             ACCIONES
-           ====================== */}
+        ====================== */}
         {mode === "actions" && (
           <div className="modal-actions">
 
-            {/* DISPONIBLE */}
-            {status === "available" && (
+            {/* ======================
+                DISPONIBLE (SECRETARIA)
+            ====================== */}
+            {status === "available" && role === "SECRETARIA" && (
               <button
                 disabled={loading}
                 onClick={() => {
@@ -109,8 +130,10 @@ export default function AgendaSlotModal({
               </button>
             )}
 
-            {/* RESERVADA */}
-            {status === "reserved" && (
+            {/* ======================
+                RESERVADA (SECRETARIA)
+            ====================== */}
+            {status === "reserved" && role === "SECRETARIA" && (
               <>
                 <button
                   disabled={loading}
@@ -122,26 +145,68 @@ export default function AgendaSlotModal({
                   Confirmar paciente
                 </button>
 
-                <button disabled={loading} onClick={onCancel}>
+                <button
+                  className="danger"
+                  disabled={loading}
+                  onClick={onCancel}
+                >
                   Anular reserva
                 </button>
               </>
             )}
 
-            {/* CONFIRMADA */}
-            {status === "confirmed" && (
+            {/* ======================
+                CONFIRMADA (SECRETARIA)
+            ====================== */}
+            {status === "confirmed" && role === "SECRETARIA" && (
               <>
                 <button disabled={loading} onClick={onReschedule}>
                   Cambiar hora
                 </button>
 
-                <button disabled={loading} onClick={onCancel}>
+                <button
+                  className="danger"
+                  disabled={loading}
+                  onClick={onCancel}
+                >
                   Anular cita
                 </button>
               </>
             )}
 
-            {/* BLOQUEADA */}
+            {/* ======================
+                CONFIRMADA (MÉDICO)
+            ====================== */}
+            {status === "confirmed" && role === "MEDICO" && (
+              <>
+                <button
+                  className="primary"
+                  disabled={loading}
+                  onClick={() => onAttend?.(slot)}
+                >
+                  Atender
+                </button>
+
+                <button
+                  disabled={loading}
+                  onClick={() => onNoShow?.(slot)}
+                >
+                  No contesta
+                </button>
+
+                <button
+                  className="danger"
+                  disabled={loading}
+                  onClick={onCancel}
+                >
+                  Anular cita
+                </button>
+              </>
+            )}
+
+            {/* ======================
+                BLOQUEADA
+            ====================== */}
             {status === "blocked" && (
               <button disabled>
                 Horario bloqueado
@@ -152,7 +217,7 @@ export default function AgendaSlotModal({
 
         {/* ======================
             FOOTER
-           ====================== */}
+        ====================== */}
         <div className="modal-footer">
           <button disabled={loading} onClick={handleClose}>
             Cerrar
