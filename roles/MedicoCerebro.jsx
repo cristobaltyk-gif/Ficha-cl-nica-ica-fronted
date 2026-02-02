@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 
 import HomeMedico from "../pages/home/HomeMedico";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
-import AgendaPage from "../pages/AgendaPage";
+import AgendaDayController from "../components/agenda/AgendaDayController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -114,21 +114,20 @@ export default function MedicoCerebro() {
 
       {/* AGENDA DIARIA */}
       <Route
-        path="agenda/dia"
-        element={
-          selectedDay ? (
-            <AgendaPage
-              professional={selectedDay.professional}
-              date={selectedDay.date}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              Selecciona un día
-            </div>
-          )
-        }
+  path="agenda/dia"
+  element={
+    selectedDay ? (
+      <AgendaDayController
+        professional={selectedDay.professional}
+        date={selectedDay.date}
       />
-
+    ) : (
+      <div className="agenda-placeholder">
+        Selecciona un día
+      </div>
+    )
+  }
+/>
     </Routes>
   );
 }
