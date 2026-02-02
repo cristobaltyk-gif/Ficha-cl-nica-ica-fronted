@@ -28,7 +28,6 @@ export default function SecretariaCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null); // 👈 NUEVO (slot disponible)
 
   // =========================
   // CARGA PROFESIONALES
@@ -75,11 +74,9 @@ export default function SecretariaCerebro() {
   function handleAttend(slot) {
     // ✅ DISPONIBLE → PatientForm
     if (slot.status === "available") {
-      setSelectedSlot(slot);
-      navigate("pacientes");
+      navigate("pacientes", { state: slot });
     }
     // ❌ reserved / confirmed → NO navega
-    // el modal ya lo maneja AgendaDayController
   }
 
   // =========================
@@ -129,16 +126,10 @@ export default function SecretariaCerebro() {
       <Route
         path="pacientes"
         element={
-          selectedSlot ? (
-            <PatientForm
-              onSubmit={() => navigate("agenda")}
-              onCancel={() => navigate("agenda")}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              No hay slot seleccionado
-            </div>
-          )
+          <PatientForm
+            onSubmit={() => navigate("agenda")}
+            onCancel={() => navigate("agenda")}
+          />
         }
       />
 
