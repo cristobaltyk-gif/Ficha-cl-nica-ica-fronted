@@ -1,0 +1,120 @@
+/* ======================================================
+   AGENDA SLOT MODAL — ICA
+   Limpio · Clínico · Consistente
+====================================================== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* ===============================
+   CONTENEDOR MODAL
+=============================== */
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  box-sizing: border-box;
+}
+
+/* ===============================
+   HEADER
+=============================== */
+.modal h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #020617;
+}
+
+.modal p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* ===============================
+   ACCIONES
+=============================== */
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ===============================
+   BOTONES BASE
+=============================== */
+.modal-actions button,
+.modal-footer button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* ===============================
+   VARIANTES
+=============================== */
+.modal-actions button:hover {
+  filter: brightness(1.05);
+}
+
+.modal-actions button:disabled,
+.modal-footer button:disabled {
+  background: #e5e7eb;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* Primario (Atender, Confirmar) */
+button.primary {
+  background: linear-gradient(180deg, #2563eb, #1e40af);
+  color: #ffffff;
+}
+
+/* Peligro (Anular) */
+button.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Neutral */
+.modal-actions button:not(.primary):not(.danger) {
+  background: #f1f5f9;
+  color: #020617;
+}
+
+/* ===============================
+   FOOTER
+=============================== */
+.modal-footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ===============================
+   MENSAJE CARGA
+=============================== */
+.modal-loading {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #64748b;
+}
