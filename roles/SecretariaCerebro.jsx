@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
+import PatientForm from "../components/patient/PatientForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -27,7 +28,7 @@ export default function SecretariaCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
-  // { professional, date }
+  const [selectedSlot, setSelectedSlot] = useState(null); // 👈 NUEVO (slot disponible)
 
   // =========================
   // CARGA PROFESIONALES
@@ -61,7 +62,7 @@ export default function SecretariaCerebro() {
   }, []);
 
   // =========================
-  // HANDLER AGENDA SUMMARY
+  // AGENDA SUMMARY
   // =========================
   function handleSelectDay(payload) {
     setSelectedDay(payload);
@@ -69,41 +70,25 @@ export default function SecretariaCerebro() {
   }
 
   // =========================
-  // HANDLERS CONTRATO (NAV)
+  // SLOT CLICK (DECISIÓN FINAL)
   // =========================
-
-  // 👉 En el futuro: slot disponible → formulario paciente
   function handleAttend(slot) {
-    navigate("/pacientes/nuevo", {
-      state: {
-        slot,
-        date: selectedDay?.date,
-        professional: selectedDay?.professional
-      }
-    });
-  }
-
-  function handleNoShow(slot) {
-    navigate("/pacientes/no-show", {
-      state: {
-        slot,
-        date: selectedDay?.date,
-        professional: selectedDay?.professional
-      }
-    });
-  }
-
-  function handleCancelFinal(slot) {
-    // Solo navegación post-cancel (si se requiere)
-    navigate("agenda");
+    // ✅ DISPONIBLE → PatientForm
+    if (slot.status === "available") {
+      setSelectedSlot(slot);
+      navigate("pacientes");
+    }
+    // ❌ reserved / confirmed → NO navega
+    // el modal ya lo maneja AgendaDayController
   }
 
   // =========================
-  // RENDER (SOLO ROUTER)
+  // RENDER
   // =========================
   return (
     <Routes>
-      {/* HOME — ÚNICO DEFAULT */}
+
+      {/* HOME */}
       <Route index element={<HomeSecretaria />} />
 
       {/* AGENDA SUMMARY */}
@@ -111,9 +96,7 @@ export default function SecretariaCerebro() {
         path="agenda"
         element={
           loading ? (
-            <div className="agenda-placeholder">
-              Cargando agenda…
-            </div>
+            <div className="agenda-placeholder">Cargando agenda…</div>
           ) : (
             <AgendaSummarySelector
               professionals={professionals}
@@ -133,8 +116,6 @@ export default function SecretariaCerebro() {
               date={selectedDay.date}
               role="SECRETARIA"
               onAttend={handleAttend}
-              onNoShow={handleNoShow}
-              onCancelFinal={handleCancelFinal}
             />
           ) : (
             <div className="agenda-placeholder">
@@ -144,11 +125,23 @@ export default function SecretariaCerebro() {
         }
       />
 
-      {/* PACIENTES */}
+      {/* PATIENT FORM (SOLO DISPONIBLE) */}
       <Route
         path="pacientes"
-        element={<div>Pacientes (pendiente)</div>}
+        element={
+          selectedSlot ? (
+            <PatientForm
+              onSubmit={() => navigate("agenda")}
+              onCancel={() => navigate("agenda")}
+            />
+          ) : (
+            <div className="agenda-placeholder">
+              No hay slot seleccionado
+            </div>
+          )
+        }
       />
+
     </Routes>
   );
 }
