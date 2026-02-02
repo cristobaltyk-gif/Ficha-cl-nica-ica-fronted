@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 
 import Agenda from "./Agenda";
-import AgendaSlotModal from "./AgendaSlotModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -28,7 +27,6 @@ export default function AgendaDayController({
 }) {
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
-  const [selectedSlot, setSelectedSlot] = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
 
   // =========================
@@ -141,65 +139,11 @@ export default function AgendaDayController({
   }, [loadAgenda]);
 
   // =========================
-  // SLOT CLICK (PURO)
+  // SLOT CLICK (PURO → EMITE)
   // =========================
   function handleSelectSlot(slot) {
-    setSelectedSlot(slot);
-  }
-
-  function handleCloseModal() {
-    setSelectedSlot(null);
-  }
-
-  // =========================
-  // MUTACIONES SECRETARIA
-  // =========================
-  async function setSlot({ status, patient }) {
-    if (!selectedSlot) return;
-
-    setLoading(true);
-    try {
-      await fetch(`${API_URL}/agenda/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          date,
-          time: selectedSlot.time,
-          professional,
-          status,
-          rut: patient?.rut || null
-        })
-      });
-
-      await loadAgenda();
-      setSelectedSlot(null);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function clearSlot() {
-    if (!selectedSlot) return;
-
-    setLoading(true);
-    try {
-      await fetch(`${API_URL}/agenda/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          date,
-          time: selectedSlot.time,
-          professional
-        })
-      });
-
-      await loadAgenda();
-      setSelectedSlot(null);
-
-      onCancelFinal?.(selectedSlot);
-    } finally {
-      setLoading(false);
-    }
+    // 👉 el cerebro decide qué hacer
+    onAttend?.(slot);
   }
 
   // =========================
@@ -214,36 +158,12 @@ export default function AgendaDayController({
   }
 
   return (
-    <>
-      <Agenda
-        loading={loading}
-        date={date}
-        professionals={[{ id: professional }]}
-        agendaData={agendaData}
-        onSelectSlot={handleSelectSlot}
-      />
-
-      <AgendaSlotModal
-        open={!!selectedSlot}
-        slot={selectedSlot}
-        role={role}
-        loading={loading}
-        onClose={handleCloseModal}
-
-        // SECRETARIA
-        onReserve={({ patient }) =>
-          setSlot({ status: "reserved", patient })
-        }
-        onConfirm={({ patient }) =>
-          setSlot({ status: "confirmed", patient })
-        }
-        onReschedule={clearSlot}
-        onCancel={clearSlot}
-
-        // MÉDICO (DECIDE CEREBRO)
-        onAttend={onAttend}
-        onNoShow={onNoShow}
-      />
-    </>
+    <Agenda
+      loading={loading}
+      date={date}
+      professionals={[{ id: professional }]}
+      agendaData={agendaData}
+      onSelectSlot={handleSelectSlot}
+    />
   );
 }
