@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 
 import Agenda from "./Agenda";
 import AgendaSlotModal from "./AgendaSlotModal";
@@ -7,20 +6,26 @@ import AgendaSlotModal from "./AgendaSlotModal";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-AgendaDayController — CEREBRO DE AGENDA DIARIA (PRODUCCIÓN REAL)
+AgendaDayController — PRODUCCIÓN REAL (CANÓNICO FINAL)
 
 ✔ Orquesta Agenda.jsx
-✔ Lee horario REAL desde /professionals
-✔ Preconstruye slots del día según schedule
-✔ Backend = ocupación (verdad)
-✔ Frontend = visualización
-✔ MÉDICO: click en slot con paciente → Atención Clínica
-✔ SECRETARIA: mantiene flujo con modal
+✔ Construye slots desde schedule
+✔ Backend = verdad
+✔ NO decide flujos
+✔ NO navega
+✔ Emite eventos al cerebro
 */
 
-export default function AgendaDayController({ professional, date }) {
-  const navigate = useNavigate();
+export default function AgendaDayController({
+  professional,
+  date,
 
+  // 👇 DECIDE EL CEREBRO
+  role,              // "MEDICO" | "SECRETARIA"
+  onAttend,
+  onNoShow,
+  onCancelFinal
+}) {
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -61,18 +66,18 @@ export default function AgendaDayController({ professional, date }) {
   function buildSlotsFromSchedule(schedule, weekdayKey) {
     const slots = {};
 
-    if (!schedule?.days?.[weekdayKey]) {
-      return slots;
-    }
+    if (!schedule?.days?.[weekdayKey]) return slots;
 
     const interval = schedule.slotMinutes;
 
     schedule.days[weekdayKey].forEach(({ start, end }) => {
-      const [sh, sm] = start.split(":").map(Number);
-      const [eh, em] = end.split(":").map(Number);
+      let minutes =
+        Number(start.split(":")[0]) * 60 +
+        Number(start.split(":")[1]);
 
-      let minutes = sh * 60 + sm;
-      const endMinutes = eh * 60 + em;
+      const endMinutes =
+        Number(end.split(":")[0]) * 60 +
+        Number(end.split(":")[1]);
 
       while (minutes < endMinutes) {
         const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
@@ -86,7 +91,7 @@ export default function AgendaDayController({ professional, date }) {
   }
 
   // =========================
-  // LOAD + ADAPT AGENDA
+  // LOAD AGENDA
   // =========================
   const loadAgenda = useCallback(async () => {
     if (!professional || !date) return;
@@ -103,20 +108,16 @@ export default function AgendaDayController({ professional, date }) {
       if (!res.ok) throw new Error("agenda");
 
       const data = await res.json();
-
       const weekdayKey = getWeekdayKey(date);
 
-      // Slots base desde schedule
       const baseSlots = buildSlotsFromSchedule(
         prof.schedule,
         weekdayKey
       );
 
-      // Ocupación real backend
       const backendSlots =
         data.calendar?.[professional]?.slots || {};
 
-      // Backend sobrescribe base
       Object.entries(backendSlots).forEach(([time, slot]) => {
         baseSlots[time] = slot;
       });
@@ -140,35 +141,10 @@ export default function AgendaDayController({ professional, date }) {
   }, [loadAgenda]);
 
   // =========================
-  // SLOT UI (PUNTO CLAVE)
+  // SLOT CLICK (PURO)
   // =========================
-  function handleSelectSlot(payload) {
-    /*
-      payload contiene:
-      - time
-      - status
-      - patient (si existe)
-      - professional
-    */
-
-    // 👉 MÉDICO: slot con paciente → Atención Clínica
-    if (
-      payload?.patient ||
-      payload?.status === "confirmed" ||
-      payload?.status === "reserved"
-    ) {
-      navigate("/atencion", {
-        state: {
-          slot: payload,
-          date,
-          professional
-        }
-      });
-      return;
-    }
-
-    // 👉 SECRETARIA o slot libre → modal
-    setSelectedSlot(payload);
+  function handleSelectSlot(slot) {
+    setSelectedSlot(slot);
   }
 
   function handleCloseModal() {
@@ -176,7 +152,7 @@ export default function AgendaDayController({ professional, date }) {
   }
 
   // =========================
-  // MUTACIONES (SECRETARIA)
+  // MUTACIONES SECRETARIA
   // =========================
   async function setSlot({ status, patient }) {
     if (!selectedSlot) return;
@@ -219,6 +195,8 @@ export default function AgendaDayController({ professional, date }) {
 
       await loadAgenda();
       setSelectedSlot(null);
+
+      onCancelFinal?.(selectedSlot);
     } finally {
       setLoading(false);
     }
@@ -245,20 +223,26 @@ export default function AgendaDayController({ professional, date }) {
         onSelectSlot={handleSelectSlot}
       />
 
-      {/* Modal SOLO para flujo secretaria / slots libres */}
       <AgendaSlotModal
         open={!!selectedSlot}
         slot={selectedSlot}
+        role={role}
         loading={loading}
         onClose={handleCloseModal}
+
+        // SECRETARIA
         onReserve={({ patient }) =>
           setSlot({ status: "reserved", patient })
         }
         onConfirm={({ patient }) =>
           setSlot({ status: "confirmed", patient })
         }
-        onCancel={clearSlot}
         onReschedule={clearSlot}
+        onCancel={clearSlot}
+
+        // MÉDICO (DECIDE CEREBRO)
+        onAttend={onAttend}
+        onNoShow={onNoShow}
       />
     </>
   );
