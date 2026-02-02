@@ -7,7 +7,7 @@ AgendaSlotModalSecretaria — PRODUCCIÓN REAL
 
 ✔ SOLO secretaría
 ✔ Reserva / confirma / anula
-✔ NO rol
+✔ SOLO slots reservados o confirmados
 ✔ NO navegación
 */
 
@@ -53,6 +53,7 @@ export default function AgendaSlotModalSecretaria({
         <h3>🕒 Hora {time}</h3>
 
         <p><strong>Profesional:</strong> {professional}</p>
+
         {patient && (
           <p><strong>Paciente:</strong> {patient.nombre || patient.rut}</p>
         )}
@@ -73,18 +74,6 @@ export default function AgendaSlotModalSecretaria({
 
         {mode === "actions" && (
           <div className="modal-actions">
-
-            {status === "available" && (
-              <button
-                disabled={loading}
-                onClick={() => {
-                  setMode("form");
-                  setFormAction("reserve");
-                }}
-              >
-                Reservar paciente
-              </button>
-            )}
 
             {status === "reserved" && (
               <>
