@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 
 import HomeSecretaria from "../pages/home/HomeSecretaria";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
-import AgendaPage from "../pages/AgendaPage";
+import AgendaDayController from "../components/agenda/AgendaDayController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -96,20 +96,20 @@ export default function SecretariaCerebro() {
 
       {/* AGENDA DIARIA */}
       <Route
-        path="agenda/dia"
-        element={
-          selectedDay ? (
-            <AgendaPage
-              professional={selectedDay.professional}
-              date={selectedDay.date}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              Selecciona un día
-            </div>
-          )
-        }
+  path="agenda/dia"
+  element={
+    selectedDay ? (
+      <AgendaDayController
+        professional={selectedDay.professional}
+        date={selectedDay.date}
       />
+    ) : (
+      <div className="agenda-placeholder">
+        Selecciona un día
+      </div>
+    )
+  }
+/>
 
       {/* PACIENTES */}
       <Route
