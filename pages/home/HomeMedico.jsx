@@ -12,35 +12,55 @@ export default function HomeMedico() {
       </header>
 
       <section className="home-grid">
+
+        {/* 📅 AGENDA */}
         <button
           className="home-card"
           onClick={() => navigate("agenda")}
-          aria-label="Agenda"
         >
           <span className="icon">📅</span>
           <span className="title">Agenda</span>
-          <span className="desc">Ver agenda médica</span>
+          <span className="desc">
+            Ver pacientes del día e ingresar a ficha clínica
+          </span>
         </button>
 
+        {/* 📝 INFORMES */}
+        <button
+          className="home-card"
+          onClick={() => navigate("informes")}
+        >
+          <span className="icon">📝</span>
+          <span className="title">Informes</span>
+          <span className="desc">
+            Crear y revisar informes médicos
+          </span>
+        </button>
+
+        {/* 👥 PACIENTES */}
         <button
           className="home-card"
           onClick={() => navigate("pacientes")}
-          aria-label="Pacientes"
         >
           <span className="icon">👥</span>
           <span className="title">Pacientes</span>
-          <span className="desc">Listado y fichas</span>
+          <span className="desc">
+            Buscar pacientes no agendados y acceder a historial
+          </span>
         </button>
 
+        {/* ⚙️ CONFIGURACIÓN */}
         <button
           className="home-card"
-          onClick={() => navigate("documentos")}
-          aria-label="Documentos"
+          onClick={() => navigate("configuracion")}
         >
-          <span className="icon">📄</span>
-          <span className="title">Documentos</span>
-          <span className="desc">Órdenes y recetas</span>
+          <span className="icon">⚙️</span>
+          <span className="title">Configuración</span>
+          <span className="desc">
+            Perfil médico, firma y ajustes personales
+          </span>
         </button>
+
       </section>
     </div>
   );
