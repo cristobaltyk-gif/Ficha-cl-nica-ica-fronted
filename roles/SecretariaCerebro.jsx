@@ -69,11 +69,18 @@ export default function SecretariaCerebro() {
   }
 
   // =========================
+  // HANDLERS REQUERIDOS POR CONTRATO
+  // (Secretaría NO los usa)
+  // =========================
+  function handleAttend() {}
+  function handleNoShow() {}
+  function handleCancelFinal() {}
+
+  // =========================
   // RENDER (SOLO ROUTER)
   // =========================
   return (
     <Routes>
-
       {/* HOME — ÚNICO DEFAULT */}
       <Route index element={<HomeSecretaria />} />
 
@@ -96,27 +103,30 @@ export default function SecretariaCerebro() {
 
       {/* AGENDA DIARIA */}
       <Route
-  path="agenda/dia"
-  element={
-    selectedDay ? (
-      <AgendaDayController
-        professional={selectedDay.professional}
-        date={selectedDay.date}
+        path="agenda/dia"
+        element={
+          selectedDay ? (
+            <AgendaDayController
+              professional={selectedDay.professional}
+              date={selectedDay.date}
+              role="SECRETARIA"
+              onAttend={handleAttend}
+              onNoShow={handleNoShow}
+              onCancelFinal={handleCancelFinal}
+            />
+          ) : (
+            <div className="agenda-placeholder">
+              Selecciona un día
+            </div>
+          )
+        }
       />
-    ) : (
-      <div className="agenda-placeholder">
-        Selecciona un día
-      </div>
-    )
-  }
-/>
 
       {/* PACIENTES */}
       <Route
         path="pacientes"
         element={<div>Pacientes (pendiente)</div>}
       />
-
     </Routes>
   );
 }
