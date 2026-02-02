@@ -1,40 +1,38 @@
 import { useEffect, useState } from "react";
-import {
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-  useLocation
-} from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
+import HomeMedico from "../pages/home/HomeMedico";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaPage from "../pages/AgendaPage";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-MedicoCerebro — PRODUCCIÓN REAL (FINAL)
+MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
 
 ✔ Cerebro único del rol médico
-✔ Un solo profesional (logueado)
-✔ Usa AgendaSummarySelector (MISMO que secretaría)
-✔ NO inventa componentes
-✔ NO importa CSS
-✔ Backend es la verdad
-✔ AgendaPage siempre recibe props válidas
+✔ SOLO navegación
+✔ NO pinta UI
+✔ NO header
+✔ NO botones
+✔ NO sidebar
+✔ HOME primero
+✔ 1 profesional automático
+✔ MISMO AgendaSummarySelector que secretaría
 */
 
 export default function MedicoCerebro() {
   const { professional } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // =========================
   // ESTADO
   // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState(null);
+  // { professional, date }
 
   // =========================
   // SEGURIDAD
@@ -55,7 +53,6 @@ export default function MedicoCerebro() {
 
     async function loadProfessional() {
       setLoading(true);
-
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
@@ -64,12 +61,8 @@ export default function MedicoCerebro() {
         const prof = data.find((p) => p.id === professional);
 
         if (!cancelled && prof) {
-          // MISMO FORMATO QUE SECRETARIA, PERO 1 SOLO
           setProfessionals([
-            {
-              id: prof.id,
-              name: prof.name
-            }
+            { id: prof.id, name: prof.name }
           ]);
         }
       } catch {
@@ -86,85 +79,56 @@ export default function MedicoCerebro() {
   }, [professional]);
 
   // =========================
-  // HANDLERS
+  // HANDLER AGENDA
   // =========================
-  function handleSelectDay({ professional, date }) {
-    navigate("agenda/dia", {
-      state: {
-        professional,
-        date
-      }
-    });
-  }
-
-  function goAgenda() {
-    navigate("agenda");
+  function handleSelectDay(payload) {
+    setSelectedDay(payload);
+    navigate("agenda/dia");
   }
 
   // =========================
-  // DATOS DESDE RUTA
-  // =========================
-  const routeState = location.state;
-  const selectedProfessional = routeState?.professional;
-  const selectedDate = routeState?.date;
-
-  // =========================
-  // RENDER
+  // RENDER (SOLO ROUTER)
   // =========================
   return (
-    <div className="medico-layout">
+    <Routes>
 
-      {/* HEADER */}
-      <header className="medico-header">
-        <h2>Agenda médica</h2>
-        <button onClick={goAgenda}>Agenda</button>
-      </header>
+      {/* HOME — DEFAULT */}
+      <Route index element={<HomeMedico />} />
 
-      {/* CONTENIDO */}
-      <main className="medico-content">
-        <Routes>
+      {/* AGENDA SUMMARY */}
+      <Route
+        path="agenda"
+        element={
+          loading ? (
+            <div className="agenda-placeholder">
+              Cargando agenda…
+            </div>
+          ) : (
+            <AgendaSummarySelector
+              professionals={professionals}
+              onSelectDay={handleSelectDay}
+            />
+          )
+        }
+      />
 
-          {/* DEFAULT */}
-          <Route index element={<Navigate to="agenda" replace />} />
+      {/* AGENDA DIARIA */}
+      <Route
+        path="agenda/dia"
+        element={
+          selectedDay ? (
+            <AgendaPage
+              professional={selectedDay.professional}
+              date={selectedDay.date}
+            />
+          ) : (
+            <div className="agenda-placeholder">
+              Selecciona un día
+            </div>
+          )
+        }
+      />
 
-          {/* =========================
-              AGENDA SUMMARY
-          ========================= */}
-          <Route
-            path="agenda"
-            element={
-              loading ? (
-                <div className="agenda-placeholder">
-                  Cargando agenda…
-                </div>
-              ) : (
-                <AgendaSummarySelector
-                  professionals={professionals}
-                  onSelectDay={handleSelectDay}
-                />
-              )
-            }
-          />
-
-          {/* =========================
-              AGENDA DIARIA
-          ========================= */}
-          <Route
-            path="agenda/dia"
-            element={
-              selectedProfessional && selectedDate ? (
-                <AgendaPage
-                  professional={selectedProfessional}
-                  date={selectedDate}
-                />
-              ) : (
-                <Navigate to="../agenda" replace />
-              )
-            }
-          />
-
-        </Routes>
-      </main>
-    </div>
+    </Routes>
   );
 }
