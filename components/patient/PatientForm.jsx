@@ -3,17 +3,38 @@ import { isValidRut, normalizeRut } from "../../utils/rut";
 import "../../styles/pacientes/patient-form.css";
 
 /*
-PatientForm (ADMINISTRATIVO – CANÓNICO)
+PatientForm — UTILIDAD GLOBAL (CANÓNICO)
 
-- NO guarda
-- NO llama backend
-- NO conoce agenda
-- SOLO:
-  - valida datos mínimos
-  - entrega objeto paciente
+✔ Independiente del padre
+✔ NO conoce agenda
+✔ NO navega
+✔ NO guarda directamente
+✔ NO mockea datos
+✔ SOLO gestiona paciente
+
+FLUJO:
+1) Pide RUT + botón buscar
+2) (FUTURO) Llama backend ficha clínica (CONFIDENCIAL)
+3) Si existe → muestra datos → Confirmar
+4) Si no existe → expande formulario → Guardar
+5) Emite datos al módulo llamador
+
+IMPORTANTE:
+- NO hay mock
+- NO hay fetch activo
+- El backend se implementará después
 */
 
-export default function PatientForm({ onSubmit, onCancel }) {
+export default function PatientForm({
+  onConfirm, // paciente existente
+  onCreate,  // paciente nuevo
+  onCancel
+}) {
+  const [rut, setRut] = useState("");
+  const [mode, setMode] = useState("search"); // search | edit | create
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [form, setForm] = useState({
     rut: "",
     nombre: "",
@@ -26,153 +47,193 @@ export default function PatientForm({ onSubmit, onCancel }) {
     prevision: ""
   });
 
-  const [error, setError] = useState(null);
+  // =========================
+  // HELPERS
+  // =========================
+  function update(field, value) {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  }
 
-  const update = (field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = () => {
+  // =========================
+  // BUSCAR PACIENTE (BACKEND)
+  // =========================
+  async function handleSearch() {
     setError(null);
 
-    if (!form.rut) {
-      setError("RUT es obligatorio");
-      return;
-    }
-
-    if (!isValidRut(form.rut)) {
+    if (!rut || !isValidRut(rut)) {
       setError("RUT inválido");
       return;
     }
+
+    const normalizedRut = normalizeRut(rut);
+    setLoading(true);
+
+    try {
+      /*
+      ==================================================
+      🔐 BACKEND CONFIDENCIAL (PENDIENTE IMPLEMENTAR)
+      ==================================================
+
+      ⚠️ DATOS SENSIBLES / FICHA CLÍNICA
+      - HTTPS obligatorio
+      - Autenticación (token / sesión)
+      - Backend valida permisos
+      - No exponer datos en logs
+
+      Endpoint sugerido:
+      GET /patients/by-rut/:rut
+
+      Ejemplo (NO IMPLEMENTADO):
+
+      const res = await fetch(
+        `${API_URL}/patients/by-rut/${normalizedRut}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      Respuesta esperada:
+      {
+        exists: boolean,
+        patient?: {
+          rut,
+          nombre,
+          apellidoPaterno,
+          apellidoMaterno,
+          edad,
+          direccion,
+          telefono,
+          email,
+          prevision
+        }
+      }
+
+      LÓGICA ESPERADA:
+      if (data.exists) {
+        setForm(data.patient);
+        setMode("edit");
+      } else {
+        setForm({ ...form, rut: normalizedRut });
+        setMode("create");
+      }
+      */
+
+      // ⛔ Sin backend aún → no se decide nada aquí
+      setError("Búsqueda de paciente aún no disponible");
+    } catch {
+      setError("Error al buscar paciente");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // =========================
+  // CONFIRMAR / CREAR
+  // =========================
+  function handleSubmit() {
+    setError(null);
 
     if (!form.nombre || !form.apellidoPaterno) {
       setError("Nombre y apellido paterno son obligatorios");
       return;
     }
 
-    if (!form.edad || isNaN(form.edad) || Number(form.edad) <= 0) {
+    if (!form.edad || isNaN(form.edad)) {
       setError("Edad inválida");
       return;
     }
 
-    onSubmit({
-      rut: normalizeRut(form.rut),
-      nombre: form.nombre.trim(),
-      apellidoPaterno: form.apellidoPaterno.trim(),
-      apellidoMaterno: form.apellidoMaterno.trim(),
-      edad: Number(form.edad),
-      direccion: form.direccion.trim(),
-      telefono: form.telefono.trim(),
-      email: form.email.trim(),
-      prevision: form.prevision.trim()
-    });
-  };
+    const payload = {
+      ...form,
+      edad: Number(form.edad)
+    };
 
+    if (mode === "edit") {
+      onConfirm?.(payload);
+    }
+
+    if (mode === "create") {
+      onCreate?.(payload);
+    }
+  }
+
+  // =========================
+  // RENDER
+  // =========================
   return (
     <div className="patient-form">
-      <h3>Datos del paciente</h3>
+
+      {/* BUSCADOR */}
+      <div className="patient-form-search">
+        <input
+          placeholder="RUT"
+          value={rut}
+          onChange={(e) => setRut(e.target.value)}
+        />
+        <button
+          className="search-btn"
+          disabled={loading}
+          onClick={handleSearch}
+        >
+          🔍
+        </button>
+      </div>
 
       {error && (
         <div className="patient-form-error">{error}</div>
       )}
 
-      <div className="patient-form-group">
-        <label>RUT</label>
-        <input
-          value={form.rut}
-          onChange={(e) => update("rut", e.target.value)}
-        />
-      </div>
+      {(mode === "edit" || mode === "create") && (
+        <>
+          <h3>
+            {mode === "edit"
+              ? "Paciente encontrado"
+              : "Nuevo paciente"}
+          </h3>
 
-      <div className="patient-form-group">
-        <label>Nombre</label>
-        <input
-          value={form.nombre}
-          onChange={(e) => update("nombre", e.target.value)}
-        />
-      </div>
-
-      <div className="patient-form-row">
-        <div className="patient-form-group">
-          <label>Apellido paterno</label>
           <input
+            placeholder="Nombre"
+            value={form.nombre}
+            onChange={(e) => update("nombre", e.target.value)}
+          />
+
+          <input
+            placeholder="Apellido paterno"
             value={form.apellidoPaterno}
             onChange={(e) =>
               update("apellidoPaterno", e.target.value)
             }
           />
-        </div>
 
-        <div className="patient-form-group">
-          <label>Apellido materno</label>
           <input
+            placeholder="Apellido materno"
             value={form.apellidoMaterno}
             onChange={(e) =>
               update("apellidoMaterno", e.target.value)
             }
           />
-        </div>
-      </div>
 
-      <div className="patient-form-group">
-        <label>Edad</label>
-        <input
-          value={form.edad}
-          onChange={(e) => update("edad", e.target.value)}
-        />
-      </div>
-
-      <div className="patient-form-group">
-        <label>Dirección</label>
-        <input
-          value={form.direccion}
-          onChange={(e) =>
-            update("direccion", e.target.value)
-          }
-        />
-      </div>
-
-      <div className="patient-form-row">
-        <div className="patient-form-group">
-          <label>Teléfono</label>
           <input
-            value={form.telefono}
-            onChange={(e) =>
-              update("telefono", e.target.value)
-            }
+            placeholder="Edad"
+            value={form.edad}
+            onChange={(e) => update("edad", e.target.value)}
           />
-        </div>
 
-        <div className="patient-form-group">
-          <label>Email</label>
-          <input
-            value={form.email}
-            onChange={(e) => update("email", e.target.value)}
-          />
-        </div>
-      </div>
+          <div className="patient-form-actions">
+            <button className="primary" onClick={handleSubmit}>
+              {mode === "edit" ? "Confirmar" : "Guardar"}
+            </button>
 
-      <div className="patient-form-group">
-        <label>Previsión</label>
-        <input
-          value={form.prevision}
-          onChange={(e) =>
-            update("prevision", e.target.value)
-          }
-        />
-      </div>
-
-      <div className="patient-form-actions">
-        <button className="primary" onClick={handleSubmit}>
-          Guardar
-        </button>
-        <button className="secondary" onClick={onCancel}>
-          Cancelar
-        </button>
-      </div>
+            <button className="secondary" onClick={onCancel}>
+              Cancelar
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
-          }
+}
