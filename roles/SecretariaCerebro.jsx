@@ -5,6 +5,7 @@ import HomeSecretaria from "../pages/home/HomeSecretaria";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
+import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecretaria";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -28,6 +29,10 @@ export default function SecretariaCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
+
+  // 👇 ESTADO MODAL (ÚNICO CAMBIO REAL)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSlot, setModalSlot] = useState(null);
 
   // =========================
   // CARGA PROFESIONALES
@@ -75,64 +80,96 @@ export default function SecretariaCerebro() {
     // ✅ DISPONIBLE → PatientForm
     if (slot.status === "available") {
       navigate("pacientes", { state: slot });
+      return;
     }
-    // ❌ reserved / confirmed → NO navega
+
+    // ✅ RESERVED / CONFIRMED → MODAL (CEREBRO)
+    setModalSlot(slot);
+    setModalOpen(true);
   }
 
   // =========================
   // RENDER
   // =========================
   return (
-    <Routes>
+    <>
+      <Routes>
 
-      {/* HOME */}
-      <Route index element={<HomeSecretaria />} />
+        {/* HOME */}
+        <Route index element={<HomeSecretaria />} />
 
-      {/* AGENDA SUMMARY */}
-      <Route
-        path="agenda"
-        element={
-          loading ? (
-            <div className="agenda-placeholder">Cargando agenda…</div>
-          ) : (
-            <AgendaSummarySelector
-              professionals={professionals}
-              onSelectDay={handleSelectDay}
+        {/* AGENDA SUMMARY */}
+        <Route
+          path="agenda"
+          element={
+            loading ? (
+              <div className="agenda-placeholder">Cargando agenda…</div>
+            ) : (
+              <AgendaSummarySelector
+                professionals={professionals}
+                onSelectDay={handleSelectDay}
+              />
+            )
+          }
+        />
+
+        {/* AGENDA DIARIA */}
+        <Route
+          path="agenda/dia"
+          element={
+            selectedDay ? (
+              <AgendaDayController
+                professional={selectedDay.professional}
+                date={selectedDay.date}
+                role="SECRETARIA"
+                onAttend={handleAttend}
+              />
+            ) : (
+              <div className="agenda-placeholder">
+                Selecciona un día
+              </div>
+            )
+          }
+        />
+
+        {/* PATIENT FORM (SOLO DISPONIBLE) */}
+        <Route
+          path="pacientes"
+          element={
+            <PatientForm
+              onSubmit={() => navigate("agenda")}
+              onCancel={() => navigate("agenda")}
             />
-          )
-        }
-      />
+          }
+        />
 
-      {/* AGENDA DIARIA */}
-      <Route
-        path="agenda/dia"
-        element={
-          selectedDay ? (
-            <AgendaDayController
-              professional={selectedDay.professional}
-              date={selectedDay.date}
-              role="SECRETARIA"
-              onAttend={handleAttend}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              Selecciona un día
-            </div>
-          )
-        }
-      />
+      </Routes>
 
-      {/* PATIENT FORM (SOLO DISPONIBLE) */}
-      <Route
-        path="pacientes"
-        element={
-          <PatientForm
-            onSubmit={() => navigate("agenda")}
-            onCancel={() => navigate("agenda")}
-          />
-        }
+      {/* MODAL SECRETARIA — CONTROLADO POR EL CEREBRO */}
+      <AgendaSlotModalSecretaria
+        open={modalOpen}
+        slot={modalSlot}
+        onClose={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+        onReserve={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+        onConfirm={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+        onCancel={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+        onReschedule={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
       />
-
-    </Routes>
+    </>
   );
 }
