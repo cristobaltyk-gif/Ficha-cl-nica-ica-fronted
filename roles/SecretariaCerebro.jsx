@@ -61,7 +61,7 @@ export default function SecretariaCerebro() {
   }, []);
 
   // =========================
-  // HANDLER AGENDA
+  // HANDLER AGENDA SUMMARY
   // =========================
   function handleSelectDay(payload) {
     setSelectedDay(payload);
@@ -69,12 +69,34 @@ export default function SecretariaCerebro() {
   }
 
   // =========================
-  // HANDLERS REQUERIDOS POR CONTRATO
-  // (Secretaría NO los usa)
+  // HANDLERS CONTRATO (NAV)
   // =========================
-  function handleAttend() {}
-  function handleNoShow() {}
-  function handleCancelFinal() {}
+
+  // 👉 En el futuro: slot disponible → formulario paciente
+  function handleAttend(slot) {
+    navigate("/pacientes/nuevo", {
+      state: {
+        slot,
+        date: selectedDay?.date,
+        professional: selectedDay?.professional
+      }
+    });
+  }
+
+  function handleNoShow(slot) {
+    navigate("/pacientes/no-show", {
+      state: {
+        slot,
+        date: selectedDay?.date,
+        professional: selectedDay?.professional
+      }
+    });
+  }
+
+  function handleCancelFinal(slot) {
+    // Solo navegación post-cancel (si se requiere)
+    navigate("agenda");
+  }
 
   // =========================
   // RENDER (SOLO ROUTER)
