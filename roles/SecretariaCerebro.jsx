@@ -39,6 +39,9 @@ export default function SecretariaCerebro() {
 
   // 🔑 SLOT DISPONIBLE PENDIENTE DE RESERVA
   const [pendingSlot, setPendingSlot] = useState(null);
+ 
+  // 🔄 fuerza recarga de AgendaDayController
+const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
   // =========================
   // CARGA PROFESIONALES
@@ -116,6 +119,7 @@ export default function SecretariaCerebro() {
           rut
         })
       });
+      setAgendaReloadKey(k => k + 1);
     } catch {
       // backend decide errores
     } finally {
