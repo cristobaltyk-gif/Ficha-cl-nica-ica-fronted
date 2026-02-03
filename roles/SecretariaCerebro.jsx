@@ -104,7 +104,7 @@ export default function SecretariaCerebro() {
     const { date, time, professional } = pendingSlot;
 
     try {
-      await fetch(`${API_URL}/agenda/reserve`, {
+      await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
