@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/AuthContext";
 
-import HomeMedico from "../pages/home/HomeMedico";
+import HomeSecretaria from "../pages/home/HomeSecretaria";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
-import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
+import PatientForm from "../components/patient/PatientForm";
+import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecretaria";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
+SecretariaCerebro — PRODUCCIÓN REAL
 
-✔ Cerebro único del rol médico
+✔ Cerebro único del rol secretaria
 ✔ SOLO navegación
 ✔ NO pinta UI
-✔ NO header
 ✔ NO botones
 ✔ NO sidebar
 ✔ HOME primero
-✔ 1 profesional automático
-✔ AgendaDayController SOLO emite eventos
 */
 
-export default function MedicoCerebro() {
-  const { professional } = useAuth();
+export default function SecretariaCerebro() {
   const navigate = useNavigate();
 
   // =========================
@@ -34,38 +30,36 @@ export default function MedicoCerebro() {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
 
-  // MODAL MÉDICO (IGUAL A SECRETARÍA)
+  // MODAL AGENDA
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
 
-  // =========================
-  // SEGURIDAD
-  // =========================
-  if (!professional) {
-    return (
-      <div className="agenda-placeholder">
-        Médico sin profesional asignado
-      </div>
-    );
-  }
+  // MODAL PACIENTE
+  const [patientOpen, setPatientOpen] = useState(false);
+
+  // 🔑 SLOT DISPONIBLE PENDIENTE DE RESERVA
+  const [pendingSlot, setPendingSlot] = useState(null);
+ 
+  // 🔄 fuerza recarga de AgendaDayController
+const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
   // =========================
-  // CARGA PROFESIONAL ÚNICO
+  // CARGA PROFESIONALES
   // =========================
   useEffect(() => {
     let cancelled = false;
 
-    async function loadProfessional() {
+    async function loadProfessionals() {
       setLoading(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
 
         const data = await res.json();
-        const prof = data.find(p => p.id === professional);
-
-        if (!cancelled && prof) {
-          setProfessionals([{ id: prof.id, name: prof.name }]);
+        if (!cancelled) {
+          setProfessionals(
+            data.map((p) => ({ id: p.id, name: p.name }))
+          );
         }
       } catch {
         if (!cancelled) setProfessionals([]);
@@ -74,11 +68,11 @@ export default function MedicoCerebro() {
       }
     }
 
-    loadProfessional();
+    loadProfessionals();
     return () => {
       cancelled = true;
     };
-  }, [professional]);
+  }, []);
 
   // =========================
   // AGENDA SUMMARY
@@ -89,12 +83,48 @@ export default function MedicoCerebro() {
   }
 
   // =========================
-  // SLOT CLICK (EVENTO PURO)
+  // SLOT CLICK (DECISIÓN FINAL)
   // =========================
   function handleAttend(slot) {
-    // AgendaDayController SOLO avisa
+    // ✅ DISPONIBLE → FORMULARIO PACIENTE
+    if (slot.status === "available") {
+      setPendingSlot(slot);      // 👈 CLAVE
+      setPatientOpen(true);
+      return;
+    }
+
+    // ❌ NO TOCAR ESTE FLUJO
     setModalSlot(slot);
     setModalOpen(true);
+  }
+
+  // =========================
+  // RESERVA REAL (AGENDA)
+  // =========================
+  async function reserveSlot(rut) {
+    if (!pendingSlot) return;
+
+    const { date, time, professional } = pendingSlot;
+
+    try {
+      await fetch(`${API_URL}/agenda/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date,
+          time,
+          professional,
+          rut
+        })
+      });
+      setAgendaReloadKey(k => k + 1);
+    } catch {
+      // backend decide errores
+    } finally {
+      setPendingSlot(null);
+    }
   }
 
   // =========================
@@ -105,7 +135,7 @@ export default function MedicoCerebro() {
       <Routes>
 
         {/* HOME */}
-        <Route index element={<HomeMedico />} />
+        <Route index element={<HomeSecretaria />} />
 
         {/* AGENDA SUMMARY */}
         <Route
@@ -128,9 +158,10 @@ export default function MedicoCerebro() {
           element={
             selectedDay ? (
               <AgendaDayController
+               key={agendaReloadKey} 
                 professional={selectedDay.professional}
                 date={selectedDay.date}
-                role="MEDICO"
+                role="SECRETARIA"
                 onAttend={handleAttend}
               />
             ) : (
@@ -143,35 +174,44 @@ export default function MedicoCerebro() {
 
       </Routes>
 
-      {/* MODAL MÉDICO — DECIDE EL CEREBRO */}
-      <AgendaSlotModalMedico
+      {/* MODAL PACIENTE */}
+      <PatientForm
+        open={patientOpen}
+        onConfirm={(patient) => {
+          reserveSlot(patient.rut);
+          setPatientOpen(false);
+        }}
+        onCreate={(patient) => {
+          reserveSlot(patient.rut);
+          setPatientOpen(false);
+        }}
+        onCancel={() => {
+          setPendingSlot(null);
+          setPatientOpen(false);
+        }}
+      />
+
+      {/* MODAL SECRETARIA — AGENDA (INTOCABLE) */}
+      <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
         onClose={() => {
           setModalOpen(false);
           setModalSlot(null);
         }}
-
-        onAttend={(slot) => {
-          setModalOpen(false);
-          setModalSlot(null);
-
-          navigate("/medico/atencion", {
-            state: {
-              rut: slot.patient?.rut || slot.rut,
-              date: selectedDay.date,
-              time: slot.time,
-              professional: selectedDay.professional
-            }
-          });
-        }}
-
-        onNoShow={() => {
+        onReserve={() => {
           setModalOpen(false);
           setModalSlot(null);
         }}
-
+        onConfirm={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
         onCancel={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+        onReschedule={() => {
           setModalOpen(false);
           setModalSlot(null);
         }}
