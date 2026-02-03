@@ -30,9 +30,12 @@ export default function SecretariaCerebro() {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
 
-  // 👇 ESTADO MODAL (ÚNICO CAMBIO REAL)
+  // MODAL AGENDA
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
+
+  // MODAL PACIENTE (NUEVO, ÚNICO CAMBIO REAL)
+  const [patientOpen, setPatientOpen] = useState(false);
 
   // =========================
   // CARGA PROFESIONALES
@@ -77,13 +80,13 @@ export default function SecretariaCerebro() {
   // SLOT CLICK (DECISIÓN FINAL)
   // =========================
   function handleAttend(slot) {
-    // ✅ DISPONIBLE → PatientForm
+    // ✅ DISPONIBLE → MODAL PACIENTE
     if (slot.status === "available") {
-      navigate("pacientes", { state: slot });
+      setPatientOpen(true);
       return;
     }
 
-    // ✅ RESERVED / CONFIRMED → MODAL (CEREBRO)
+    // ✅ RESERVED / CONFIRMED → MODAL AGENDA
     setModalSlot(slot);
     setModalOpen(true);
   }
@@ -132,12 +135,13 @@ export default function SecretariaCerebro() {
           }
         />
 
-        {/* PATIENT FORM (SOLO DISPONIBLE) */}
+        {/* RUTA PACIENTES SE DEJA (NO SE TOCA) */}
         <Route
           path="pacientes"
           element={
             <PatientForm
-              onSubmit={() => navigate("agenda")}
+              onConfirm={() => navigate("agenda")}
+              onCreate={() => navigate("agenda")}
               onCancel={() => navigate("agenda")}
             />
           }
@@ -145,7 +149,16 @@ export default function SecretariaCerebro() {
 
       </Routes>
 
-      {/* MODAL SECRETARIA — CONTROLADO POR EL CEREBRO */}
+      {/* MODAL PACIENTE */}
+      <PatientForm
+        open={patientOpen}
+        internalUser="secretaria"
+        onConfirm={() => setPatientOpen(false)}
+        onCreate={() => setPatientOpen(false)}
+        onCancel={() => setPatientOpen(false)}
+      />
+
+      {/* MODAL SECRETARIA — AGENDA */}
       <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
@@ -172,4 +185,4 @@ export default function SecretariaCerebro() {
       />
     </>
   );
-}
+          }
