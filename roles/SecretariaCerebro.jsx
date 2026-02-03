@@ -30,9 +30,13 @@ export default function SecretariaCerebro() {
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
 
-  // 👇 ESTADO MODAL (ÚNICO CAMBIO REAL)
+  // 👇 MODAL SLOT (EXISTENTE)
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
+
+  // 👇 MODAL PACIENTE (NUEVO, ÚNICO CAMBIO)
+  const [patientModalOpen, setPatientModalOpen] = useState(false);
+  const [patientSlot, setPatientSlot] = useState(null);
 
   // =========================
   // CARGA PROFESIONALES
@@ -74,16 +78,17 @@ export default function SecretariaCerebro() {
   }
 
   // =========================
-  // SLOT CLICK (DECISIÓN FINAL)
+  // SLOT CLICK (ÚNICO CAMBIO REAL)
   // =========================
   function handleAttend(slot) {
-    // ✅ DISPONIBLE → PatientForm
+    // ✅ DISPONIBLE → PatientForm COMO MODAL
     if (slot.status === "available") {
-      navigate("pacientes", { state: slot });
+      setPatientSlot(slot);
+      setPatientModalOpen(true);
       return;
     }
 
-    // ✅ RESERVED / CONFIRMED → MODAL (CEREBRO)
+    // ✅ RESERVED / CONFIRMED → MODAL SLOT (EXISTENTE)
     setModalSlot(slot);
     setModalOpen(true);
   }
@@ -132,20 +137,31 @@ export default function SecretariaCerebro() {
           }
         />
 
-        {/* PATIENT FORM (SOLO DISPONIBLE) */}
-        <Route
-          path="pacientes"
-          element={
-            <PatientForm
-              onSubmit={() => navigate("agenda")}
-              onCancel={() => navigate("agenda")}
-            />
-          }
-        />
-
       </Routes>
 
-      {/* MODAL SECRETARIA — CONTROLADO POR EL CEREBRO */}
+      {/* MODAL PACIENTE — CONTROLADO POR EL CEREBRO */}
+      {patientModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <PatientForm
+              onConfirm={(paciente) => {
+                setPatientModalOpen(false);
+                setPatientSlot(null);
+              }}
+              onCreate={(paciente) => {
+                setPatientModalOpen(false);
+                setPatientSlot(null);
+              }}
+              onCancel={() => {
+                setPatientModalOpen(false);
+                setPatientSlot(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* MODAL SECRETARIA — EXISTENTE */}
       <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
