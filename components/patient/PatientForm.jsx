@@ -23,13 +23,13 @@ export default function PatientForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ CONTRATO INTACTO
+  // ✅ CONTRATO INTACTO (SOLO cambia edad -> fechaNacimiento)
   const [form, setForm] = useState({
     rut: "",
     nombre: "",
     apellidoPaterno: "",
     apellidoMaterno: "",
-    edad: "",
+    fechaNacimiento: "",
     direccion: "",
     telefono: "",
     email: "",
@@ -74,7 +74,7 @@ export default function PatientForm({
           nombre: data.nombre ?? "",
           apellidoPaterno: data.apellido_paterno ?? "",
           apellidoMaterno: data.apellido_materno ?? "",
-          edad: data.edad ?? "",
+          fechaNacimiento: data.fecha_nacimiento ?? "",
           direccion: data.direccion ?? "",
           telefono: data.telefono ?? "",
           email: data.email ?? "",
@@ -92,7 +92,7 @@ export default function PatientForm({
           nombre: "",
           apellidoPaterno: "",
           apellidoMaterno: "",
-          edad: "",
+          fechaNacimiento: "",
           direccion: "",
           telefono: "",
           email: "",
@@ -130,8 +130,8 @@ export default function PatientForm({
       return;
     }
 
-    if (!form.edad || isNaN(form.edad)) {
-      setError("Edad inválida");
+    if (!form.fechaNacimiento) {
+      setError("Fecha de nacimiento obligatoria");
       return;
     }
 
@@ -140,7 +140,7 @@ export default function PatientForm({
       nombre: form.nombre,
       apellido_paterno: form.apellidoPaterno,
       apellido_materno: form.apellidoMaterno,
-      edad: Number(form.edad),
+      fecha_nacimiento: form.fechaNacimiento,
       direccion: form.direccion,
       telefono: form.telefono,
       email: form.email,
@@ -245,8 +245,11 @@ export default function PatientForm({
             <input placeholder="Apellido materno" value={form.apellidoMaterno}
               onChange={e => update("apellidoMaterno", e.target.value)} />
 
-            <input placeholder="Edad" value={form.edad}
-              onChange={e => update("edad", e.target.value)} />
+            <input
+              placeholder="Fecha nacimiento"
+              value={form.fechaNacimiento}
+              onChange={e => update("fechaNacimiento", e.target.value)}
+            />
 
             <input placeholder="Dirección" value={form.direccion}
               onChange={e => update("direccion", e.target.value)} />
