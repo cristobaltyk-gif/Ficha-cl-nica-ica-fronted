@@ -282,7 +282,7 @@ export default function PatientForm({
                     Confirmar
                   </button>
 
-                  <button className="secondary" onClick={() => setIsEditing(true)}>
+                  <button className="secondary danger" onClick={() => setIsEditing(true)}>
                     Modificar
                   </button>
 
