@@ -135,17 +135,6 @@ export default function SecretariaCerebro() {
           }
         />
 
-        {/* RUTA PACIENTES SE DEJA (NO SE TOCA) */}
-        <Route
-          path="pacientes"
-          element={
-            <PatientForm
-              onConfirm={() => navigate("agenda")}
-              onCreate={() => navigate("agenda")}
-              onCancel={() => navigate("agenda")}
-            />
-          }
-        />
 
       </Routes>
 
