@@ -2,33 +2,13 @@ import { useState } from "react";
 import { isValidRut, normalizeRut } from "../../utils/rut";
 import "../../styles/pacientes/patient-form.css";
 
-/*
-PatientForm — UTILIDAD GLOBAL (CANÓNICO)
-
-✔ Independiente del padre
-✔ NO conoce agenda
-✔ NO navega
-✔ NO guarda directamente
-✔ NO mockea datos
-✔ SOLO gestiona paciente
-
-FLUJO:
-1) Pide RUT + botón buscar
-2) (FUTURO) Llama backend ficha clínica (CONFIDENCIAL)
-3) Si existe → muestra datos → Confirmar
-4) Si no existe → expande formulario → Guardar
-5) Emite datos al módulo llamador
-
-IMPORTANTE:
-- NO hay mock
-- NO hay fetch activo
-- El backend se implementará después
-*/
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function PatientForm({
-  onConfirm, // paciente existente
-  onCreate,  // paciente nuevo
-  onCancel
+  onConfirm,
+  onCreate,
+  onCancel,
+  internalUser // ← usuario interno (secretaria / medico)
 }) {
   const [rut, setRut] = useState("");
   const [mode, setMode] = useState("search"); // search | edit | create
@@ -47,15 +27,12 @@ export default function PatientForm({
     prevision: ""
   });
 
-  // =========================
-  // HELPERS
-  // =========================
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
   // =========================
-  // BUSCAR PACIENTE (BACKEND)
+  // BUSCAR PACIENTE
   // =========================
   async function handleSearch() {
     setError(null);
@@ -69,61 +46,46 @@ export default function PatientForm({
     setLoading(true);
 
     try {
-      /*
-      ==================================================
-      🔐 BACKEND CONFIDENCIAL (PENDIENTE IMPLEMENTAR)
-      ==================================================
-
-      ⚠️ DATOS SENSIBLES / FICHA CLÍNICA
-      - HTTPS obligatorio
-      - Autenticación (token / sesión)
-      - Backend valida permisos
-      - No exponer datos en logs
-
-      Endpoint sugerido:
-      GET /patients/by-rut/:rut
-
-      Ejemplo (NO IMPLEMENTADO):
-
       const res = await fetch(
-        `${API_URL}/patients/by-rut/${normalizedRut}`,
+        `${API_URL}/api/fichas/admin/${normalizedRut}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            "X-Internal-User": internalUser
           }
         }
       );
 
-      const data = await res.json();
+      // PACIENTE EXISTE
+      if (res.ok) {
+        const data = await res.json();
 
-      Respuesta esperada:
-      {
-        exists: boolean,
-        patient?: {
-          rut,
-          nombre,
-          apellidoPaterno,
-          apellidoMaterno,
-          edad,
-          direccion,
-          telefono,
-          email,
-          prevision
-        }
-      }
+        setForm({
+          rut: data.rut,
+          nombre: data.nombre || "",
+          apellidoPaterno: data.apellido_paterno || "",
+          apellidoMaterno: data.apellido_materno || "",
+          edad: data.edad || "",
+          direccion: data.direccion || "",
+          telefono: data.telefono || "",
+          email: data.email || "",
+          prevision: data.prevision || ""
+        });
 
-      LÓGICA ESPERADA:
-      if (data.exists) {
-        setForm(data.patient);
         setMode("edit");
-      } else {
-        setForm({ ...form, rut: normalizedRut });
-        setMode("create");
+        return;
       }
-      */
 
-      // ⛔ Sin backend aún → no se decide nada aquí
-      setError("Búsqueda de paciente aún no disponible");
+      // PACIENTE NO EXISTE
+      if (res.status === 404) {
+        setForm((prev) => ({
+          ...prev,
+          rut: normalizedRut
+        }));
+        setMode("create");
+        return;
+      }
+
+      throw new Error("Error inesperado");
     } catch {
       setError("Error al buscar paciente");
     } finally {
@@ -132,9 +94,9 @@ export default function PatientForm({
   }
 
   // =========================
-  // CONFIRMAR / CREAR
+  // GUARDAR / CONFIRMAR
   // =========================
-  function handleSubmit() {
+  async function handleSubmit() {
     setError(null);
 
     if (!form.nombre || !form.apellidoPaterno) {
@@ -152,12 +114,39 @@ export default function PatientForm({
       edad: Number(form.edad)
     };
 
+    // CONFIRMAR EXISTENTE (NO guarda)
     if (mode === "edit") {
       onConfirm?.(payload);
+      return;
     }
 
+    // CREAR NUEVO
     if (mode === "create") {
-      onCreate?.(payload);
+      try {
+        setLoading(true);
+
+        const res = await fetch(
+          `${API_URL}/api/fichas/admin`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Internal-User": internalUser
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error();
+        }
+
+        onCreate?.(payload);
+      } catch {
+        setError("Error al guardar paciente");
+      } finally {
+        setLoading(false);
+      }
     }
   }
 
@@ -167,7 +156,6 @@ export default function PatientForm({
   return (
     <div className="patient-form">
 
-      {/* BUSCADOR */}
       <div className="patient-form-search">
         <input
           placeholder="RUT"
