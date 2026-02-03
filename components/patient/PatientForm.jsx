@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { isValidRut, normalizeRut } from "../../utils/rut";
+import { useAuth } from "../../auth/AuthContext";
 import "../../styles/pacientes/patient-form.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function PatientForm({
-  open = true,          // 👈 NUEVO (por defecto visible)
+  open = true,
   onConfirm,
   onCreate,
-  onCancel,
-  internalUser
+  onCancel
 }) {
-  if (!open) return null; // 👈 MODAL CONTROL
+  if (!open) return null;
+
+  // 🔐 FUENTE DE VERDAD
+  const { session } = useAuth();
+  const internalUser = session?.usuario;
 
   const [rut, setRut] = useState("");
   const [mode, setMode] = useState("search"); // search | edit | create
@@ -39,6 +43,11 @@ export default function PatientForm({
   // =========================
   async function handleSearch() {
     setError(null);
+
+    if (!internalUser) {
+      setError("Sesión inválida");
+      return;
+    }
 
     if (!rut || !isValidRut(rut)) {
       setError("RUT inválido");
@@ -86,9 +95,9 @@ export default function PatientForm({
         return;
       }
 
-      throw new Error("Error inesperado");
+      setError("Error inesperado al buscar paciente");
     } catch {
-      setError("Error al buscar paciente");
+      setError("Error de conexión con el servidor");
     } finally {
       setLoading(false);
     }
@@ -99,6 +108,11 @@ export default function PatientForm({
   // =========================
   async function handleSubmit() {
     setError(null);
+
+    if (!internalUser) {
+      setError("Sesión inválida");
+      return;
+    }
 
     if (!form.nombre || !form.apellidoPaterno) {
       setError("Nombre y apellido paterno son obligatorios");
@@ -136,7 +150,9 @@ export default function PatientForm({
           }
         );
 
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          throw new Error();
+        }
 
         onCreate?.(payload);
       } catch {
@@ -224,4 +240,4 @@ export default function PatientForm({
       </div>
     </div>
   );
-                }
+}
