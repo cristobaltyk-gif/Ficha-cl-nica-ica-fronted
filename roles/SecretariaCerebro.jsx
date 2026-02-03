@@ -34,8 +34,11 @@ export default function SecretariaCerebro() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
 
-  // MODAL PACIENTE (NUEVO, ÚNICO CAMBIO REAL)
+  // MODAL PACIENTE
   const [patientOpen, setPatientOpen] = useState(false);
+
+  // 🔑 SLOT PENDIENTE DE RESERVA (ÚNICO AGREGADO)
+  const [pendingSlot, setPendingSlot] = useState(null);
 
   // =========================
   // CARGA PROFESIONALES
@@ -80,15 +83,44 @@ export default function SecretariaCerebro() {
   // SLOT CLICK (DECISIÓN FINAL)
   // =========================
   function handleAttend(slot) {
-    // ✅ DISPONIBLE → MODAL PACIENTE
+    // ✅ DISPONIBLE → PACIENTE
     if (slot.status === "available") {
+      setPendingSlot(slot);     // 👈 CLAVE
       setPatientOpen(true);
       return;
     }
 
-    // ✅ RESERVED / CONFIRMED → MODAL AGENDA
+    // ❌ NO TOCAR ESTE FLUJO
     setModalSlot(slot);
     setModalOpen(true);
+  }
+
+  // =========================
+  // RESERVA REAL (AGENDA)
+  // =========================
+  async function reserveSlot(rut) {
+    if (!pendingSlot) return;
+
+    const { date, time, professional } = pendingSlot;
+
+    try {
+      await fetch(`${API_URL}/agenda/reserve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date,
+          time,
+          professional,
+          rut
+        })
+      });
+    } catch {
+      // backend decide
+    } finally {
+      setPendingSlot(null);
+    }
   }
 
   // =========================
@@ -135,19 +167,26 @@ export default function SecretariaCerebro() {
           }
         />
 
-
       </Routes>
 
       {/* MODAL PACIENTE */}
       <PatientForm
         open={patientOpen}
-        internalUser="secretaria"
-        onConfirm={() => setPatientOpen(false)}
-        onCreate={() => setPatientOpen(false)}
-        onCancel={() => setPatientOpen(false)}
+        onConfirm={(patient) => {
+          reserveSlot(patient.rut);
+          setPatientOpen(false);
+        }}
+        onCreate={(patient) => {
+          reserveSlot(patient.rut);
+          setPatientOpen(false);
+        }}
+        onCancel={() => {
+          setPendingSlot(null);
+          setPatientOpen(false);
+        }}
       />
 
-      {/* MODAL SECRETARIA — AGENDA */}
+      {/* MODAL SECRETARIA — AGENDA (INTOCABLE) */}
       <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
@@ -174,4 +213,4 @@ export default function SecretariaCerebro() {
       />
     </>
   );
-          }
+}
