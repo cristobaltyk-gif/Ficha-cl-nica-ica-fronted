@@ -5,11 +5,14 @@ import "../../styles/pacientes/patient-form.css";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function PatientForm({
+  open = true,          // 👈 NUEVO (por defecto visible)
   onConfirm,
   onCreate,
   onCancel,
-  internalUser // ← usuario interno (secretaria / medico)
+  internalUser
 }) {
+  if (!open) return null; // 👈 MODAL CONTROL
+
   const [rut, setRut] = useState("");
   const [mode, setMode] = useState("search"); // search | edit | create
   const [loading, setLoading] = useState(false);
@@ -55,7 +58,6 @@ export default function PatientForm({
         }
       );
 
-      // PACIENTE EXISTE
       if (res.ok) {
         const data = await res.json();
 
@@ -75,7 +77,6 @@ export default function PatientForm({
         return;
       }
 
-      // PACIENTE NO EXISTE
       if (res.status === 404) {
         setForm((prev) => ({
           ...prev,
@@ -114,13 +115,11 @@ export default function PatientForm({
       edad: Number(form.edad)
     };
 
-    // CONFIRMAR EXISTENTE (NO guarda)
     if (mode === "edit") {
       onConfirm?.(payload);
       return;
     }
 
-    // CREAR NUEVO
     if (mode === "create") {
       try {
         setLoading(true);
@@ -137,9 +136,7 @@ export default function PatientForm({
           }
         );
 
-        if (!res.ok) {
-          throw new Error();
-        }
+        if (!res.ok) throw new Error();
 
         onCreate?.(payload);
       } catch {
@@ -151,77 +148,80 @@ export default function PatientForm({
   }
 
   // =========================
-  // RENDER
+  // RENDER (MODAL)
   // =========================
   return (
-    <div className="patient-form">
+    <div className="modal-overlay">
+      <div className="modal-content patient-form">
 
-      <div className="patient-form-search">
-        <input
-          placeholder="RUT"
-          value={rut}
-          onChange={(e) => setRut(e.target.value)}
-        />
-        <button
-          className="search-btn"
-          disabled={loading}
-          onClick={handleSearch}
-        >
-          🔍
-        </button>
+        <div className="patient-form-search">
+          <input
+            placeholder="RUT"
+            value={rut}
+            onChange={(e) => setRut(e.target.value)}
+          />
+          <button
+            className="search-btn"
+            disabled={loading}
+            onClick={handleSearch}
+          >
+            🔍
+          </button>
+        </div>
+
+        {error && (
+          <div className="patient-form-error">{error}</div>
+        )}
+
+        {(mode === "edit" || mode === "create") && (
+          <>
+            <h3>
+              {mode === "edit"
+                ? "Paciente encontrado"
+                : "Nuevo paciente"}
+            </h3>
+
+            <input
+              placeholder="Nombre"
+              value={form.nombre}
+              onChange={(e) => update("nombre", e.target.value)}
+            />
+
+            <input
+              placeholder="Apellido paterno"
+              value={form.apellidoPaterno}
+              onChange={(e) =>
+                update("apellidoPaterno", e.target.value)
+              }
+            />
+
+            <input
+              placeholder="Apellido materno"
+              value={form.apellidoMaterno}
+              onChange={(e) =>
+                update("apellidoMaterno", e.target.value)
+              }
+            />
+
+            <input
+              placeholder="Edad"
+              value={form.edad}
+              onChange={(e) => update("edad", e.target.value)}
+            />
+
+            <div className="patient-form-actions">
+              <button className="primary" onClick={handleSubmit}>
+                {mode === "edit" ? "Confirmar" : "Guardar"}
+              </button>
+
+              <button className="secondary" onClick={onCancel}>
+                Cancelar
+              </button>
+            </div>
+          </>
+        )}
+
       </div>
-
-      {error && (
-        <div className="patient-form-error">{error}</div>
-      )}
-
-      {(mode === "edit" || mode === "create") && (
-        <>
-          <h3>
-            {mode === "edit"
-              ? "Paciente encontrado"
-              : "Nuevo paciente"}
-          </h3>
-
-          <input
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) => update("nombre", e.target.value)}
-          />
-
-          <input
-            placeholder="Apellido paterno"
-            value={form.apellidoPaterno}
-            onChange={(e) =>
-              update("apellidoPaterno", e.target.value)
-            }
-          />
-
-          <input
-            placeholder="Apellido materno"
-            value={form.apellidoMaterno}
-            onChange={(e) =>
-              update("apellidoMaterno", e.target.value)
-            }
-          />
-
-          <input
-            placeholder="Edad"
-            value={form.edad}
-            onChange={(e) => update("edad", e.target.value)}
-          />
-
-          <div className="patient-form-actions">
-            <button className="primary" onClick={handleSubmit}>
-              {mode === "edit" ? "Confirmar" : "Guardar"}
-            </button>
-
-            <button className="secondary" onClick={onCancel}>
-              Cancelar
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
-}
+                }
