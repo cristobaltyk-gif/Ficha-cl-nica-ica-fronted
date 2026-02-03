@@ -158,6 +158,7 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
           element={
             selectedDay ? (
               <AgendaDayController
+                key={agendaReloadKey
                 professional={selectedDay.professional}
                 date={selectedDay.date}
                 role="SECRETARIA"
