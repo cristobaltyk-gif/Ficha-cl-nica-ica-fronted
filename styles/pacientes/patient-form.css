@@ -1,239 +1,109 @@
-import { useState } from "react";
-import { isValidRut, normalizeRut } from "../../utils/rut";
-import "../../styles/pacientes/patient-form.css";
+/* ===============================
+   PATIENT FORM — MODAL VISUAL
+   =============================== */
 
-/*
-PatientForm — UTILIDAD GLOBAL (CANÓNICO)
+.patient-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-✔ Independiente del padre
-✔ NO conoce agenda
-✔ NO navega
-✔ NO guarda directamente
-✔ NO mockea datos
-✔ SOLO gestiona paciente
+  width: 100%;
+  max-width: 420px;
 
-FLUJO:
-1) Pide RUT + botón buscar
-2) (FUTURO) Llama backend ficha clínica (CONFIDENCIAL)
-3) Si existe → muestra datos → Confirmar
-4) Si no existe → expande formulario → Guardar
-5) Emite datos al módulo llamador
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
 
-IMPORTANTE:
-- NO hay mock
-- NO hay fetch activo
-- El backend se implementará después
-*/
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 
-export default function PatientForm({
-  onConfirm, // paciente existente
-  onCreate,  // paciente nuevo
-  onCancel
-}) {
-  const [rut, setRut] = useState("");
-  const [mode, setMode] = useState("search"); // search | edit | create
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  z-index: 1000;
+}
 
-  const [form, setForm] = useState({
-    rut: "",
-    nombre: "",
-    apellidoPaterno: "",
-    apellidoMaterno: "",
-    edad: "",
-    direccion: "",
-    telefono: "",
-    email: "",
-    prevision: ""
-  });
+/* ===============================
+   SEARCH BAR
+   =============================== */
 
-  // =========================
-  // HELPERS
-  // =========================
-  function update(field, value) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
+.patient-form-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
 
-  // =========================
-  // BUSCAR PACIENTE (BACKEND)
-  // =========================
-  async function handleSearch() {
-    setError(null);
+.patient-form-search input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+}
 
-    if (!rut || !isValidRut(rut)) {
-      setError("RUT inválido");
-      return;
-    }
+.search-btn {
+  padding: 0 14px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
 
-    const normalizedRut = normalizeRut(rut);
-    setLoading(true);
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-    try {
-      /*
-      ==================================================
-      🔐 BACKEND CONFIDENCIAL (PENDIENTE IMPLEMENTAR)
-      ==================================================
+/* ===============================
+   FORM FIELDS
+   =============================== */
 
-      ⚠️ DATOS SENSIBLES / FICHA CLÍNICA
-      - HTTPS obligatorio
-      - Autenticación (token / sesión)
-      - Backend valida permisos
-      - No exponer datos en logs
+.patient-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
 
-      Endpoint sugerido:
-      GET /patients/by-rut/:rut
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+}
 
-      Ejemplo (NO IMPLEMENTADO):
+/* ===============================
+   ERROR
+   =============================== */
 
-      const res = await fetch(
-        `${API_URL}/patients/by-rut/${normalizedRut}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+.patient-form-error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
 
-      const data = await res.json();
+/* ===============================
+   ACTIONS
+   =============================== */
 
-      Respuesta esperada:
-      {
-        exists: boolean,
-        patient?: {
-          rut,
-          nombre,
-          apellidoPaterno,
-          apellidoMaterno,
-          edad,
-          direccion,
-          telefono,
-          email,
-          prevision
-        }
-      }
+.patient-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
 
-      LÓGICA ESPERADA:
-      if (data.exists) {
-        setForm(data.patient);
-        setMode("edit");
-      } else {
-        setForm({ ...form, rut: normalizedRut });
-        setMode("create");
-      }
-      */
+.patient-form-actions .primary {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
 
-      // ⛔ Sin backend aún → no se decide nada aquí
-      setError("Búsqueda de paciente aún no disponible");
-    } catch {
-      setError("Error al buscar paciente");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // =========================
-  // CONFIRMAR / CREAR
-  // =========================
-  function handleSubmit() {
-    setError(null);
-
-    if (!form.nombre || !form.apellidoPaterno) {
-      setError("Nombre y apellido paterno son obligatorios");
-      return;
-    }
-
-    if (!form.edad || isNaN(form.edad)) {
-      setError("Edad inválida");
-      return;
-    }
-
-    const payload = {
-      ...form,
-      edad: Number(form.edad)
-    };
-
-    if (mode === "edit") {
-      onConfirm?.(payload);
-    }
-
-    if (mode === "create") {
-      onCreate?.(payload);
-    }
-  }
-
-  // =========================
-  // RENDER
-  // =========================
-  return (
-    <div className="patient-form">
-
-      {/* BUSCADOR */}
-      <div className="patient-form-search">
-        <input
-          placeholder="RUT"
-          value={rut}
-          onChange={(e) => setRut(e.target.value)}
-        />
-        <button
-          className="search-btn"
-          disabled={loading}
-          onClick={handleSearch}
-        >
-          🔍
-        </button>
-      </div>
-
-      {error && (
-        <div className="patient-form-error">{error}</div>
-      )}
-
-      {(mode === "edit" || mode === "create") && (
-        <>
-          <h3>
-            {mode === "edit"
-              ? "Paciente encontrado"
-              : "Nuevo paciente"}
-          </h3>
-
-          <input
-            placeholder="Nombre"
-            value={form.nombre}
-            onChange={(e) => update("nombre", e.target.value)}
-          />
-
-          <input
-            placeholder="Apellido paterno"
-            value={form.apellidoPaterno}
-            onChange={(e) =>
-              update("apellidoPaterno", e.target.value)
-            }
-          />
-
-          <input
-            placeholder="Apellido materno"
-            value={form.apellidoMaterno}
-            onChange={(e) =>
-              update("apellidoMaterno", e.target.value)
-            }
-          />
-
-          <input
-            placeholder="Edad"
-            value={form.edad}
-            onChange={(e) => update("edad", e.target.value)}
-          />
-
-          <div className="patient-form-actions">
-            <button className="primary" onClick={handleSubmit}>
-              {mode === "edit" ? "Confirmar" : "Guardar"}
-            </button>
-
-            <button className="secondary" onClick={onCancel}>
-              Cancelar
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  );
+.patient-form-actions .secondary {
+  background: #e5e7eb;
+  color: #111827;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
 }
