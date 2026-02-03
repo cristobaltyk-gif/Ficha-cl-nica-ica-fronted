@@ -13,7 +13,7 @@ export default function PatientForm({
 }) {
   if (!open) return null;
 
-  // 🔐 fuente de verdad
+  // 🔐 FUENTE DE VERDAD (auth real)
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
@@ -22,7 +22,7 @@ export default function PatientForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ⚠️ CAMPOS EXACTOS DEL BACKEND
+  // ✅ CAMPOS EXACTOS QUE MANEJA EL BACKEND
   const [form, setForm] = useState({
     rut: "",
     nombre: "",
@@ -68,27 +68,27 @@ export default function PatientForm({
         }
       );
 
-      // 👉 EXISTE
+      // ▶ PACIENTE EXISTE
       if (res.ok) {
         const data = await res.json();
 
         setForm({
-          rut: data.rut || normalizedRut,
-          nombre: data.nombre || "",
-          apellidoPaterno: data.apellido_paterno || "",
-          apellidoMaterno: data.apellido_materno || "",
-          edad: data.edad || "",
-          direccion: data.direccion || "",
-          telefono: data.telefono || "",
-          email: data.email || "",
-          prevision: data.prevision || ""
+          rut: data.rut ?? normalizedRut,
+          nombre: data.nombre ?? "",
+          apellidoPaterno: data.apellido_paterno ?? "",
+          apellidoMaterno: data.apellido_materno ?? "",
+          edad: data.edad ?? "",
+          direccion: data.direccion ?? "",
+          telefono: data.telefono ?? "",
+          email: data.email ?? "",
+          prevision: data.prevision ?? ""
         });
 
         setMode("edit");
         return;
       }
 
-      // 👉 NO EXISTE → CREAR
+      // ▶ PACIENTE NO EXISTE → CREAR
       if (res.status === 404) {
         setForm({
           rut: normalizedRut,
@@ -130,6 +130,7 @@ export default function PatientForm({
       return;
     }
 
+    // 🔁 PAYLOAD EXACTO BACKEND
     const payload = {
       rut: form.rut,
       nombre: form.nombre,
@@ -142,13 +143,13 @@ export default function PatientForm({
       prevision: form.prevision
     };
 
-    // 👉 CONFIRMAR EXISTENTE (no guarda)
+    // ▶ EXISTENTE (NO guarda)
     if (mode === "edit") {
       onConfirm?.(payload);
       return;
     }
 
-    // 👉 CREAR NUEVO
+    // ▶ NUEVO (CREA)
     if (mode === "create") {
       try {
         setLoading(true);
@@ -174,7 +175,7 @@ export default function PatientForm({
   }
 
   // =========================
-  // RENDER (MODAL)
+  // RENDER
   // =========================
   return (
     <div className="modal-overlay">
@@ -201,55 +202,85 @@ export default function PatientForm({
         {(mode === "edit" || mode === "create") && (
           <>
             <h3>
-              {mode === "edit" ? "Paciente encontrado" : "Nuevo paciente"}
+              {mode === "edit"
+                ? "Paciente encontrado"
+                : "Nuevo paciente"}
             </h3>
 
-            <input placeholder="Nombre"
+            <input
+              placeholder="Nombre"
               value={form.nombre}
               onChange={(e) => update("nombre", e.target.value)}
             />
 
-            <input placeholder="Apellido paterno"
+            <input
+              placeholder="Apellido paterno"
               value={form.apellidoPaterno}
-              onChange={(e) => update("apellidoPaterno", e.target.value)}
+              onChange={(e) =>
+                update("apellidoPaterno", e.target.value)
+              }
             />
 
-            <input placeholder="Apellido materno"
+            <input
+              placeholder="Apellido materno"
               value={form.apellidoMaterno}
-              onChange={(e) => update("apellidoMaterno", e.target.value)}
+              onChange={(e) =>
+                update("apellidoMaterno", e.target.value)
+              }
             />
 
-            <input placeholder="Edad"
+            <input
+              placeholder="Edad"
               value={form.edad}
               onChange={(e) => update("edad", e.target.value)}
             />
 
-            <input placeholder="Dirección"
+            <input
+              placeholder="Dirección"
               value={form.direccion}
-              onChange={(e) => update("direccion", e.target.value)}
+              onChange={(e) =>
+                update("direccion", e.target.value)
+              }
             />
 
-            <input placeholder="Teléfono"
+            <input
+              placeholder="Teléfono"
               value={form.telefono}
-              onChange={(e) => update("telefono", e.target.value)}
+              onChange={(e) =>
+                update("telefono", e.target.value)
+              }
             />
 
-            <input placeholder="Email"
+            <input
+              placeholder="Email"
               value={form.email}
-              onChange={(e) => update("email", e.target.value)}
+              onChange={(e) =>
+                update("email", e.target.value)
+              }
             />
 
-            <input placeholder="Previsión"
+            <input
+              placeholder="Previsión"
               value={form.prevision}
-              onChange={(e) => update("prevision", e.target.value)}
+              onChange={(e) =>
+                update("prevision", e.target.value)
+              }
             />
 
             <div className="patient-form-actions">
-              <button className="primary" onClick={handleSubmit} disabled={loading}>
+              <button
+                className="primary"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
                 {mode === "edit" ? "Confirmar" : "Guardar"}
               </button>
 
-              <button className="secondary" onClick={onCancel} disabled={loading}>
+              <button
+                className="secondary"
+                onClick={onCancel}
+                disabled={loading}
+              >
                 Cancelar
               </button>
             </div>
