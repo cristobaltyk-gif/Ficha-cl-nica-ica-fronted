@@ -37,7 +37,7 @@ export default function SecretariaCerebro() {
   // MODAL PACIENTE
   const [patientOpen, setPatientOpen] = useState(false);
 
-  // 🔑 SLOT PENDIENTE DE RESERVA (ÚNICO AGREGADO)
+  // 🔑 SLOT DISPONIBLE PENDIENTE DE RESERVA
   const [pendingSlot, setPendingSlot] = useState(null);
 
   // =========================
@@ -83,9 +83,9 @@ export default function SecretariaCerebro() {
   // SLOT CLICK (DECISIÓN FINAL)
   // =========================
   function handleAttend(slot) {
-    // ✅ DISPONIBLE → PACIENTE
+    // ✅ DISPONIBLE → FORMULARIO PACIENTE
     if (slot.status === "available") {
-      setPendingSlot(slot);     // 👈 CLAVE
+      setPendingSlot(slot);      // 👈 CLAVE
       setPatientOpen(true);
       return;
     }
@@ -117,7 +117,7 @@ export default function SecretariaCerebro() {
         })
       });
     } catch {
-      // backend decide
+      // backend decide errores
     } finally {
       setPendingSlot(null);
     }
