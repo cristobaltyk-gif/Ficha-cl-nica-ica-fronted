@@ -5,6 +5,7 @@ import { useAuth } from "../auth/AuthContext";
 import HomeMedico from "../pages/home/HomeMedico";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
+import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -19,7 +20,7 @@ MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
 ✔ NO sidebar
 ✔ HOME primero
 ✔ 1 profesional automático
-✔ MISMO AgendaSummarySelector que secretaría
+✔ AgendaDayController SOLO emite eventos
 */
 
 export default function MedicoCerebro() {
@@ -32,7 +33,10 @@ export default function MedicoCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
-  // { professional, date }
+
+  // MODAL MÉDICO (IGUAL A SECRETARÍA)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSlot, setModalSlot] = useState(null);
 
   // =========================
   // SEGURIDAD
@@ -58,7 +62,7 @@ export default function MedicoCerebro() {
         if (!res.ok) throw new Error("professionals");
 
         const data = await res.json();
-        const prof = data.find((p) => p.id === professional);
+        const prof = data.find(p => p.id === professional);
 
         if (!cancelled && prof) {
           setProfessionals([{ id: prof.id, name: prof.name }]);
@@ -77,71 +81,101 @@ export default function MedicoCerebro() {
   }, [professional]);
 
   // =========================
-  // HANDLERS
+  // AGENDA SUMMARY
   // =========================
   function handleSelectDay(payload) {
     setSelectedDay(payload);
     navigate("agenda/dia");
   }
 
+  // =========================
+  // SLOT CLICK (EVENTO PURO)
+  // =========================
   function handleAttend(slot) {
-    // DISPONIBLE → médico no hace nada
-    if (slot.status === "available") return;
-
-    // RESERVADO / CONFIRMADO → ATENCIÓN
-    navigate("/medico/atencion", {
-      state: {
-        rut: slot.rut,
-        date: selectedDay.date,
-        time: slot.time,
-        professional: selectedDay.professional
-      }
-    });
+    // AgendaDayController SOLO avisa
+    setModalSlot(slot);
+    setModalOpen(true);
   }
 
   // =========================
-  // RENDER (SOLO ROUTER)
+  // RENDER
   // =========================
   return (
-    <Routes>
+    <>
+      <Routes>
 
-      {/* HOME */}
-      <Route index element={<HomeMedico />} />
+        {/* HOME */}
+        <Route index element={<HomeMedico />} />
 
-      {/* AGENDA SUMMARY */}
-      <Route
-        path="agenda"
-        element={
-          loading ? (
-            <div className="agenda-placeholder">Cargando agenda…</div>
-          ) : (
-            <AgendaSummarySelector
-              professionals={professionals}
-              onSelectDay={handleSelectDay}
-            />
-          )
-        }
+        {/* AGENDA SUMMARY */}
+        <Route
+          path="agenda"
+          element={
+            loading ? (
+              <div className="agenda-placeholder">Cargando agenda…</div>
+            ) : (
+              <AgendaSummarySelector
+                professionals={professionals}
+                onSelectDay={handleSelectDay}
+              />
+            )
+          }
+        />
+
+        {/* AGENDA DIARIA */}
+        <Route
+          path="agenda/dia"
+          element={
+            selectedDay ? (
+              <AgendaDayController
+                professional={selectedDay.professional}
+                date={selectedDay.date}
+                role="MEDICO"
+                onAttend={handleAttend}
+              />
+            ) : (
+              <div className="agenda-placeholder">
+                Selecciona un día
+              </div>
+            )
+          }
+        />
+
+      </Routes>
+
+      {/* MODAL MÉDICO — DECIDE EL CEREBRO */}
+      <AgendaSlotModalMedico
+        open={modalOpen}
+        slot={modalSlot}
+        onClose={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+
+        onAttend={(slot) => {
+          setModalOpen(false);
+          setModalSlot(null);
+
+          navigate("/medico/atencion", {
+            state: {
+              rut: slot.patient?.rut || slot.rut,
+              date: selectedDay.date,
+              time: slot.time,
+              professional: selectedDay.professional
+            }
+          });
+        }}
+
+        onNoShow={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+
+        onCancel={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
       />
-
-      {/* AGENDA DIARIA */}
-      <Route
-        path="agenda/dia"
-        element={
-          selectedDay ? (
-            <AgendaDayController
-              professional={selectedDay.professional}
-              date={selectedDay.date}
-              role="MEDICO"
-              onAttend={handleAttend}
-            />
-          ) : (
-            <div className="agenda-placeholder">
-              Selecciona un día
-            </div>
-          )
-        }
-      />
-
-    </Routes>
+    </>
   );
 }
