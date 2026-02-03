@@ -19,11 +19,10 @@ export default function PatientForm({
 
   const [rut, setRut] = useState("");
   const [mode, setMode] = useState("search"); // search | edit | create
-  const [isEditing, setIsEditing] = useState(false); // 👈 CLAVE
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ✅ CONTRATO INTACTO (SOLO cambia edad -> fechaNacimiento)
   const [form, setForm] = useState({
     rut: "",
     nombre: "",
@@ -37,12 +36,12 @@ export default function PatientForm({
   });
 
   function update(field, value) {
-    if (!isEditing && mode === "edit") return; // 🔒 bloquea edición
+    if (!isEditing && mode === "edit") return;
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
   // =========================
-  // BUSCAR PACIENTE (READ)
+  // BUSCAR PACIENTE
   // =========================
   async function handleSearch() {
     setError(null);
@@ -82,7 +81,7 @@ export default function PatientForm({
         });
 
         setMode("edit");
-        setIsEditing(false); // 👈 modo vista
+        setIsEditing(false);
         return;
       }
 
@@ -113,18 +112,35 @@ export default function PatientForm({
   }
 
   // =========================
-  // MODIFICAR / GUARDAR
+  // CONFIRMAR PACIENTE EXISTENTE
+  // =========================
+  function handleConfirmExisting() {
+    const payload = {
+      rut: form.rut,
+      nombre: form.nombre,
+      apellido_paterno: form.apellidoPaterno,
+      apellido_materno: form.apellidoMaterno,
+      fecha_nacimiento: form.fechaNacimiento,
+      direccion: form.direccion,
+      telefono: form.telefono,
+      email: form.email,
+      prevision: form.prevision
+    };
+
+    onConfirm?.(payload);
+  }
+
+  // =========================
+  // GUARDAR / MODIFICAR
   // =========================
   async function handleSubmit() {
     setError(null);
 
-    // 👉 PRIMER CLICK EN EDIT → SOLO HABILITA INPUTS
     if (mode === "edit" && !isEditing) {
       setIsEditing(true);
       return;
     }
 
-    // 👉 VALIDACIÓN REAL SOLO AL GUARDAR
     if (!form.nombre || !form.apellidoPaterno) {
       setError("Nombre y apellido paterno son obligatorios");
       return;
@@ -147,9 +163,6 @@ export default function PatientForm({
       prevision: form.prevision
     };
 
-    // =========================
-    // UPDATE (PUT)
-    // =========================
     if (mode === "edit") {
       try {
         setLoading(true);
@@ -168,7 +181,7 @@ export default function PatientForm({
 
         if (!res.ok) throw new Error();
 
-        setIsEditing(false); // 👈 vuelve a vista
+        setIsEditing(false);
         onConfirm?.(payload);
       } catch {
         setError("Error al actualizar paciente");
@@ -178,9 +191,6 @@ export default function PatientForm({
       return;
     }
 
-    // =========================
-    // CREATE (POST)
-    // =========================
     if (mode === "create") {
       try {
         setLoading(true);
@@ -264,19 +274,41 @@ export default function PatientForm({
               onChange={e => update("prevision", e.target.value)} />
 
             <div className="patient-form-actions">
-              <button className="primary" onClick={handleSubmit} disabled={loading}>
-                {mode === "edit"
-                  ? isEditing ? "Guardar cambios" : "Modificar"
-                  : "Guardar"}
-              </button>
 
-              <button className="secondary" onClick={onCancel} disabled={loading}>
-                Cancelar
-              </button>
+              {/* PACIENTE EXISTENTE (SOLO CONFIRMAR / MODIFICAR) */}
+              {mode === "edit" && !isEditing && (
+                <>
+                  <button className="primary" onClick={handleConfirmExisting}>
+                    Confirmar
+                  </button>
+
+                  <button className="secondary" onClick={() => setIsEditing(true)}>
+                    Modificar
+                  </button>
+
+                  <button className="secondary" onClick={onCancel}>
+                    Cancelar
+                  </button>
+                </>
+              )}
+
+              {/* CREAR O EDITAR */}
+              {(mode === "create" || isEditing) && (
+                <>
+                  <button className="primary" onClick={handleSubmit} disabled={loading}>
+                    {mode === "edit" ? "Guardar cambios" : "Guardar"}
+                  </button>
+
+                  <button className="secondary" onClick={onCancel}>
+                    Cancelar
+                  </button>
+                </>
+              )}
+
             </div>
           </>
         )}
       </div>
     </div>
   );
-}
+                  }
