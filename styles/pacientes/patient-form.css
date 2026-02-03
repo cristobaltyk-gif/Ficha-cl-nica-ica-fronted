@@ -1,23 +1,36 @@
 /* ===============================
-   PATIENT FORM — MODAL VISUAL
+   PATIENT FORM — MODAL
    =============================== */
 
-.patient-form {
+/* OVERLAY */
+.modal-overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+/* CONTENEDOR */
+.patient-form {
   width: 100%;
   max-width: 420px;
-
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 20px;
-
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
 
-  z-index: 1000;
+/* ===============================
+   RESET LOCAL (CLAVE)
+   =============================== */
+
+.patient-form button {
+  width: auto !important;
+  height: 40px !important;
+  border-radius: 8px !important;
 }
 
 /* ===============================
@@ -26,30 +39,28 @@
 
 .patient-form-search {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-bottom: 16px;
-  align-items: center;              /* ✅ CLAVE */
 }
 
 .patient-form-search input {
   flex: 1;
-  height: 40px;                     /* ✅ CLAVE */
+  height: 40px;
   padding: 0 10px;
-
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-size: 14px;
 }
 
+/* BOTÓN LUPA */
 .search-btn {
-  height: 40px;                     /* ✅ CLAVE */
-  min-width: 48px;
-  padding: 0 12px;
-
-  border-radius: 8px;
-  border: none;
+  min-width: 44px;
+  height: 40px;
+  padding: 0;
   background: #2563eb;
   color: white;
+  border: none;
   cursor: pointer;
 
   display: flex;
@@ -63,7 +74,7 @@
 }
 
 /* ===============================
-   FORM FIELDS
+   CAMPOS
    =============================== */
 
 .patient-form input {
@@ -71,7 +82,6 @@
   height: 40px;
   padding: 0 10px;
   margin-bottom: 10px;
-
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-size: 14px;
@@ -105,8 +115,7 @@
   background: #16a34a;
   color: white;
   border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 0 14px;
   cursor: pointer;
 }
 
@@ -114,7 +123,6 @@
   background: #e5e7eb;
   color: #111827;
   border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 0 14px;
   cursor: pointer;
 }
