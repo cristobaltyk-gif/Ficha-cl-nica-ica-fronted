@@ -28,23 +28,33 @@
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
+  align-items: center;              /* ✅ CLAVE */
 }
 
 .patient-form-search input {
   flex: 1;
-  padding: 10px;
+  height: 40px;                     /* ✅ CLAVE */
+  padding: 0 10px;
+
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-size: 14px;
 }
 
 .search-btn {
-  padding: 0 14px;
+  height: 40px;                     /* ✅ CLAVE */
+  min-width: 48px;
+  padding: 0 12px;
+
   border-radius: 8px;
   border: none;
   background: #2563eb;
   color: white;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .search-btn:disabled {
@@ -58,7 +68,8 @@
 
 .patient-form input {
   width: 100%;
-  padding: 10px;
+  height: 40px;
+  padding: 0 10px;
   margin-bottom: 10px;
 
   border-radius: 8px;
