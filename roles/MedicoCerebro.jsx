@@ -132,6 +132,7 @@ export default function MedicoCerebro() {
                 date={selectedDay.date}
                 role="MEDICO"
                 onAttend={handleAttend}
+                professionals={professionals}
               />
             ) : (
               <div className="agenda-placeholder">
