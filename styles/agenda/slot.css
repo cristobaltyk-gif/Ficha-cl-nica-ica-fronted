@@ -1,0 +1,65 @@
+.slot {
+  padding: 14px 16px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.slot:hover {
+  background: #f9fafb;
+}
+
+/* ========================= */
+/* ESTADOS */
+/* ========================= */
+
+.slot-available {
+  background: #ffffff;
+}
+
+.slot-reserved {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.slot-confirmed {
+  background: #ecfdf5;
+  border-color: #34d399;
+}
+
+/* ========================= */
+/* HORA */
+/* ========================= */
+
+.slot-time {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* ========================= */
+/* PACIENTE */
+/* ========================= */
+
+.slot-patient {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.slot-patient-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.slot-patient-rut {
+  font-size: 13px;
+  color: #6b7280;
+}
