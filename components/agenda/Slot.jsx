@@ -1,3 +1,5 @@
+import "../../styles/agenda/agenda-slot.css";
+
 export default function Slot({
   time,
   status = "available",
