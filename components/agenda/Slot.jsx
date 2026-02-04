@@ -34,10 +34,10 @@ export default function Slot({
       {showPatient && (
         <div className="slot-patient">
           {patient?.nombre && (
-            <span className="slot-patient-name">
-              {patient.nombre}
-            </span>
-          )}
+  <span className="slot-patient-name">
+    {patient.nombre} {patient?.apellido_paterno}
+  </span>
+)}
 
           {(patient?.rut || rut) && (
             <span className="slot-patient-rut">
