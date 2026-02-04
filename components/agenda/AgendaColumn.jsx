@@ -28,6 +28,7 @@ export default function AgendaColumn({
               key={`${professional.id}-${time}`}
               time={time}
               status={slot.status}
+              rut={slot.rut}
               patient={slot.patient}
               onSelect={() => onSelectSlot?.(slot, time)}
             />
