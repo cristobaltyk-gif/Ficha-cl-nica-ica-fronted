@@ -12,7 +12,7 @@ export default function Slot({
 
   const showPatient =
     (status === "reserved" || status === "confirmed") &&
-    (patient || rut);
+    (patient?.nombre || patient?.rut || rut);
 
   const handleClick = () => {
     if (!isClickable) return;
@@ -27,16 +27,23 @@ export default function Slot({
       tabIndex={isClickable ? 0 : -1}
       aria-disabled={!isClickable}
     >
+      {/* Hora */}
       <span className="slot-time">{time}</span>
 
+      {/* Nombre + Rut (SIN palabra Paciente) */}
       {showPatient && (
         <div className="slot-patient">
-          <span className="slot-patient-name">
-            {patient?.nombre || "Paciente"}
-          </span>
-          <span className="slot-patient-rut">
-            {patient?.rut || rut}
-          </span>
+          {patient?.nombre && (
+            <span className="slot-patient-name">
+              {patient.nombre}
+            </span>
+          )}
+
+          {(patient?.rut || rut) && (
+            <span className="slot-patient-rut">
+              {patient?.rut || rut}
+            </span>
+          )}
         </div>
       )}
     </div>
