@@ -12,11 +12,6 @@
 
   cursor: pointer;
   transition: 0.15s;
-
-  /* ✅ FIX UI: layout correcto */
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 .slot:hover {
@@ -42,6 +37,18 @@
 }
 
 /* ========================= */
+/* CONTENIDO SLOT */
+/* ========================= */
+
+/* Layout principal: hora + info */
+.slot-main {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  column-gap: 14px;
+  align-items: center;
+}
+
+/* ========================= */
 /* HORA */
 /* ========================= */
 
@@ -49,14 +56,14 @@
   font-size: 18px;
   font-weight: 800;
   color: #0f172a;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 /* ========================= */
 /* PACIENTE */
 /* ========================= */
 
-.slot-patient {
+.slot-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -66,9 +73,11 @@
   font-size: 14px;
   font-weight: 600;
   color: #1f2937;
+  line-height: 1.2;
 }
 
 .slot-patient-rut {
   font-size: 13px;
   color: #6b7280;
+  line-height: 1.2;
 }
