@@ -1,4 +1,4 @@
-import "../../styles/agenda/agenda-slot.css";
+import "../../styles/agenda/slot.css";
 
 export default function Slot({
   time,
