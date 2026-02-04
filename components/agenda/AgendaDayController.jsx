@@ -117,8 +117,16 @@ export default function AgendaDayController({
         data.calendar?.[professional]?.slots || {};
 
       Object.entries(backendSlots).forEach(([time, slot]) => {
-        baseSlots[time] = slot;
-      });
+  baseSlots[time] = {
+    time,
+    status: slot.status,
+    rut: slot.rut || null,
+
+    // 👇 info para UI / modales
+    professional,
+    professionalName: professionalsMap[professional]?.name || professional
+  };
+});
 
       setAgendaData({
         calendar: {
