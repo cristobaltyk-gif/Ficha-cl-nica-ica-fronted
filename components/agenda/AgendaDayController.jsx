@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import Agenda from "./Agenda";
+import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
+const { session } = useAuth();
+const internalUser = session?.usuario;
 
 /*
 AgendaDayController — PRODUCCIÓN REAL (CANÓNICO FINAL)
@@ -127,6 +130,44 @@ export default function AgendaDayController({
     } catch {}
   }
 
+  async function resolvePatients(slots) {
+  if (!internalUser) return;
+
+  const ruts = Object.values(slots)
+    .filter(
+      s =>
+        (s.status === "reserved" || s.status === "confirmed") &&
+        s.rut
+    )
+    .map(s => s.rut);
+
+  const uniqueRuts = [...new Set(ruts)];
+  const missing = uniqueRuts.filter(rut => !patientsCache[rut]);
+
+  if (missing.length === 0) return;
+
+  try {
+    const results = await Promise.all(
+      missing.map(rut =>
+        fetch(`${API_URL}/api/fichas/admin/${rut}`, {
+          headers: {
+            "X-Internal-User": internalUser
+          }
+        })
+          .then(r => (r.ok ? r.json() : null))
+          .catch(() => null)
+      )
+    );
+
+    setPatientsCache(prev => {
+      const copy = { ...prev };
+      results.forEach(p => {
+        if (p?.rut) copy[p.rut] = p;
+      });
+      return copy;
+    });
+  } catch {}
+  }
   // =========================
   // LOAD AGENDA
   // =========================
