@@ -12,7 +12,7 @@ import Login from "../pages/Login";
 import AppLayout from "./AppLayout";
 
 /* ===============================
-   CEREBROS (YA SON ROUTERS)
+   CEREBROS
 =============================== */
 import SecretariaCerebro from "../roles/SecretariaCerebro.jsx";
 import MedicoCerebro from "../roles/MedicoCerebro.jsx";
@@ -68,20 +68,9 @@ export default function AppRouter() {
               ENTREGA DE MANDO A CADA CEREBRO
           =============================== */}
 
-          <Route
-            path="/secretaria/*"
-            element={<SecretariaCerebro />}
-          />
-
-          <Route
-            path="/medico/*"
-            element={<MedicoCerebro />}
-          />
-
-          <Route
-            path="/kine/*"
-            element={<KineCerebro />}
-          />
+          <Route path="/secretaria/*" element={<SecretariaCerebro />} />
+          <Route path="/medico/*" element={<MedicoCerebro />} />
+          <Route path="/kine/*" element={<KineCerebro />} />
         </Route>
 
         {/* 🚫 FALLBACK */}
