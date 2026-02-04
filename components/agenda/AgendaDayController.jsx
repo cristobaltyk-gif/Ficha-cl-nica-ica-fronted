@@ -207,6 +207,47 @@ export default function AgendaDayController({
     loadAgenda();
   }, [loadAgenda]);
 
+ // =========================
+// REINYECTAR PACIENTES CUANDO CACHE SE ACTUALIZA
+// =========================
+useEffect(() => {
+  if (!agendaData) return;
+
+  setAgendaData(prev => {
+    if (!prev) return prev;
+
+    const calendar = { ...prev.calendar };
+    const day = calendar[professional];
+    if (!day) return prev;
+
+    const slots = { ...day.slots };
+
+    Object.entries(slots).forEach(([time, slot]) => {
+      if (
+        (slot.status === "reserved" || slot.status === "confirmed") &&
+        slot.rut &&
+        patientsCache[slot.rut]
+      ) {
+        slots[time] = {
+          ...slot,
+          patient: patientsCache[slot.rut]
+        };
+      }
+    });
+
+    return {
+      ...prev,
+      calendar: {
+        ...calendar,
+        [professional]: {
+          ...day,
+          slots
+        }
+      }
+    };
+  });
+}, [patientsCache, professional]); 
+
   // =========================
   // SLOT CLICK → EMITE AL CEREBRO
   // =========================
