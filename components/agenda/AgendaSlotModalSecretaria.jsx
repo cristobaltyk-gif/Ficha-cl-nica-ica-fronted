@@ -52,7 +52,7 @@ export default function AgendaSlotModalSecretaria({
       <div className="modal">
         <h3>🕒 Hora {time}</h3>
 
-        <p><strong>Profesional:</strong> {professional}</p>
+        <p><strong>Profesional:</strong> {slot.professionalName}</p>
 
         {patient && (
           <p><strong>Paciente:</strong> {patient.nombre || patient.rut}</p>
