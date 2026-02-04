@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-
 import Agenda from "./Agenda";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -13,6 +12,7 @@ AgendaDayController — PRODUCCIÓN REAL (CANÓNICO FINAL)
 ✔ NO decide flujos
 ✔ NO navega
 ✔ Emite eventos al cerebro
+✔ Resuelve paciente SOLO si reservado / confirmado
 */
 
 export default function AgendaDayController({
@@ -28,6 +28,7 @@ export default function AgendaDayController({
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
+  const [patientsCache, setPatientsCache] = useState({}); // 👈 CACHE POR RUT
 
   // =========================
   // LOAD PROFESSIONALS (1 VEZ)
@@ -89,6 +90,44 @@ export default function AgendaDayController({
   }
 
   // =========================
+  // RESOLVER PACIENTES (SOLO RUTS NECESARIOS)
+  // =========================
+  async function resolvePatients(slots) {
+    const ruts = Object.values(slots)
+      .filter(
+        (s) =>
+          (s.status === "reserved" || s.status === "confirmed") &&
+          s.rut
+      )
+      .map((s) => s.rut);
+
+    const uniqueRuts = [...new Set(ruts)];
+    const missing = uniqueRuts.filter((rut) => !patientsCache[rut]);
+
+    if (missing.length === 0) return;
+
+    try {
+      const results = await Promise.all(
+        missing.map((rut) =>
+          fetch(`${API_URL}/api/fichas/admin/${rut}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null)
+        )
+      );
+
+      setPatientsCache((prev) => {
+        const copy = { ...prev };
+        results.forEach((p) => {
+          if (p?.rut) {
+            copy[p.rut] = p;
+          }
+        });
+        return copy;
+      });
+    } catch {}
+  }
+
+  // =========================
   // LOAD AGENDA
   // =========================
   const loadAgenda = useCallback(async () => {
@@ -116,17 +155,22 @@ export default function AgendaDayController({
       const backendSlots =
         data.calendar?.[professional]?.slots || {};
 
+      // 👉 resolver pacientes SOLO si corresponde
+      await resolvePatients(backendSlots);
+
       Object.entries(backendSlots).forEach(([time, slot]) => {
-  baseSlots[time] = {
-    time,
-    status: slot.status,
-    rut: slot.rut || null,
-    patient: slot.patient || null,
-    // 👇 info para UI / modales
-    professional,
-    professionalName: professionalsMap[professional]?.name || professional
-  };
-});
+        baseSlots[time] = {
+          time,
+          status: slot.status,
+          rut: slot.rut || null,
+          patient: slot.rut ? patientsCache[slot.rut] || null : null,
+
+          // info UI
+          professional,
+          professionalName:
+            professionalsMap[professional]?.name || professional
+        };
+      });
 
       setAgendaData({
         calendar: {
@@ -140,7 +184,7 @@ export default function AgendaDayController({
     } finally {
       setLoading(false);
     }
-  }, [professional, date, professionalsMap]);
+  }, [professional, date, professionalsMap, patientsCache]);
 
   useEffect(() => {
     loadAgenda();
@@ -149,13 +193,12 @@ export default function AgendaDayController({
   // =========================
   // SLOT CLICK (PURO → EMITE)
   // =========================
-  
   function handleSelectSlot(slot) {
-  onAttend?.({
-    ...slot,
-    professional,
-    date
-  });
+    onAttend?.({
+      ...slot,
+      professional,
+      date
+    });
   }
 
   // =========================
