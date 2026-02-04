@@ -3,8 +3,6 @@ import Agenda from "./Agenda";
 import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
-const { session } = useAuth();
-const internalUser = session?.usuario;
 
 /*
 AgendaDayController — PRODUCCIÓN REAL (CANÓNICO FINAL)
@@ -23,15 +21,19 @@ export default function AgendaDayController({
   date,
 
   // 👇 DECIDE EL CEREBRO
-  role,              // "MEDICO" | "SECRETARIA"
+  role, // "MEDICO" | "SECRETARIA"
   onAttend,
   onNoShow,
   onCancelFinal
 }) {
+  // 🔐 AUTH INTERNO REAL
+  const { session } = useAuth();
+  const internalUser = session?.usuario;
+
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
-  const [patientsCache, setPatientsCache] = useState({}); // 👈 CACHE POR RUT
+  const [patientsCache, setPatientsCache] = useState({}); // cache por RUT
 
   // =========================
   // LOAD PROFESSIONALS (1 VEZ)
@@ -93,9 +95,11 @@ export default function AgendaDayController({
   }
 
   // =========================
-  // RESOLVER PACIENTES (SOLO RUTS NECESARIOS)
+  // RESOLVER PACIENTES (SOLO LOS NECESARIOS)
   // =========================
   async function resolvePatients(slots) {
+    if (!internalUser) return;
+
     const ruts = Object.values(slots)
       .filter(
         (s) =>
@@ -112,7 +116,11 @@ export default function AgendaDayController({
     try {
       const results = await Promise.all(
         missing.map((rut) =>
-          fetch(`${API_URL}/api/fichas/admin/${rut}`)
+          fetch(`${API_URL}/api/fichas/admin/${rut}`, {
+            headers: {
+              "X-Internal-User": internalUser
+            }
+          })
             .then((r) => (r.ok ? r.json() : null))
             .catch(() => null)
         )
@@ -121,53 +129,13 @@ export default function AgendaDayController({
       setPatientsCache((prev) => {
         const copy = { ...prev };
         results.forEach((p) => {
-          if (p?.rut) {
-            copy[p.rut] = p;
-          }
+          if (p?.rut) copy[p.rut] = p;
         });
         return copy;
       });
     } catch {}
   }
 
-  async function resolvePatients(slots) {
-  if (!internalUser) return;
-
-  const ruts = Object.values(slots)
-    .filter(
-      s =>
-        (s.status === "reserved" || s.status === "confirmed") &&
-        s.rut
-    )
-    .map(s => s.rut);
-
-  const uniqueRuts = [...new Set(ruts)];
-  const missing = uniqueRuts.filter(rut => !patientsCache[rut]);
-
-  if (missing.length === 0) return;
-
-  try {
-    const results = await Promise.all(
-      missing.map(rut =>
-        fetch(`${API_URL}/api/fichas/admin/${rut}`, {
-          headers: {
-            "X-Internal-User": internalUser
-          }
-        })
-          .then(r => (r.ok ? r.json() : null))
-          .catch(() => null)
-      )
-    );
-
-    setPatientsCache(prev => {
-      const copy = { ...prev };
-      results.forEach(p => {
-        if (p?.rut) copy[p.rut] = p;
-      });
-      return copy;
-    });
-  } catch {}
-  }
   // =========================
   // LOAD AGENDA
   // =========================
@@ -196,7 +164,7 @@ export default function AgendaDayController({
       const backendSlots =
         data.calendar?.[professional]?.slots || {};
 
-      // 👉 resolver pacientes SOLO si corresponde
+      // 👉 SOLO AQUÍ resolvemos pacientes
       await resolvePatients(backendSlots);
 
       Object.entries(backendSlots).forEach(([time, slot]) => {
@@ -206,7 +174,6 @@ export default function AgendaDayController({
           rut: slot.rut || null,
           patient: slot.rut ? patientsCache[slot.rut] || null : null,
 
-          // info UI
           professional,
           professionalName:
             professionalsMap[professional]?.name || professional
@@ -225,14 +192,14 @@ export default function AgendaDayController({
     } finally {
       setLoading(false);
     }
-  }, [professional, date, professionalsMap, patientsCache]);
+  }, [professional, date, professionalsMap, patientsCache, internalUser]);
 
   useEffect(() => {
     loadAgenda();
   }, [loadAgenda]);
 
   // =========================
-  // SLOT CLICK (PURO → EMITE)
+  // SLOT CLICK → EMITE AL CEREBRO
   // =========================
   function handleSelectSlot(slot) {
     onAttend?.({
