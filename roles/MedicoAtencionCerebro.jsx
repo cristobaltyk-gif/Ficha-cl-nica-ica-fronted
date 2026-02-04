@@ -1,5 +1,5 @@
 import { useLocation, Navigate } from "react-router-dom";
-import DashboardAtencion from "../pages/dashboard-atencion";
+import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 
 /*
 MedicoAtencionCerebro — PRODUCCIÓN REAL
