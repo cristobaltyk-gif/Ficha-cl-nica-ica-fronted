@@ -29,27 +29,28 @@ export default function Slot({
       tabIndex={isClickable ? 0 : -1}
       aria-disabled={!isClickable}
     >
-      {/* Hora */}
-      <div className="slot-row">
+      {/* CONTENIDO PRINCIPAL */}
+      <div className="slot-main">
+        {/* Hora */}
         <span className="slot-time">{time}</span>
+
+        {/* Nombre + Rut */}
+        {showPatient && (
+          <div className="slot-info">
+            {patient?.nombre && (
+              <span className="slot-patient-name">
+                {patient.nombre} {patient?.apellido_paterno}
+              </span>
+            )}
+
+            {(patient?.rut || rut) && (
+              <span className="slot-patient-rut">
+                {patient?.rut || rut}
+              </span>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Nombre + Rut (SIN palabra Paciente) */}
-      {showPatient && (
-        <div className="slot-patient">
-          {patient?.nombre && (
-            <span className="slot-patient-name">
-              {patient.nombre} {patient?.apellido_paterno}
-            </span>
-          )}
-
-          {(patient?.rut || rut) && (
-            <span className="slot-patient-rut">
-              {patient?.rut || rut}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 }
