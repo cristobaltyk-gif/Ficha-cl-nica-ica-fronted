@@ -26,7 +26,7 @@ export default function AgendaDayController({
   onNoShow,
   onCancelFinal
 }) {
-  // 🔐 AUTH INTERNO REAL
+  // 🔐 AUTH INTERNO (MISMO PATRÓN QUE PatientForm)
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
@@ -129,7 +129,9 @@ export default function AgendaDayController({
       setPatientsCache((prev) => {
         const copy = { ...prev };
         results.forEach((p) => {
-          if (p?.rut) copy[p.rut] = p;
+          if (p?.rut) {
+            copy[p.rut] = p;
+          }
         });
         return copy;
       });
@@ -174,6 +176,7 @@ export default function AgendaDayController({
           rut: slot.rut || null,
           patient: slot.rut ? patientsCache[slot.rut] || null : null,
 
+          // info UI
           professional,
           professionalName:
             professionalsMap[professional]?.name || professional
@@ -192,7 +195,13 @@ export default function AgendaDayController({
     } finally {
       setLoading(false);
     }
-  }, [professional, date, professionalsMap, patientsCache, internalUser]);
+  }, [
+    professional,
+    date,
+    professionalsMap,
+    patientsCache,
+    internalUser
+  ]);
 
   useEffect(() => {
     loadAgenda();
@@ -229,4 +238,4 @@ export default function AgendaDayController({
       onSelectSlot={handleSelectSlot}
     />
   );
-}
+    }
