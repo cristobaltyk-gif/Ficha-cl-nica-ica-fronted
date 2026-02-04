@@ -1,6 +1,8 @@
 export default function Slot({
   time,
   status = "available",
+  patient,
+  rut,
   onSelect
 }) {
   const isClickable =
@@ -8,29 +10,35 @@ export default function Slot({
     status === "reserved" ||
     status === "confirmed";
 
+  const showPatient =
+    (status === "reserved" || status === "confirmed") &&
+    (patient || rut);
+
   const handleClick = () => {
     if (!isClickable) return;
-    if (typeof onSelect === "function") {
-      onSelect(time);
-    }
+    onSelect?.(time);
   };
 
   return (
     <div
-      className={`slot slot-${status}`}   // ✅ CORRECTO
+      className={`slot slot-${status}`}
       onClick={handleClick}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : -1}
-      onKeyDown={(e) => {
-        if (!isClickable) return;
-        if (e.key === "Enter" || e.key === " ") {
-          handleClick();
-        }
-      }}
-      aria-label={`Horario ${time}, estado ${status}`}
       aria-disabled={!isClickable}
     >
       <span className="slot-time">{time}</span>
+
+      {showPatient && (
+        <div className="slot-patient">
+          <span className="slot-patient-name">
+            {patient?.nombre || "Paciente"}
+          </span>
+          <span className="slot-patient-rut">
+            {patient?.rut || rut}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
