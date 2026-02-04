@@ -28,16 +28,18 @@ export default function Slot({
       aria-disabled={!isClickable}
     >
       {/* Hora */}
-      <span className="slot-time">{time}</span>
+      <div className="slot-row">
+        <span className="slot-time">{time}</span>
+      </div>
 
       {/* Nombre + Rut (SIN palabra Paciente) */}
       {showPatient && (
         <div className="slot-patient">
           {patient?.nombre && (
-  <span className="slot-patient-name">
-    {patient.nombre} {patient?.apellido_paterno}
-  </span>
-)}
+            <span className="slot-patient-name">
+              {patient.nombre} {patient?.apellido_paterno}
+            </span>
+          )}
 
           {(patient?.rut || rut) && (
             <span className="slot-patient-rut">
