@@ -127,6 +127,34 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
     }
   }
 
+// =========================
+// ANULAR SLOT (AGENDA)
+// =========================
+async function cancelSlot(slot) {
+  if (!slot) return;
+
+  const { date, time, professional } = slot;
+
+  try {
+    await fetch(`${API_URL}/agenda/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date,
+        time,
+        professional
+      })
+    });
+
+    // 🔄 refrescar agenda
+    setAgendaReloadKey(k => k + 1);
+  } catch {
+    // backend decide errores
+  }
+}
+  
   // =========================
   // RENDER
   // =========================
@@ -208,6 +236,7 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
           setModalSlot(null);
         }}
         onCancel={() => {
+          cancelSlot(modalSlot);
           setModalOpen(false);
           setModalSlot(null);
         }}
