@@ -121,7 +121,7 @@ export default function AgendaDayController({
     time,
     status: slot.status,
     rut: slot.rut || null,
-
+    patient: slot.patient || null,
     // 👇 info para UI / modales
     professional,
     professionalName: professionalsMap[professional]?.name || professional
