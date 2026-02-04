@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Agenda from "./Agenda";
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
