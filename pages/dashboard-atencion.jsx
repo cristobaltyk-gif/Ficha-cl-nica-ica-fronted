@@ -1,80 +1,26 @@
-import { useState } from "react";
 import "../styles/atencion/dashboard-atencion.css";
 
 export default function DashboardAtencion({
   rut,
   date,
   time,
-  professional
+  professional,
+
+  atencion,
+  receta,
+  examenes,
+
+  onChangeAtencion,
+  onChangeReceta,
+  onChangeExamenes,
+
+  onDictado,
+  dictando,
+  puedeDictar,
+
+  onOrdenarClinicamente,
+  puedeOrdenar
 }) {
-  // =========================
-  // TEXTO CRUDO (WHISPER)
-  // =========================
-  const [rawConsultText, setRawConsultText] = useState("");
-
-  // =========================
-  // TEXTO CLÍNICO EDITABLE
-  // =========================
-  const [atencion, setAtencion] = useState("");
-  const [receta, setReceta] = useState("");
-  const [examenes, setExamenes] = useState("");
-
-  // =========================
-  // ESTADOS UI
-  // =========================
-  const [recording, setRecording] = useState(false);
-  const [ordering, setOrdering] = useState(false);
-
-  // =========================
-  // WHISPER (STUB)
-  // =========================
-  async function handleWhisper() {
-    if (recording) {
-      // detener grabación (backend después)
-      setRecording(false);
-      return;
-    }
-
-    setRecording(true);
-
-    // ⛔ STUB
-    // const transcript = await whisper(...)
-    const transcript = "\n[Texto transcrito por Whisper]";
-
-    setRawConsultText(prev => prev + transcript);
-    setRecording(false);
-  }
-
-  // =========================
-  // GPT ORDENAR (STUB)
-  // =========================
-  async function handleOrderClinically() {
-    if (!rawConsultText) return;
-
-    setOrdering(true);
-
-    // ⛔ STUB
-    // const result = await gptOrder(rawConsultText)
-
-    const result = {
-      atencion: "Texto clínico ordenado…",
-      receta: "Receta generada…",
-      examenes: "Exámenes solicitados…",
-      orden_kinesica: "Orden kinésica…",
-      indicaciones: "Indicaciones al paciente…",
-      indicacion_quirurgica: "Evaluar cirugía…"
-    };
-
-    setAtencion(result.atencion);
-    setReceta(result.receta);
-    setExamenes(result.examenes);
-
-    setOrdering(false);
-  }
-
-  // =========================
-  // RENDER
-  // =========================
   return (
     <div className="dashboard dashboard-atencion">
       <header className="dashboard-header">
@@ -88,16 +34,17 @@ export default function DashboardAtencion({
 
         <div className="dashboard-actions">
           <button
-            className={recording ? "danger" : "primary"}
-            onClick={handleWhisper}
+            className={dictando ? "danger" : "primary"}
+            onClick={onDictado}
+            disabled={!puedeDictar}
           >
-            {recording ? "⏹ Detener dictado" : "🎙 Dictar consulta"}
+            {dictando ? "⏹ Detener dictado" : "🎙 Dictar consulta"}
           </button>
 
           <button
             className="secondary"
-            disabled={!rawConsultText || ordering}
-            onClick={handleOrderClinically}
+            disabled={!puedeOrdenar}
+            onClick={onOrdenarClinicamente}
           >
             🧠 Ordenar clínicamente
           </button>
@@ -111,8 +58,8 @@ export default function DashboardAtencion({
           <div className="panel-body">
             <textarea
               value={atencion}
-              onChange={(e) => setAtencion(e.target.value)}
-              placeholder="Escribe o genera la atención clínica…"
+              onChange={(e) => onChangeAtencion(e.target.value)}
+              placeholder="Atención clínica…"
             />
           </div>
         </section>
@@ -123,7 +70,7 @@ export default function DashboardAtencion({
           <div className="panel-body">
             <textarea
               value={receta}
-              onChange={(e) => setReceta(e.target.value)}
+              onChange={(e) => onChangeReceta(e.target.value)}
               placeholder="Receta médica…"
             />
           </div>
@@ -135,14 +82,13 @@ export default function DashboardAtencion({
           <div className="panel-body">
             <textarea
               value={examenes}
-              onChange={(e) => setExamenes(e.target.value)}
+              onChange={(e) => onChangeExamenes(e.target.value)}
               placeholder="Exámenes solicitados…"
             />
           </div>
         </section>
       </main>
 
-      {/* ACCIONES CLÍNICAS */}
       <footer className="dashboard-footer">
         <button className="secondary">🦵 Orden kinésica</button>
         <button className="secondary">📝 Indicaciones</button>
