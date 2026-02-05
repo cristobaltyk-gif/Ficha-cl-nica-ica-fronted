@@ -6,6 +6,7 @@ import HomeMedico from "../pages/home/HomeMedico";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
+import MedicoAtencionCerebro from "./MedicoAtencionCerebro.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -169,6 +170,7 @@ async function cancelSlot(slot) {
 
       </Routes>
 
+      
       {/* MODAL MÉDICO — DECIDE EL CEREBRO */}
       <AgendaSlotModalMedico
         open={modalOpen}
