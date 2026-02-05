@@ -16,6 +16,7 @@ import AppLayout from "./AppLayout";
 =============================== */
 import SecretariaCerebro from "../roles/SecretariaCerebro.jsx";
 import MedicoCerebro from "../roles/MedicoCerebro.jsx";
+import MedicoAtencionCerebro from "../roles/MedicoAtencionCerebro.jsx";
 import KineCerebro from "../roles/KineCerebro.jsx";
 
 /* ===============================
@@ -35,7 +36,7 @@ function AuthGuard({ session, children }) {
 }
 
 /* ===============================
-   APP ROUTER — FINAL ICA
+   APP ROUTER — CANÓNICO FINAL
 =============================== */
 export default function AppRouter() {
   const { session, role } = useAuth();
@@ -65,12 +66,32 @@ export default function AppRouter() {
           }
         >
           {/* ===============================
-              ENTREGA DE MANDO A CADA CEREBRO
+              ENTREGA DE MANDO (EXPLÍCITA)
           =============================== */}
 
-          <Route path="/secretaria/*" element={<SecretariaCerebro />} />
-          <Route path="/medico/*" element={<MedicoCerebro />} />
-          <Route path="/kine/*" element={<KineCerebro />} />
+          {/* 🩺 ATENCIÓN CLÍNICA (PRIORIDAD) */}
+          <Route
+            path="/medico/atencion"
+            element={<MedicoAtencionCerebro />}
+          />
+
+          {/* 🩺 MÉDICO (AGENDA / GESTIÓN) */}
+          <Route
+            path="/medico/*"
+            element={<MedicoCerebro />}
+          />
+
+          {/* 🧾 SECRETARÍA */}
+          <Route
+            path="/secretaria/*"
+            element={<SecretariaCerebro />}
+          />
+
+          {/* 🏃‍♂️ KINE */}
+          <Route
+            path="/kine/*"
+            element={<KineCerebro />}
+          />
         </Route>
 
         {/* 🚫 FALLBACK */}
