@@ -197,10 +197,11 @@ async function cancelSlot(slot) {
           setModalSlot(null);
         }}
 
-        onCancel={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
+      onCancel={() => {
+  cancelSlot(modalSlot);
+  setModalOpen(false);
+  setModalSlot(null);
+}}  
       />
     </>
   );
