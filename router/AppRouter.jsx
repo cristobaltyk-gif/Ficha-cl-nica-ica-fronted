@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import MedicoAtencionCerebro from "../roles/MedicoAtencionCerebro.jsx";
 
 /* ===============================
    PÚBLICO
@@ -64,6 +65,11 @@ export default function AppRouter() {
             </AuthGuard>
           }
         >
+<Route
+    path="/medico/atencion"
+    element={<MedicoAtencionCerebro />}
+  />
+           
           {/* ===============================
               ENTREGA DE MANDO A CADA CEREBRO
           =============================== */}
