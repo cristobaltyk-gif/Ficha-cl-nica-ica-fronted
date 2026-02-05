@@ -3,6 +3,8 @@ import { useState } from "react";
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 import { useWebSpeech } from "../modules/webspeech/useWebSpeech";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
 
@@ -27,6 +29,9 @@ export default function MedicoAtencionCerebro() {
   const [receta, setReceta] = useState("");
   const [examenes, setExamenes] = useState("");
 
+  const [ordering, setOrdering] = useState(false);
+  const [orderError, setOrderError] = useState(null);
+
   // =========================
   // WEB SPEECH (CEREBRO)
   // =========================
@@ -43,26 +48,60 @@ export default function MedicoAtencionCerebro() {
     const texto = await speech.stop();
     if (!texto) return;
 
-    // texto crudo (para GPT después)
+    // texto crudo (para GPT)
     setRawText((prev) =>
       prev ? prev + "\n" + texto : texto
     );
 
-    // por ahora lo volcamos a atención
+    // mientras tanto lo volcamos a atención
     setAtencion((prev) =>
       prev ? prev + "\n" + texto : texto
     );
   }
 
   // =========================
-  // ORDENAR CLÍNICAMENTE (STUB)
+  // ORDENAR CLÍNICAMENTE (GPT REAL)
   // =========================
-  function handleOrdenarClinicamente() {
-    // aquí irá GPT
-    // usará rawText y seteará:
-    // setAtencion
-    // setReceta
-    // setExamenes
+  async function handleOrdenarClinicamente() {
+    if (!rawText.trim()) return;
+
+    setOrdering(true);
+    setOrderError(null);
+
+    try {
+      const res = await fetch(
+        `${API_URL}/api/gpt/clinical-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: rawText
+          })
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("GPT_ERROR");
+      }
+
+      const data = await res.json();
+
+      setAtencion(data.atencion || "");
+      setReceta(data.receta || "");
+      setExamenes(data.examenes || "");
+
+      // data.ordenKinesica
+      // data.indicaciones
+      // data.indicacionQuirurgica
+      // quedan disponibles para botones después
+
+    } catch (e) {
+      setOrderError("No se pudo ordenar clínicamente");
+    } finally {
+      setOrdering(false);
+    }
   }
 
   // =========================
@@ -88,7 +127,11 @@ export default function MedicoAtencionCerebro() {
       puedeDictar={speech.supported && !speech.loading}
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
-      puedeOrdenar={rawText.trim().length > 0}
+      puedeOrdenar={!ordering && rawText.trim().length > 0}
+
+      // opcional si después quieres mostrar error/estado
+      ordering={ordering}
+      orderError={orderError}
     />
   );
 }
