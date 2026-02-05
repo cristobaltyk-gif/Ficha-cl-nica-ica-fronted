@@ -160,10 +160,6 @@ async function cancelSlot(slot) {
   role="MEDICO"
   onAttend={handleAttend}
 />
-              <Route
-  path="atencion"
-  element={<MedicoAtencionCerebro />}
-/>
             ) : (
               <div className="agenda-placeholder">
                 Selecciona un día
@@ -171,7 +167,10 @@ async function cancelSlot(slot) {
             )
           }
         />
-
+<Route
+  path="atencion"
+  element={<MedicoAtencionCerebro />}
+/>
       </Routes>
 
       
