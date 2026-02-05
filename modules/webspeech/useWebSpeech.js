@@ -52,10 +52,8 @@ export function useWebSpeech(options = {}) {
     };
 
     recognition.onerror = () => {
-      stop();
-    };
-
-    recognition.onend = () => {
+      recognition.stop();
+      recognitionRef.current = null;
       setRecording(false);
       setLoading(false);
     };
@@ -74,7 +72,9 @@ export function useWebSpeech(options = {}) {
 
       setLoading(true);
 
-      recognitionRef.current.onend = () => {
+      const recognition = recognitionRef.current;
+
+      recognition.onend = () => {
         const text = textBufferRef.current.trim();
         recognitionRef.current = null;
         textBufferRef.current = "";
@@ -83,7 +83,7 @@ export function useWebSpeech(options = {}) {
         resolve(text);
       };
 
-      recognitionRef.current.stop();
+      recognition.stop();
     });
   }
 
