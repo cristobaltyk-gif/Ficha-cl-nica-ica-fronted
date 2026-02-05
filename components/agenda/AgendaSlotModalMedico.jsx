@@ -51,13 +51,6 @@ export default function AgendaSlotModalMedico({
             No contesta
           </button>
 
-          <button
-            className="danger"
-            disabled={loading}
-            onClick={() => onCancel?.(slot)}
-          >
-            Anular cita
-          </button>
         </div>
 
         <div className="modal-footer">
