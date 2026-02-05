@@ -33,7 +33,8 @@ export default function MedicoCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(null);
-
+  const [agendaReloadKey, setAgendaReloadKey] = useState(0);
+ 
   // MODAL MÉDICO (IGUAL A SECRETARÍA)
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
@@ -96,7 +97,31 @@ export default function MedicoCerebro() {
     setModalSlot(slot);
     setModalOpen(true);
   }
+async function cancelSlot(slot) {
+  if (!slot) return;
 
+  const { date, time, professional } = slot;
+
+  try {
+    await fetch(`${API_URL}/agenda/cancel`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date,
+        time,
+        professional
+      })
+    });
+
+    // 🔄 refrescar agenda diaria
+    setAgendaReloadKey(k => k + 1);
+
+  } catch {
+    // backend decide errores
+  }
+}
   // =========================
   // RENDER
   // =========================
@@ -128,12 +153,12 @@ export default function MedicoCerebro() {
           element={
             selectedDay ? (
               <AgendaDayController
-                professional={selectedDay.professional}
-                date={selectedDay.date}
-                role="MEDICO"
-                onAttend={handleAttend}
-                professionals={professionals}
-              />
+  key={agendaReloadKey}
+  professional={selectedDay.professional}
+  date={selectedDay.date}
+  role="MEDICO"
+  onAttend={handleAttend}
+/>
             ) : (
               <div className="agenda-placeholder">
                 Selecciona un día
