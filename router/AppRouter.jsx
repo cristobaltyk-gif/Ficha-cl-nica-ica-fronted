@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
-import MedicoAtencionCerebro from "../roles/MedicoAtencionCerebro.jsx";
+import AtencionClinicaCerebro from "../roles/AtencionClinicaCerebro.jsx";
 
 /* ===============================
    PÚBLICO
