@@ -251,13 +251,18 @@ useEffect(() => {
   // =========================
   // SLOT CLICK → EMITE AL CEREBRO
   // =========================
-  function handleSelectSlot(slot) {
-    onAttend?.({
-      ...slot,
-      professional,
-      date
-    });
+ function handleSelectSlot(slot) {
+  // 🔒 MÉDICO NO INTERACTÚA CON DISPONIBLES
+  if (role === "MEDICO" && slot.status === "available") {
+    return;
   }
+
+  onAttend?.({
+    ...slot,
+    professional,
+    date
+  });
+} 
 
   // =========================
   // RENDER
