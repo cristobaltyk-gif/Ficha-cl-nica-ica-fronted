@@ -22,7 +22,10 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
   // =========================
+  const [rawText, setRawText] = useState("");
   const [atencion, setAtencion] = useState("");
+  const [receta, setReceta] = useState("");
+  const [examenes, setExamenes] = useState("");
 
   // =========================
   // WEB SPEECH (CEREBRO)
@@ -37,10 +40,16 @@ export default function MedicoAtencionCerebro() {
 
     const texto = await speech.stop();
     if (texto) {
-      setAtencion((prev) =>
-        prev ? prev + "\n" + texto : texto
-      );
+      setRawText((prev) => (prev ? prev + "\n" + texto : texto));
+      setAtencion((prev) => (prev ? prev + "\n" + texto : texto));
     }
+  }
+
+  // =========================
+  // STUB ORDENAR CLÍNICAMENTE (AÚN NO GPT)
+  // =========================
+  function handleOrdenarClinicamente() {
+    // aquí después va GPT
   }
 
   // =========================
@@ -53,15 +62,20 @@ export default function MedicoAtencionCerebro() {
       time={state.time}
       professional={state.professional}
 
-      // 🔽 estado
       atencion={atencion}
-      setAtencion={setAtencion}
+      receta={receta}
+      examenes={examenes}
 
-      // 🔽 dictado
+      onChangeAtencion={setAtencion}
+      onChangeReceta={setReceta}
+      onChangeExamenes={setExamenes}
+
       onDictado={handleDictado}
       dictando={speech.recording}
-      dictadoDisponible={speech.supported}
-      dictadoLoading={speech.loading}
+      puedeDictar={speech.supported && !speech.loading}
+
+      onOrdenarClinicamente={handleOrdenarClinicamente}
+      puedeOrdenar={rawText.length > 0}
     />
   );
 }
