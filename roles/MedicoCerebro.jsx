@@ -167,10 +167,6 @@ async function cancelSlot(slot) {
             )
           }
         />
-<Route
-  path="atencion"
-  element={<MedicoAtencionCerebro />}
-/>
       </Routes>
 
       
