@@ -183,7 +183,7 @@ async function cancelSlot(slot) {
           setModalOpen(false);
           setModalSlot(null);
 
-          navigate("/medico/atencion
+          navigate("/medico/atencion", {
             state: {
               rut: slot.patient?.rut || slot.rut,
               date: selectedDay.date,
