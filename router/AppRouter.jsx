@@ -66,7 +66,7 @@ export default function AppRouter() {
           }
         >
 <Route
-    path="/medico/atencion"
+    path="/atencion"
     element={<MedicoAtencionCerebro />}
   />
            
