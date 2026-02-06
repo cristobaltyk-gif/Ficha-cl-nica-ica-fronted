@@ -10,25 +10,21 @@ export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
 
   // =========================
-  // REDIRECCIÓN SEGURA
-  // =========================
-  const [redirect, setRedirect] = useState(false);
-
-  useEffect(() => {
-    if (
-      !state ||
-      !state.rut ||
-      !state.date ||
-      !state.time ||
-      !state.professional
-    ) {
-      setRedirect(true);
-    }
-  }, [state]);
-
-  if (redirect) {
-    return <Navigate to="/medico/agenda" replace />;
-  }
+// VALIDACIÓN DE CONTEXTO
+// =========================
+if (
+  !state ||
+  !state.rut ||
+  !state.date ||
+  !state.time ||
+  !state.professional
+) {
+  return (
+    <div className="dashboard-placeholder">
+      Atención inválida o acceso directo no permitido
+    </div>
+  );
+}
 
   // =========================
   // FICHA ADMINISTRATIVA
