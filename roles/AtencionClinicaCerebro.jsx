@@ -1,5 +1,6 @@
 import { useLocation, Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 import { useWebSpeech } from "../modules/webspeech/useWebSpeech";
 
@@ -9,7 +10,7 @@ export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
 
   // =========================
-  // VALIDACIÓN DURA
+  // VALIDACIÓN DURA DE ENTRADA
   // =========================
   if (
     !state ||
@@ -20,6 +21,38 @@ export default function MedicoAtencionCerebro() {
   ) {
     return <Navigate to="/medico/agenda" replace />;
   }
+
+  // =========================
+  // FICHA ADMINISTRATIVA
+  // =========================
+  const [admin, setAdmin] = useState(null);
+  const [adminError, setAdminError] = useState(null);
+
+  useEffect(() => {
+    async function loadFichaAdministrativa() {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/fichas/admin/${state.rut}`,
+          {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("ADMIN_NOT_FOUND");
+        }
+
+        const data = await res.json();
+        setAdmin(data);
+      } catch (e) {
+        setAdminError("No se pudo cargar ficha administrativa");
+      }
+    }
+
+    loadFichaAdministrativa();
+  }, [state.rut]);
 
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
@@ -33,7 +66,7 @@ export default function MedicoAtencionCerebro() {
   const [orderError, setOrderError] = useState(null);
 
   // =========================
-  // WEB SPEECH (CEREBRO)
+  // WEB SPEECH (REAL)
   // =========================
   const speech = useWebSpeech({ lang: "es-CL" });
 
@@ -53,7 +86,7 @@ export default function MedicoAtencionCerebro() {
       prev ? prev + "\n" + texto : texto
     );
 
-    // mientras tanto lo volcamos a atención
+    // volcamos también a atención visible
     setAtencion((prev) =>
       prev ? prev + "\n" + texto : texto
     );
@@ -95,7 +128,7 @@ export default function MedicoAtencionCerebro() {
       // data.ordenKinesica
       // data.indicaciones
       // data.indicacionQuirurgica
-      // quedan disponibles para botones después
+      // quedan disponibles para botones posteriores
 
     } catch (e) {
       setOrderError("No se pudo ordenar clínicamente");
@@ -105,15 +138,36 @@ export default function MedicoAtencionCerebro() {
   }
 
   // =========================
+  // BLOQUEOS ADMINISTRATIVOS
+  // =========================
+  if (adminError) {
+    return <div>Error cargando ficha administrativa</div>;
+  }
+
+  if (!admin) {
+    return <div>Cargando ficha administrativa…</div>;
+  }
+
+  // =========================
   // ENTREGA DE MANDO A UI
   // =========================
   return (
     <DashboardAtencion
-      rut={state.rut}
+      /* ===============================
+         FICHA ADMINISTRATIVA
+      =============================== */
+      rut={admin.rut}
+      nombre={`${admin.nombre} ${admin.apellido_paterno}`}
+      edad={admin.edad}
+      sexo={admin.sexo}
+
       date={state.date}
       time={state.time}
       professional={state.professional}
 
+      /* ===============================
+         CONTENIDO CLÍNICO
+      =============================== */
       atencion={atencion}
       receta={receta}
       examenes={examenes}
@@ -122,6 +176,9 @@ export default function MedicoAtencionCerebro() {
       onChangeReceta={setReceta}
       onChangeExamenes={setExamenes}
 
+      /* ===============================
+         ACCIONES
+      =============================== */
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
@@ -129,7 +186,7 @@ export default function MedicoAtencionCerebro() {
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering && rawText.trim().length > 0}
 
-      // opcional si después quieres mostrar error/estado
+      /* opcional para UI futura */
       ordering={ordering}
       orderError={orderError}
     />
