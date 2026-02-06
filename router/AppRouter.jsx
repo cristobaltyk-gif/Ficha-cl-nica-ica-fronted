@@ -66,9 +66,9 @@ export default function AppRouter() {
           }
         >
 <Route
-    path="/atencion"
-    element={<MedicoAtencionCerebro />}
-  />
+  path="/atencion"
+  element={<AtencionClinicaCerebro />}
+/>
            
           {/* ===============================
               ENTREGA DE MANDO A CADA CEREBRO
