@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-import { useAuth } from "../auth/AuthContext.jsx"; // 👈 AGREGADO
+import { useAuth } from "../auth/AuthContext.jsx";
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 import { useWebSpeech } from "../modules/webspeech/useWebSpeech";
 
@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
-  const { session } = useAuth(); // 👈 USUARIO INTERNO REAL (clave en USERS)
+  const { session } = useAuth(); // 🔐 usuario interno real
 
   // =========================
   // VALIDACIÓN DE CONTEXTO
@@ -41,7 +41,7 @@ export default function MedicoAtencionCerebro() {
       try {
         setAdminError(null);
 
-        const internalUser = session?.usuario; // 👈 CLAVE REAL EN USERS
+        const internalUser = session?.usuario;
         if (!internalUser) {
           setAdminError("Sesión inválida (sin usuario interno)");
           return;
@@ -52,7 +52,6 @@ export default function MedicoAtencionCerebro() {
           {
             headers: {
               "Content-Type": "application/json",
-              // 🔐 AUTH INTERNO REAL
               "X-Internal-User": internalUser
             }
           }
@@ -78,8 +77,9 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
   // =========================
-  const [rawText, setRawText] = useState("");     // texto crudo dictado
-  const [atencion, setAtencion] = useState("");  // editable
+  const [rawText, setRawText] = useState("");       // texto crudo dictado
+  const [atencion, setAtencion] = useState("");
+  const [diagnostico, setDiagnostico] = useState(""); // ✅ NUEVO
   const [receta, setReceta] = useState("");
   const [examenes, setExamenes] = useState("");
 
@@ -102,6 +102,7 @@ export default function MedicoAtencionCerebro() {
 
     setRawText(prev => (prev ? prev + "\n" + texto : texto));
     setAtencion(prev => (prev ? prev + "\n" + texto : texto));
+    // ❌ NO tocamos diagnóstico aquí
   }
 
   // =========================
@@ -132,9 +133,12 @@ export default function MedicoAtencionCerebro() {
       }
 
       const data = await res.json();
+
       setAtencion(data.atencion || "");
+      setDiagnostico(data.diagnostico || ""); // ✅ NUEVO
       setReceta(data.receta || "");
       setExamenes(data.examenes || "");
+
     } catch (e) {
       console.error("ERROR GPT:", e);
       setOrderError("No se pudo ordenar clínicamente");
@@ -166,19 +170,20 @@ export default function MedicoAtencionCerebro() {
       nombre={`${admin.nombre} ${admin.apellido_paterno}`}
       edad={admin.edad}
       sexo={admin.sexo}
-
       date={state.date}
       time={state.time}
-      professional={state.professional}
+      professional={admin.profesional_nombre || state.professional}
 
       /* ===============================
          CONTENIDO CLÍNICO
       =============================== */
       atencion={atencion}
+      diagnostico={diagnostico}          // ✅ NUEVO
       receta={receta}
       examenes={examenes}
 
       onChangeAtencion={setAtencion}
+      onChangeDiagnostico={setDiagnostico} // ✅ NUEVO
       onChangeReceta={setReceta}
       onChangeExamenes={setExamenes}
 
