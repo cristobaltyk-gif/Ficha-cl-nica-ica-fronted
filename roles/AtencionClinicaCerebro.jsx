@@ -58,8 +58,6 @@ export default function MedicoAtencionCerebro() {
         );
 
         if (!res.ok) {
-          const txt = await res.text().catch(() => "");
-          console.error("ADMIN FETCH FAIL", res.status, txt);
           throw new Error(`ADMIN_${res.status}`);
         }
 
@@ -77,9 +75,9 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
   // =========================
-  const [rawText, setRawText] = useState("");       // texto crudo dictado
+  const [rawText, setRawText] = useState("");        // 🗣️ entrevista cruda
   const [atencion, setAtencion] = useState("");
-  const [diagnostico, setDiagnostico] = useState(""); // ✅ NUEVO
+  const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
   const [examenes, setExamenes] = useState("");
 
@@ -87,7 +85,7 @@ export default function MedicoAtencionCerebro() {
   const [orderError, setOrderError] = useState(null);
 
   // =========================
-  // WEB SPEECH (REAL)
+  // WEB SPEECH (CONVERSACIÓN)
   // =========================
   const speech = useWebSpeech({ lang: "es-CL" });
 
@@ -100,16 +98,19 @@ export default function MedicoAtencionCerebro() {
     const texto = await speech.stop();
     if (!texto) return;
 
+    // 👉 acumulamos conversación
     setRawText(prev => (prev ? prev + "\n" + texto : texto));
     setAtencion(prev => (prev ? prev + "\n" + texto : texto));
-    // ❌ NO tocamos diagnóstico aquí
   }
 
   // =========================
-  // ORDENAR CLÍNICAMENTE (GPT REAL)
+  // ORDENAR CLÍNICAMENTE (GPT)
   // =========================
   async function handleOrdenarClinicamente() {
-    if (!rawText.trim()) return;
+    if (!rawText.trim()) {
+      setOrderError("No hay dictado para ordenar");
+      return;
+    }
 
     setOrdering(true);
     setOrderError(null);
@@ -119,23 +120,18 @@ export default function MedicoAtencionCerebro() {
         `${API_URL}/api/gpt/clinical-order`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ text: rawText })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: rawText }) // 🧠 GPT recibe entrevista
         }
       );
 
-      if (!res.ok) {
-        const txt = await res.text().catch(() => "");
-        console.error("GPT FAIL", res.status, txt);
-        throw new Error("GPT_ERROR");
-      }
+      if (!res.ok) throw new Error("GPT_ERROR");
 
       const data = await res.json();
 
+      // 🔁 GPT pasa a ser la verdad clínica
       setAtencion(data.atencion || "");
-      setDiagnostico(data.diagnostico || ""); // ✅ NUEVO
+      setDiagnostico(data.diagnostico || "");
       setReceta(data.receta || "");
       setExamenes(data.examenes || "");
 
@@ -150,22 +146,14 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // BLOQUEOS ADMINISTRATIVOS
   // =========================
-  if (adminError) {
-    return <div>{adminError}</div>;
-  }
-
-  if (!admin) {
-    return <div>Cargando ficha administrativa…</div>;
-  }
+  if (adminError) return <div>{adminError}</div>;
+  if (!admin) return <div>Cargando ficha administrativa…</div>;
 
   // =========================
   // ENTREGA DE MANDO A UI
   // =========================
   return (
     <DashboardAtencion
-      /* ===============================
-         FICHA ADMINISTRATIVA
-      =============================== */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno}`}
       edad={admin.edad}
@@ -174,28 +162,22 @@ export default function MedicoAtencionCerebro() {
       time={state.time}
       professional={admin.profesional_nombre || state.professional}
 
-      /* ===============================
-         CONTENIDO CLÍNICO
-      =============================== */
       atencion={atencion}
-      diagnostico={diagnostico}          // ✅ NUEVO
+      diagnostico={diagnostico}
       receta={receta}
       examenes={examenes}
 
       onChangeAtencion={setAtencion}
-      onChangeDiagnostico={setDiagnostico} // ✅ NUEVO
+      onChangeDiagnostico={setDiagnostico}
       onChangeReceta={setReceta}
       onChangeExamenes={setExamenes}
 
-      /* ===============================
-         ACCIONES
-      =============================== */
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
-      puedeOrdenar={!ordering && rawText.trim().length > 0}
+      puedeOrdenar={!ordering}   // 🔑 YA NO BLOQUEA
 
       ordering={ordering}
       orderError={orderError}
