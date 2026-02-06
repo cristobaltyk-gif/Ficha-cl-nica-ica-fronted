@@ -10,15 +10,23 @@ export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
 
   // =========================
-  // VALIDACIÓN DURA DE ENTRADA
+  // REDIRECCIÓN SEGURA
   // =========================
-  if (
-    !state ||
-    !state.rut ||
-    !state.date ||
-    !state.time ||
-    !state.professional
-  ) {
+  const [redirect, setRedirect] = useState(false);
+
+  useEffect(() => {
+    if (
+      !state ||
+      !state.rut ||
+      !state.date ||
+      !state.time ||
+      !state.professional
+    ) {
+      setRedirect(true);
+    }
+  }, [state]);
+
+  if (redirect) {
     return <Navigate to="/medico/agenda" replace />;
   }
 
@@ -29,6 +37,8 @@ export default function MedicoAtencionCerebro() {
   const [adminError, setAdminError] = useState(null);
 
   useEffect(() => {
+    if (!state?.rut) return;
+
     async function loadFichaAdministrativa() {
       try {
         const res = await fetch(
@@ -52,7 +62,7 @@ export default function MedicoAtencionCerebro() {
     }
 
     loadFichaAdministrativa();
-  }, [state.rut]);
+  }, [state?.rut]);
 
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
@@ -128,7 +138,7 @@ export default function MedicoAtencionCerebro() {
       // data.ordenKinesica
       // data.indicaciones
       // data.indicacionQuirurgica
-      // quedan disponibles para botones posteriores
+      // disponibles para botones futuros
 
     } catch (e) {
       setOrderError("No se pudo ordenar clínicamente");
@@ -186,7 +196,7 @@ export default function MedicoAtencionCerebro() {
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering && rawText.trim().length > 0}
 
-      /* opcional para UI futura */
+      /* flags futuros */
       ordering={ordering}
       orderError={orderError}
     />
