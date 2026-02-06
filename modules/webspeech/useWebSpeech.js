@@ -1,22 +1,18 @@
 import { useRef, useState } from "react";
 
 /*
-useWebSpeech
-PRODUCCION REAL FRONTEND
+useWebSpeech — PRODUCCIÓN ICA
 
-Dictado por voz en tiempo real usando Web Speech API
-Devuelve SOLO texto
-No guarda audio
-No backend
-No fetch
-Modulo independiente
+✔ Web Speech API real
+✔ Compatible móvil / desktop
+✔ HTTPS obligatorio
+✔ Dictado robusto
+✔ Devuelve SOLO texto
 */
 
 export function useWebSpeech(options = {}) {
   const {
-    lang = "es-CL",
-    continuous = true,
-    interimResults = false
+    lang = "es-CL"
   } = options;
 
   const recognitionRef = useRef(null);
@@ -25,6 +21,7 @@ export function useWebSpeech(options = {}) {
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [supported, setSupported] = useState(true);
+  const [error, setError] = useState(null);
 
   function start() {
     const SpeechRecognition =
@@ -32,35 +29,72 @@ export function useWebSpeech(options = {}) {
 
     if (!SpeechRecognition) {
       setSupported(false);
+      setError("Navegador no soporta dictado");
       return;
     }
 
-    const recognition = new SpeechRecognition();
-    recognition.lang = lang;
-    recognition.continuous = continuous;
-    recognition.interimResults = interimResults;
+    try {
+      const recognition = new SpeechRecognition();
 
-    textBufferRef.current = "";
+      recognition.lang = lang;
 
-    recognition.onresult = (event) => {
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          textBufferRef.current +=
-            event.results[i][0].transcript + " ";
+      // 🔑 CLAVE PARA MÓVIL
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      textBufferRef.current = "";
+      setError(null);
+
+      recognition.onresult = (event) => {
+        let interimText = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+
+          if (event.results[i].isFinal) {
+            textBufferRef.current += transcript + " ";
+          } else {
+            interimText += transcript;
+          }
         }
-      }
-    };
 
-    recognition.onerror = () => {
-      recognition.stop();
-      recognitionRef.current = null;
+        // fallback móvil: guarda aunque no marque final
+        if (!textBufferRef.current && interimText) {
+          textBufferRef.current = interimText + " ";
+        }
+      };
+
+      recognition.onerror = (e) => {
+        console.error("Speech error:", e);
+        setError("Error de dictado");
+        stopInternal();
+      };
+
+      recognition.onend = () => {
+        setRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      setRecording(true);
+
+    } catch (e) {
+      console.error("Speech init error:", e);
+      setError("No se pudo iniciar dictado");
       setRecording(false);
-      setLoading(false);
-    };
+    }
+  }
 
-    recognitionRef.current = recognition;
-    recognition.start();
-    setRecording(true);
+  function stopInternal() {
+    if (recognitionRef.current) {
+      recognitionRef.current.onresult = null;
+      recognitionRef.current.onerror = null;
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setRecording(false);
+    setLoading(false);
   }
 
   function stop() {
@@ -76,8 +110,8 @@ export function useWebSpeech(options = {}) {
 
       recognition.onend = () => {
         const text = textBufferRef.current.trim();
-        recognitionRef.current = null;
         textBufferRef.current = "";
+        recognitionRef.current = null;
         setRecording(false);
         setLoading(false);
         resolve(text);
@@ -91,6 +125,7 @@ export function useWebSpeech(options = {}) {
     supported,
     recording,
     loading,
+    error,
     start,
     stop
   };
