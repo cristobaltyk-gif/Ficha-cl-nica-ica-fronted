@@ -1,13 +1,13 @@
 import "../styles/atencion/dashboard-atencion.css";
 
 /*
-DashboardAtencion — LAYOUT PURO (ATENCIÓN)
+DashboardAtencion — PRODUCCIÓN REAL (ICA)
 
-✔ NO fetch
-✔ NO lógica clínica
-✔ NO roles
-✔ SOLO render
-✔ Atención Cerebro controla todo
+✔ UI pura
+✔ Sin fetch
+✔ Sin lógica
+✔ Cerebro controla todo
+✔ Preparado para historial y expansión admin
 */
 
 export default function DashboardAtencion({
@@ -23,7 +23,7 @@ export default function DashboardAtencion({
   professional,
 
   /* ===============================
-     CONTENIDO
+     CONTENIDO CLÍNICO
   =============================== */
   atencion,
   receta,
@@ -43,7 +43,7 @@ export default function DashboardAtencion({
   onOrdenarClinicamente,
   puedeOrdenar,
 
-  onHistorial   // 👈 NUEVO
+  onHistorial
 }) {
   return (
     <div className="dashboard dashboard-atencion">
@@ -51,14 +51,15 @@ export default function DashboardAtencion({
       {/* ===============================
           HEADER — FICHA ADMINISTRATIVA
       =============================== */}
-      <header className="dashboard-header">
-        <div className="dashboard-header-top">
+      <header className="dashboard-header admin-header">
+
+        <div className="admin-header-top">
           <h1>Atención Clínica</h1>
 
-          <div className="dashboard-actions">
+          <div className="admin-actions">
             {onHistorial && (
               <button
-                className="secondary"
+                className="btn-outline"
                 onClick={onHistorial}
                 title="Ver historial de atenciones"
               >
@@ -67,35 +68,36 @@ export default function DashboardAtencion({
             )}
 
             <button
-              className={dictando ? "danger" : "primary"}
+              className={dictando ? "btn-danger" : "btn-primary"}
               onClick={onDictado}
               disabled={!puedeDictar}
             >
-              {dictando ? "⏹ Detener dictado" : "🎙 Dictar consulta"}
+              {dictando ? "⏹ Detener dictado" : "🎙 Dictar"}
             </button>
 
             <button
-              className="secondary"
+              className="btn-secondary"
               disabled={!puedeOrdenar}
               onClick={onOrdenarClinicamente}
             >
-              🧠 Ordenar clínicamente
+              🧠 Ordenar
             </button>
           </div>
         </div>
 
-        <div className="dashboard-meta">
-          <span><strong>Paciente:</strong> {nombre}</span>
-          <span><strong>RUT:</strong> {rut}</span>
-          <span><strong>Edad:</strong> {edad}</span>
-          <span><strong>Sexo:</strong> {sexo}</span>
-          <span><strong>Fecha:</strong> {date} {time}</span>
-          <span><strong>Profesional:</strong> {professional}</span>
+        <div className="admin-grid">
+          <div><strong>Paciente</strong><span>{nombre}</span></div>
+          <div><strong>RUT</strong><span>{rut}</span></div>
+          <div><strong>Edad</strong><span>{edad}</span></div>
+          <div><strong>Sexo</strong><span>{sexo}</span></div>
+          <div><strong>Fecha</strong><span>{date} {time}</span></div>
+          <div><strong>Profesional</strong><span>{professional}</span></div>
         </div>
+
       </header>
 
       {/* ===============================
-          BODY — ATENCIÓN / RECETA / EXÁMENES
+          BODY — CONTENIDO CLÍNICO
       =============================== */}
       <main className="dashboard-body atencion-layout">
 
@@ -106,7 +108,7 @@ export default function DashboardAtencion({
             <textarea
               value={atencion}
               onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Atención clínica…"
+              placeholder="Evolución, anamnesis, examen físico, diagnóstico…"
             />
           </div>
         </section>
@@ -118,7 +120,7 @@ export default function DashboardAtencion({
             <textarea
               value={receta}
               onChange={(e) => onChangeReceta(e.target.value)}
-              placeholder="Receta médica…"
+              placeholder="Medicamentos, dosis, frecuencia…"
             />
           </div>
         </section>
@@ -134,16 +136,18 @@ export default function DashboardAtencion({
             />
           </div>
         </section>
+
       </main>
 
       {/* ===============================
           FOOTER — ACCIONES POST ATENCIÓN
       =============================== */}
       <footer className="dashboard-footer">
-        <button className="secondary">🦵 Orden kinésica</button>
-        <button className="secondary">📝 Indicaciones</button>
-        <button className="secondary">🔪 Indicación quirúrgica</button>
+        <button className="btn-outline">🦵 Orden kinésica</button>
+        <button className="btn-outline">📝 Indicaciones</button>
+        <button className="btn-outline">🔪 Indicación quirúrgica</button>
       </footer>
+
     </div>
   );
 }
