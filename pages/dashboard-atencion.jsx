@@ -26,10 +26,12 @@ export default function DashboardAtencion({
      CONTENIDO CLÍNICO
   =============================== */
   atencion,
+  diagnostico,
   receta,
   examenes,
 
   onChangeAtencion,
+  onChangeDiagnostico,
   onChangeReceta,
   onChangeExamenes,
 
@@ -101,19 +103,31 @@ export default function DashboardAtencion({
       =============================== */}
       <main className="dashboard-body atencion-layout">
 
-        {/* ATENCIÓN */}
+        {/* 1️⃣ ATENCIÓN */}
         <section className="panel">
           <div className="panel-header">Atención</div>
           <div className="panel-body">
             <textarea
               value={atencion}
               onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Evolución, anamnesis, examen físico, diagnóstico…"
+              placeholder="Evolución, anamnesis, examen físico…"
             />
           </div>
         </section>
 
-        {/* RECETA */}
+        {/* 2️⃣ DIAGNÓSTICO */}
+        <section className="panel">
+          <div className="panel-header">Diagnóstico</div>
+          <div className="panel-body">
+            <textarea
+              value={diagnostico}
+              onChange={(e) => onChangeDiagnostico(e.target.value)}
+              placeholder="Diagnóstico principal y secundarios…"
+            />
+          </div>
+        </section>
+
+        {/* 3️⃣ RECETA */}
         <section className="panel">
           <div className="panel-header">Receta</div>
           <div className="panel-body">
@@ -125,7 +139,7 @@ export default function DashboardAtencion({
           </div>
         </section>
 
-        {/* EXÁMENES */}
+        {/* 4️⃣ EXÁMENES */}
         <section className="panel">
           <div className="panel-header">Exámenes</div>
           <div className="panel-body">
