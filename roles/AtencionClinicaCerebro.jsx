@@ -1,4 +1,4 @@
-import { useLocation, Navigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
@@ -10,21 +10,21 @@ export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
 
   // =========================
-// VALIDACIÓN DE CONTEXTO
-// =========================
-if (
-  !state ||
-  !state.rut ||
-  !state.date ||
-  !state.time ||
-  !state.professional
-) {
-  return (
-    <div className="dashboard-placeholder">
-      Atención inválida o acceso directo no permitido
-    </div>
-  );
-}
+  // VALIDACIÓN DE CONTEXTO
+  // =========================
+  if (
+    !state ||
+    !state.rut ||
+    !state.date ||
+    !state.time ||
+    !state.professional
+  ) {
+    return (
+      <div className="dashboard-placeholder">
+        Atención inválida o acceso directo no permitido
+      </div>
+    );
+  }
 
   // =========================
   // FICHA ADMINISTRATIVA
@@ -41,7 +41,9 @@ if (
           `${API_URL}/api/fichas/admin/${state.rut}`,
           {
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              // 🔐 AUTH INTERNO REAL
+              "X-Internal-User": state.professional
             }
           }
         );
@@ -53,12 +55,13 @@ if (
         const data = await res.json();
         setAdmin(data);
       } catch (e) {
+        console.error("ERROR FICHA ADMIN:", e);
         setAdminError("No se pudo cargar ficha administrativa");
       }
     }
 
     loadFichaAdministrativa();
-  }, [state?.rut]);
+  }, [state?.rut, state?.professional]);
 
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
@@ -88,12 +91,12 @@ if (
     if (!texto) return;
 
     // texto crudo (para GPT)
-    setRawText((prev) =>
+    setRawText(prev =>
       prev ? prev + "\n" + texto : texto
     );
 
     // volcamos también a atención visible
-    setAtencion((prev) =>
+    setAtencion(prev =>
       prev ? prev + "\n" + texto : texto
     );
   }
@@ -131,12 +134,8 @@ if (
       setReceta(data.receta || "");
       setExamenes(data.examenes || "");
 
-      // data.ordenKinesica
-      // data.indicaciones
-      // data.indicacionQuirurgica
-      // disponibles para botones futuros
-
     } catch (e) {
+      console.error("ERROR GPT:", e);
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
       setOrdering(false);
