@@ -1,0 +1,46 @@
+/* =================================================
+   DASHBOARD ATENCIÓN KINESIOLOGÍA — ICA
+================================================= */
+
+.dashboard-kine {
+  height: 100%;
+  background: #f5f7fb;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-kine .dashboard-body.kine-layout {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1.2fr 1fr 1fr 1.2fr;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+/* reutiliza panel, header, textarea, botones ICA */
+.dashboard-kine .panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dashboard-kine textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  resize: none;
+  outline: none;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .dashboard-kine .dashboard-body.kine-layout {
+    grid-template-rows: auto auto auto auto;
+  }
+}
