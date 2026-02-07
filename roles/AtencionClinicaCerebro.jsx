@@ -75,7 +75,7 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // ESTADO CLÍNICO (CEREBRO)
   // =========================
-  const [rawText, setRawText] = useState("");        // 🗣️ entrevista cruda
+  const [rawText, setRawText] = useState(""); // 🗣️ buffer dictado
   const [atencion, setAtencion] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
@@ -98,7 +98,6 @@ export default function MedicoAtencionCerebro() {
     const texto = await speech.stop();
     if (!texto) return;
 
-    // 👉 acumulamos conversación
     setRawText(prev => (prev ? prev + "\n" + texto : texto));
     setAtencion(prev => (prev ? prev + "\n" + texto : texto));
   }
@@ -107,8 +106,10 @@ export default function MedicoAtencionCerebro() {
   // ORDENAR CLÍNICAMENTE (GPT)
   // =========================
   async function handleOrdenarClinicamente() {
-    if (!rawText.trim()) {
-      setOrderError("No hay dictado para ordenar");
+    const inputText = atencion.trim() || rawText.trim();
+
+    if (!inputText) {
+      setOrderError("No hay texto para ordenar");
       return;
     }
 
@@ -121,7 +122,7 @@ export default function MedicoAtencionCerebro() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: rawText }) // 🧠 GPT recibe entrevista
+          body: JSON.stringify({ text: inputText }) // ✅ FUENTE CORRECTA
         }
       );
 
@@ -177,7 +178,7 @@ export default function MedicoAtencionCerebro() {
       puedeDictar={speech.supported && !speech.loading}
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
-      puedeOrdenar={!ordering}   // 🔑 YA NO BLOQUEA
+      puedeOrdenar={!ordering}
 
       ordering={ordering}
       orderError={orderError}
