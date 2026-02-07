@@ -9,7 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
-  const { session } = useAuth(); // 🔐 usuario interno real
+  const { session } = useAuth();
 
   // =========================
   // VALIDACIÓN DE CONTEXTO
@@ -43,7 +43,7 @@ export default function MedicoAtencionCerebro() {
 
         const internalUser = session?.usuario;
         if (!internalUser) {
-          setAdminError("Sesión inválida (sin usuario interno)");
+          setAdminError("Sesión inválida");
           return;
         }
 
@@ -57,14 +57,12 @@ export default function MedicoAtencionCerebro() {
           }
         );
 
-        if (!res.ok) {
-          throw new Error(`ADMIN_${res.status}`);
-        }
+        if (!res.ok) throw new Error("ADMIN_ERROR");
 
         const data = await res.json();
         setAdmin(data);
       } catch (e) {
-        console.error("ERROR FICHA ADMIN:", e);
+        console.error("ERROR ADMIN:", e);
         setAdminError("No se pudo cargar ficha administrativa");
       }
     }
@@ -73,9 +71,9 @@ export default function MedicoAtencionCerebro() {
   }, [state?.rut, session?.usuario]);
 
   // =========================
-  // ESTADO CLÍNICO (CEREBRO)
+  // ESTADO CLÍNICO
   // =========================
-  const [rawText, setRawText] = useState(""); // 🗣️ buffer dictado
+  const [rawText, setRawText] = useState(""); // dictado
   const [atencion, setAtencion] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
@@ -85,7 +83,7 @@ export default function MedicoAtencionCerebro() {
   const [orderError, setOrderError] = useState(null);
 
   // =========================
-  // WEB SPEECH (CONVERSACIÓN)
+  // WEB SPEECH
   // =========================
   const speech = useWebSpeech({ lang: "es-CL" });
 
@@ -108,6 +106,8 @@ export default function MedicoAtencionCerebro() {
   async function handleOrdenarClinicamente() {
     const inputText = atencion.trim() || rawText.trim();
 
+    console.log("📤 TEXTO ENVIADO A GPT:\n", inputText);
+
     if (!inputText) {
       setOrderError("No hay texto para ordenar");
       return;
@@ -122,22 +122,24 @@ export default function MedicoAtencionCerebro() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: inputText }) // ✅ FUENTE CORRECTA
+          body: JSON.stringify({ text: inputText })
         }
       );
+
+      console.log("📥 STATUS GPT:", res.status);
 
       if (!res.ok) throw new Error("GPT_ERROR");
 
       const data = await res.json();
+      console.log("📥 RESPUESTA GPT:", data);
 
-      // 🔁 GPT pasa a ser la verdad clínica
       setAtencion(data.atencion || "");
       setDiagnostico(data.diagnostico || "");
       setReceta(data.receta || "");
       setExamenes(data.examenes || "");
 
     } catch (e) {
-      console.error("ERROR GPT:", e);
+      console.error("❌ ERROR GPT:", e);
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
       setOrdering(false);
@@ -145,13 +147,13 @@ export default function MedicoAtencionCerebro() {
   }
 
   // =========================
-  // BLOQUEOS ADMINISTRATIVOS
+  // BLOQUEOS
   // =========================
   if (adminError) return <div>{adminError}</div>;
   if (!admin) return <div>Cargando ficha administrativa…</div>;
 
   // =========================
-  // ENTREGA DE MANDO A UI
+  // UI
   // =========================
   return (
     <DashboardAtencion
@@ -179,7 +181,6 @@ export default function MedicoAtencionCerebro() {
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering}
-
       ordering={ordering}
       orderError={orderError}
     />
