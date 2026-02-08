@@ -7,7 +7,7 @@ DashboardAtencion — PRODUCCIÓN REAL (ICA)
 ✔ Sin fetch
 ✔ Sin lógica
 ✔ Cerebro controla todo
-✔ Extensible (historial / guardar / cancelar)
+✔ Preparado para historial y expansión admin
 */
 
 export default function DashboardAtencion({
@@ -40,7 +40,7 @@ export default function DashboardAtencion({
   onChangeExamenes,
 
   /* ===============================
-     ACCIONES (CONTROLADAS POR CEREBRO)
+     ACCIONES
   =============================== */
   onDictado,
   dictando,
@@ -65,12 +65,11 @@ export default function DashboardAtencion({
           <h1>Atención Clínica</h1>
 
           <div className="admin-actions">
-
             {onHistorial && (
               <button
                 className="btn-outline"
                 onClick={onHistorial}
-                title="Ver historial clínico"
+                title="Ver historial de atenciones"
               >
                 📚 Historial
               </button>
@@ -126,7 +125,7 @@ export default function DashboardAtencion({
             <textarea
               value={atencion}
               onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Anamnesis, antecedentes, examen físico…"
+              placeholder="Evolución, anamnesis, examen físico…"
             />
           </div>
         </section>
@@ -138,7 +137,7 @@ export default function DashboardAtencion({
             <textarea
               value={diagnostico}
               onChange={(e) => onChangeDiagnostico(e.target.value)}
-              placeholder="Diagnóstico clínico…"
+              placeholder="Diagnóstico principal y secundarios…"
             />
           </div>
         </section>
@@ -150,7 +149,7 @@ export default function DashboardAtencion({
             <textarea
               value={receta}
               onChange={(e) => onChangeReceta(e.target.value)}
-              placeholder="Medicamentos, dosis y duración…"
+              placeholder="Medicamentos, dosis, frecuencia…"
             />
           </div>
         </section>
@@ -170,13 +169,16 @@ export default function DashboardAtencion({
       </main>
 
       {/* ===============================
-          FOOTER — ACCIONES FINALES
+          FOOTER — ACCIONES POST ATENCIÓN
       =============================== */}
       <footer className="dashboard-footer">
+        <button className="btn-outline">🦵 Orden kinésica</button>
+        <button className="btn-outline">📝 Indicaciones</button>
+        <button className="btn-outline">🔪 Indicación quirúrgica</button>
 
         {onGuardar && (
           <button className="btn-primary" onClick={onGuardar}>
-            💾 Guardar atención
+            💾 Guardar
           </button>
         )}
 
@@ -185,7 +187,6 @@ export default function DashboardAtencion({
             ❌ Cancelar
           </button>
         )}
-
       </footer>
 
     </div>
