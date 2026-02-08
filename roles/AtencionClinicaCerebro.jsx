@@ -115,21 +115,24 @@ export default function MedicoAtencionCerebro() {
   const [orderError, setOrderError] = useState(null);
 
   // =========================
-  // WEB SPEECH
+  // WEB SPEECH — AUTO CICLO POR CHUNKS
   // =========================
-  const speech = useWebSpeech({ lang: "es-CL" });
-
-  async function handleDictado() {
-    if (!speech.recording) {
-      speech.start();
-      return;
+  const speech = useWebSpeech({
+    lang: "es-CL",
+    onChunk: (text) => {
+      // 🔒 Cada chunk confirmado se guarda inmediatamente
+      setRawText(prev => (prev ? prev + "\n" + text : text));
+      setAtencion(prev => (prev ? prev + "\n" + text : text));
     }
+  });
 
-    const texto = await speech.stop();
-    if (!texto) return;
-
-    setRawText(prev => (prev ? prev + "\n" + texto : texto));
-    setAtencion(prev => (prev ? prev + "\n" + texto : texto));
+  // ▶️ / ⏹️ Control TOTAL por el médico
+  function handleDictado() {
+    if (!speech.recording) {
+      speech.start();   // inicia auto-ciclo
+    } else {
+      speech.stop();    // detiene todo (flush final incluido)
+    }
   }
 
   // =========================
@@ -230,4 +233,4 @@ export default function MedicoAtencionCerebro() {
       orderError={orderError}
     />
   );
-}
+                    }
