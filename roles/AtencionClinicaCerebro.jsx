@@ -29,7 +29,7 @@ export default function MedicoAtencionCerebro() {
   }
 
   // =========================
-  // FICHA ADMINISTRATIVA
+  // FICHA ADMINISTRATIVA (FUENTE DE VERDAD)
   // =========================
   const [admin, setAdmin] = useState(null);
   const [adminError, setAdminError] = useState(null);
@@ -60,9 +60,11 @@ export default function MedicoAtencionCerebro() {
         if (!res.ok) throw new Error("ADMIN_ERROR");
 
         const data = await res.json();
+        console.log("📋 FICHA ADMINISTRATIVA:", data);
         setAdmin(data);
+
       } catch (e) {
-        console.error("ERROR ADMIN:", e);
+        console.error("❌ ERROR ADMIN:", e);
         setAdminError("No se pudo cargar ficha administrativa");
       }
     }
@@ -134,7 +136,7 @@ export default function MedicoAtencionCerebro() {
       setExamenes(data.examenes || "");
 
     } catch (e) {
-      console.error("ERROR GPT:", e);
+      console.error("❌ ERROR GPT:", e);
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
       setOrdering(false);
@@ -148,25 +150,31 @@ export default function MedicoAtencionCerebro() {
   if (!admin) return <div>Cargando ficha administrativa…</div>;
 
   // =========================
-  // UI
+  // UI — DASHBOARD SOLO PINTA
   // =========================
   return (
     <DashboardAtencion
-      /* ===== ADMINISTRATIVO ===== */
+      /* =========================
+         FICHA ADMINISTRATIVA COMPLETA
+      ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
       edad={admin.edad}
       sexo={admin.sexo}
-      direccion={admin.direccion || ""}
-      telefono={admin.telefono || ""}
-      email={admin.email || ""}
-      prevision={admin.prevision || ""}
+      direccion={admin.direccion}
+      telefono={admin.telefono}
+      email={admin.email}
+      prevision={admin.prevision}
 
       date={state.date}
       time={state.time}
-      professional={admin.profesional_nombre || state.professional}
 
-      /* ===== CLÍNICO ===== */
+      // 🔴 AQUÍ ESTABA EL ERROR
+      professional={admin.profesional_nombre}
+
+      /* =========================
+         CONTENIDO CLÍNICO
+      ========================= */
       atencion={atencion}
       diagnostico={diagnostico}
       receta={receta}
@@ -177,13 +185,17 @@ export default function MedicoAtencionCerebro() {
       onChangeReceta={setReceta}
       onChangeExamenes={setExamenes}
 
-      /* ===== ACCIONES ===== */
+      /* =========================
+         ACCIONES
+      ========================= */
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering}
+      ordering={ordering}
+      orderError={orderError}
     />
   );
 }
