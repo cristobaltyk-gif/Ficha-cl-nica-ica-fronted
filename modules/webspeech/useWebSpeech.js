@@ -1,91 +1,127 @@
 import { useRef, useState } from "react";
 
 /*
-useWebSpeech — PRODUCCIÓN ICA
+useWebSpeech — PRODUCCIÓN ICA (AUTO-CICLO)
 
-✔ Web Speech API real
-✔ Compatible móvil / desktop
-✔ HTTPS obligatorio
-✔ Dictado robusto
-✔ Devuelve SOLO texto
+✔ Dictado continuo real (por ciclos)
+✔ Acumula texto automáticamente
+✔ Médico controla inicio / fin
+✔ Robusto en móvil
+✔ Sin lógica clínica
+✔ Cerebro orquesta
 */
 
 export function useWebSpeech(options = {}) {
   const {
-    lang = "es-CL"
+    lang = "es-CL",
+    onChunk // 👈 callback: texto confirmado
   } = options;
 
   const recognitionRef = useRef(null);
   const textBufferRef = useRef("");
+  const manualStopRef = useRef(false);
 
   const [recording, setRecording] = useState(false);
   const [loading, setLoading] = useState(false);
   const [supported, setSupported] = useState(true);
   const [error, setError] = useState(null);
 
-  function start() {
+  // =========================
+  // CREAR RECOGNITION
+  // =========================
+  function createRecognition() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       setSupported(false);
       setError("Navegador no soporta dictado");
-      return;
+      return null;
     }
 
-    try {
-      const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang;
 
-      recognition.lang = lang;
+    // ⚠️ IMPORTANTE:
+    // En móvil "continuous=true" NO es confiable,
+    // el auto-ciclo lo maneja el cerebro
+    recognition.continuous = false;
+    recognition.interimResults = true;
 
-      // 🔑 CLAVE PARA MÓVIL
-      recognition.continuous = false;
-      recognition.interimResults = true;
+    recognition.onresult = (event) => {
+      let interimText = "";
 
-      textBufferRef.current = "";
-      setError(null);
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
 
-      recognition.onresult = (event) => {
-        let interimText = "";
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-
-          if (event.results[i].isFinal) {
-            textBufferRef.current += transcript + " ";
-          } else {
-            interimText += transcript;
-          }
+        if (event.results[i].isFinal) {
+          textBufferRef.current += transcript.trim() + " ";
+        } else {
+          interimText += transcript;
         }
+      }
 
-        // fallback móvil: guarda aunque no marque final
-        if (!textBufferRef.current && interimText) {
-          textBufferRef.current = interimText + " ";
-        }
-      };
+      // 🛟 fallback móvil: nunca perder texto
+      if (!textBufferRef.current && interimText) {
+        textBufferRef.current = interimText.trim() + " ";
+      }
+    };
 
-      recognition.onerror = (e) => {
-        console.error("Speech error:", e);
-        setError("Error de dictado");
-        stopInternal();
-      };
+    recognition.onerror = (e) => {
+      console.error("Speech error:", e);
+      stopInternal(true);
+    };
 
-      recognition.onend = () => {
+    recognition.onend = () => {
+      // 🔁 AUTO-CICLO
+      flushBuffer();
+
+      if (!manualStopRef.current) {
+        startInternal(); // relanza automáticamente
+      } else {
         setRecording(false);
-      };
+      }
+    };
 
-      recognitionRef.current = recognition;
-      recognition.start();
-      setRecording(true);
+    return recognition;
+  }
 
-    } catch (e) {
-      console.error("Speech init error:", e);
-      setError("No se pudo iniciar dictado");
-      setRecording(false);
+  // =========================
+  // FLUSH TEXTO CONFIRMADO
+  // =========================
+  function flushBuffer() {
+    const text = textBufferRef.current.trim();
+    if (text) {
+      onChunk?.(text);
+      textBufferRef.current = "";
     }
   }
 
-  function stopInternal() {
+  // =========================
+  // START INTERNO (1 CICLO)
+  // =========================
+  function startInternal() {
+    const recognition = createRecognition();
+    if (!recognition) return;
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setRecording(true);
+  }
+
+  // =========================
+  // START PÚBLICO (MÉDICO)
+  // =========================
+  function start() {
+    manualStopRef.current = false;
+    setError(null);
+    startInternal();
+  }
+
+  // =========================
+  // STOP INTERNO
+  // =========================
+  function stopInternal(final = false) {
     if (recognitionRef.current) {
       recognitionRef.current.onresult = null;
       recognitionRef.current.onerror = null;
@@ -93,18 +129,25 @@ export function useWebSpeech(options = {}) {
       recognitionRef.current.stop();
       recognitionRef.current = null;
     }
+
+    if (final) flushBuffer();
+
     setRecording(false);
     setLoading(false);
   }
 
+  // =========================
+  // STOP DEFINITIVO (MÉDICO)
+  // =========================
   function stop() {
     return new Promise((resolve) => {
+      manualStopRef.current = true;
+      setLoading(true);
+
       if (!recognitionRef.current) {
         resolve("");
         return;
       }
-
-      setLoading(true);
 
       const recognition = recognitionRef.current;
 
