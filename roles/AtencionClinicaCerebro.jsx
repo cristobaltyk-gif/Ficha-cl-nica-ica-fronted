@@ -73,7 +73,7 @@ export default function MedicoAtencionCerebro() {
   // =========================
   // ESTADO CLÍNICO
   // =========================
-  const [rawText, setRawText] = useState(""); // dictado
+  const [rawText, setRawText] = useState("");
   const [atencion, setAtencion] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
@@ -106,8 +106,6 @@ export default function MedicoAtencionCerebro() {
   async function handleOrdenarClinicamente() {
     const inputText = atencion.trim() || rawText.trim();
 
-    console.log("📤 TEXTO ENVIADO A GPT:\n", inputText);
-
     if (!inputText) {
       setOrderError("No hay texto para ordenar");
       return;
@@ -126,12 +124,9 @@ export default function MedicoAtencionCerebro() {
         }
       );
 
-      console.log("📥 STATUS GPT:", res.status);
-
       if (!res.ok) throw new Error("GPT_ERROR");
 
       const data = await res.json();
-      console.log("📥 RESPUESTA GPT:", data);
 
       setAtencion(data.atencion || "");
       setDiagnostico(data.diagnostico || "");
@@ -139,7 +134,7 @@ export default function MedicoAtencionCerebro() {
       setExamenes(data.examenes || "");
 
     } catch (e) {
-      console.error("❌ ERROR GPT:", e);
+      console.error("ERROR GPT:", e);
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
       setOrdering(false);
@@ -157,14 +152,21 @@ export default function MedicoAtencionCerebro() {
   // =========================
   return (
     <DashboardAtencion
+      /* ===== ADMINISTRATIVO ===== */
       rut={admin.rut}
-      nombre={`${admin.nombre} ${admin.apellido_paterno}`}
+      nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
       edad={admin.edad}
       sexo={admin.sexo}
+      direccion={admin.direccion || ""}
+      telefono={admin.telefono || ""}
+      email={admin.email || ""}
+      prevision={admin.prevision || ""}
+
       date={state.date}
       time={state.time}
       professional={admin.profesional_nombre || state.professional}
 
+      /* ===== CLÍNICO ===== */
       atencion={atencion}
       diagnostico={diagnostico}
       receta={receta}
@@ -175,14 +177,13 @@ export default function MedicoAtencionCerebro() {
       onChangeReceta={setReceta}
       onChangeExamenes={setExamenes}
 
+      /* ===== ACCIONES ===== */
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
 
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering}
-      ordering={ordering}
-      orderError={orderError}
     />
   );
 }
