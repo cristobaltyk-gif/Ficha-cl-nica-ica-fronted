@@ -29,7 +29,7 @@ export default function MedicoAtencionCerebro() {
   }
 
   // =========================
-  // FICHA ADMINISTRATIVA (FUENTE DE VERDAD)
+  // FICHA ADMINISTRATIVA (PACIENTE)
   // =========================
   const [admin, setAdmin] = useState(null);
   const [adminError, setAdminError] = useState(null);
@@ -60,9 +60,7 @@ export default function MedicoAtencionCerebro() {
         if (!res.ok) throw new Error("ADMIN_ERROR");
 
         const data = await res.json();
-        console.log("📋 FICHA ADMINISTRATIVA:", data);
         setAdmin(data);
-
       } catch (e) {
         console.error("❌ ERROR ADMIN:", e);
         setAdminError("No se pudo cargar ficha administrativa");
@@ -71,6 +69,38 @@ export default function MedicoAtencionCerebro() {
 
     loadFichaAdministrativa();
   }, [state?.rut, session?.usuario]);
+
+  // =========================
+  // PROFESIONAL (BACKEND = VERDAD)
+  // =========================
+  const [professionalName, setProfessionalName] = useState("");
+  const [professionalError, setProfessionalError] = useState(null);
+
+  useEffect(() => {
+    async function loadProfessional() {
+      try {
+        setProfessionalError(null);
+
+        const res = await fetch(`${API_URL}/professionals`);
+        if (!res.ok) throw new Error("PROFESSIONALS_ERROR");
+
+        const data = await res.json();
+        const prof = data.find(p => p.id === state.professional);
+
+        if (!prof) {
+          setProfessionalError("Profesional no autorizado");
+          return;
+        }
+
+        setProfessionalName(prof.name);
+      } catch (e) {
+        console.error("❌ ERROR PROFESSIONAL:", e);
+        setProfessionalError("No se pudo cargar profesional");
+      }
+    }
+
+    loadProfessional();
+  }, [state.professional]);
 
   // =========================
   // ESTADO CLÍNICO
@@ -147,7 +177,9 @@ export default function MedicoAtencionCerebro() {
   // BLOQUEOS
   // =========================
   if (adminError) return <div>{adminError}</div>;
-  if (!admin) return <div>Cargando ficha administrativa…</div>;
+  if (professionalError) return <div>{professionalError}</div>;
+  if (!admin || !professionalName)
+    return <div>Cargando información…</div>;
 
   // =========================
   // UI — DASHBOARD SOLO PINTA
@@ -155,7 +187,7 @@ export default function MedicoAtencionCerebro() {
   return (
     <DashboardAtencion
       /* =========================
-         FICHA ADMINISTRATIVA COMPLETA
+         FICHA ADMINISTRATIVA
       ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
@@ -169,8 +201,8 @@ export default function MedicoAtencionCerebro() {
       date={state.date}
       time={state.time}
 
-      // 🔴 AQUÍ ESTABA EL ERROR
-      professional={admin.profesional_nombre}
+      /* ✅ PROFESIONAL CORRECTO */
+      professional={professionalName}
 
       /* =========================
          CONTENIDO CLÍNICO
