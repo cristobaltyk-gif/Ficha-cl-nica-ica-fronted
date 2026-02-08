@@ -7,7 +7,7 @@ DashboardAtencion — PRODUCCIÓN REAL (ICA)
 ✔ Sin fetch
 ✔ Sin lógica
 ✔ Cerebro controla todo
-✔ Preparado para historial y expansión admin
+✔ Extensible (historial / guardar / cancelar)
 */
 
 export default function DashboardAtencion({
@@ -18,6 +18,10 @@ export default function DashboardAtencion({
   nombre,
   edad,
   sexo,
+  direccion,
+  telefono,
+  email,
+  prevision,
   date,
   time,
   professional,
@@ -36,7 +40,7 @@ export default function DashboardAtencion({
   onChangeExamenes,
 
   /* ===============================
-     ACCIONES
+     ACCIONES (CONTROLADAS POR CEREBRO)
   =============================== */
   onDictado,
   dictando,
@@ -45,7 +49,9 @@ export default function DashboardAtencion({
   onOrdenarClinicamente,
   puedeOrdenar,
 
-  onHistorial
+  onHistorial,
+  onGuardar,
+  onCancelar
 }) {
   return (
     <div className="dashboard dashboard-atencion">
@@ -59,11 +65,12 @@ export default function DashboardAtencion({
           <h1>Atención Clínica</h1>
 
           <div className="admin-actions">
+
             {onHistorial && (
               <button
                 className="btn-outline"
                 onClick={onHistorial}
-                title="Ver historial de atenciones"
+                title="Ver historial clínico"
               >
                 📚 Historial
               </button>
@@ -87,11 +94,20 @@ export default function DashboardAtencion({
           </div>
         </div>
 
+        {/* ===============================
+            GRID ADMINISTRATIVO
+        =============================== */}
         <div className="admin-grid">
           <div><strong>Paciente</strong><span>{nombre}</span></div>
           <div><strong>RUT</strong><span>{rut}</span></div>
           <div><strong>Edad</strong><span>{edad}</span></div>
           <div><strong>Sexo</strong><span>{sexo}</span></div>
+
+          <div><strong>Dirección</strong><span>{direccion || "—"}</span></div>
+          <div><strong>Teléfono</strong><span>{telefono || "—"}</span></div>
+          <div><strong>Email</strong><span>{email || "—"}</span></div>
+          <div><strong>Previsión</strong><span>{prevision || "—"}</span></div>
+
           <div><strong>Fecha</strong><span>{date} {time}</span></div>
           <div><strong>Profesional</strong><span>{professional}</span></div>
         </div>
@@ -110,7 +126,7 @@ export default function DashboardAtencion({
             <textarea
               value={atencion}
               onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Evolución, anamnesis, examen físico…"
+              placeholder="Anamnesis, antecedentes, examen físico…"
             />
           </div>
         </section>
@@ -122,7 +138,7 @@ export default function DashboardAtencion({
             <textarea
               value={diagnostico}
               onChange={(e) => onChangeDiagnostico(e.target.value)}
-              placeholder="Diagnóstico principal y secundarios…"
+              placeholder="Diagnóstico clínico…"
             />
           </div>
         </section>
@@ -134,7 +150,7 @@ export default function DashboardAtencion({
             <textarea
               value={receta}
               onChange={(e) => onChangeReceta(e.target.value)}
-              placeholder="Medicamentos, dosis, frecuencia…"
+              placeholder="Medicamentos, dosis y duración…"
             />
           </div>
         </section>
@@ -154,12 +170,22 @@ export default function DashboardAtencion({
       </main>
 
       {/* ===============================
-          FOOTER — ACCIONES POST ATENCIÓN
+          FOOTER — ACCIONES FINALES
       =============================== */}
       <footer className="dashboard-footer">
-        <button className="btn-outline">🦵 Orden kinésica</button>
-        <button className="btn-outline">📝 Indicaciones</button>
-        <button className="btn-outline">🔪 Indicación quirúrgica</button>
+
+        {onGuardar && (
+          <button className="btn-primary" onClick={onGuardar}>
+            💾 Guardar atención
+          </button>
+        )}
+
+        {onCancelar && (
+          <button className="btn-outline" onClick={onCancelar}>
+            ❌ Cancelar
+          </button>
+        )}
+
       </footer>
 
     </div>
