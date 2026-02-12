@@ -2,18 +2,10 @@ import "../styles/atencion/dashboard-atencion.css";
 
 /*
 DashboardAtencion — PRODUCCIÓN REAL (ICA)
-
-✔ UI pura
-✔ Sin fetch
-✔ Sin lógica
-✔ Cerebro controla todo
-✔ Preparado para historial y expansión admin
+MODIFICADO: layout mitad y mitad con acciones nuevas
 */
 
 export default function DashboardAtencion({
-  /* ===============================
-     FICHA ADMINISTRATIVA
-  =============================== */
   rut,
   nombre,
   edad,
@@ -26,9 +18,6 @@ export default function DashboardAtencion({
   time,
   professional,
 
-  /* ===============================
-     CONTENIDO CLÍNICO
-  =============================== */
   atencion,
   diagnostico,
   receta,
@@ -39,9 +28,6 @@ export default function DashboardAtencion({
   onChangeReceta,
   onChangeExamenes,
 
-  /* ===============================
-     ACCIONES
-  =============================== */
   onDictado,
   dictando,
   puedeDictar,
@@ -56,9 +42,7 @@ export default function DashboardAtencion({
   return (
     <div className="dashboard dashboard-atencion">
 
-      {/* ===============================
-          HEADER — FICHA ADMINISTRATIVA
-      =============================== */}
+      {/* ================= HEADER ================= */}
       <header className="dashboard-header admin-header">
 
         <div className="admin-header-top">
@@ -98,21 +82,17 @@ export default function DashboardAtencion({
           <div><strong>RUT</strong><span>{rut}</span></div>
           <div><strong>Edad</strong><span>{edad}</span></div>
           <div><strong>Sexo</strong><span>{sexo}</span></div>
-
           <div><strong>Dirección</strong><span>{direccion || "—"}</span></div>
           <div><strong>Teléfono</strong><span>{telefono || "—"}</span></div>
           <div><strong>Email</strong><span>{email || "—"}</span></div>
           <div><strong>Previsión</strong><span>{prevision || "—"}</span></div>
-
           <div><strong>Fecha</strong><span>{date} {time}</span></div>
           <div><strong>Profesional</strong><span>{professional}</span></div>
         </div>
 
       </header>
 
-      {/* ===============================
-          BODY — CONTENIDO CLÍNICO
-      =============================== */}
+      {/* ================= BODY MITAD Y MITAD ================= */}
       <main className="dashboard-body atencion-split">
 
         {/* IZQUIERDA */}
@@ -168,50 +148,59 @@ export default function DashboardAtencion({
         <div className="col-right">
 
           <section className="panel">
-            <div className="panel-header">Orden kinésica</div>
-            <div className="panel-body">
-              {/* Aquí irá el contenido cuando lo conectes */}
+            <div className="panel-header">
+              Indicaciones
+              <button className="btn-outline-small">Generar</button>
             </div>
+            <div className="panel-body"></div>
           </section>
 
           <section className="panel">
-            <div className="panel-header">Indicaciones</div>
-            <div className="panel-body">
-              {/* Aquí irá el contenido cuando lo conectes */}
+            <div className="panel-header">
+              Orden kinésica
+              <button className="btn-outline-small">Generar</button>
             </div>
+            <div className="panel-body"></div>
           </section>
 
           <section className="panel">
-            <div className="panel-header">Indicación quirúrgica</div>
-            <div className="panel-body">
-              {/* Aquí irá el contenido cuando lo conectes */}
+            <div className="panel-header">
+              Indicación quirúrgica
+              <button className="btn-outline-small">Generar</button>
             </div>
+            <div className="panel-body"></div>
+          </section>
+
+          <section className="panel">
+            <button className="btn-dark-full">
+              🖨 Imprimir documentos
+            </button>
           </section>
 
         </div>
 
       </main>
 
-      {/* ===============================
-          FOOTER — ACCIONES POST ATENCIÓN
-      =============================== */}
-      <footer className="dashboard-footer">
-        <button className="btn-outline">🦵 Orden kinésica</button>
-        <button className="btn-outline">📝 Indicaciones</button>
-        <button className="btn-outline">🔪 Indicación quirúrgica</button>
+      {/* ================= NUEVAS ACCIONES FINALES ================= */}
+      <div className="action-bar-new">
 
         {onGuardar && (
-          <button className="btn-primary" onClick={onGuardar}>
+          <button className="btn-primary-large" onClick={onGuardar}>
             💾 Guardar
           </button>
         )}
 
+        <button className="btn-secondary-large">
+          ✏ Modificar
+        </button>
+
         {onCancelar && (
-          <button className="btn-outline" onClick={onCancelar}>
+          <button className="btn-danger-large" onClick={onCancelar}>
             ❌ Cancelar
           </button>
         )}
-      </footer>
+
+      </div>
 
     </div>
   );
