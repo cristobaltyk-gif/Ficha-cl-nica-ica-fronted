@@ -1,28 +1,27 @@
-/* =====================================================
-   ICA – CLINICAL EMR PREMIUM
-   Minimal, profesional, elegante
-===================================================== */
+/* =========================================
+   ICA — CLINICAL EMR LAYOUT
+========================================= */
 
-.dashboard-atencion.clinical-emr {
+.clinical-emr {
   height: 100%;
   display: flex;
   flex-direction: column;
   background: #f4f6f9;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1e293b;
 }
 
-/* =====================================================
+/* =========================================
    HEADER
-===================================================== */
+========================================= */
 
 .emr-header {
   background: #ffffff;
-  padding: 18px 28px;
+  padding: 18px 24px;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .emr-title h1 {
@@ -39,52 +38,71 @@
 .emr-admin {
   display: grid;
   grid-template-columns: repeat(2, auto);
-  gap: 6px 20px;
+  gap: 6px 24px;
   font-size: 13px;
-  color: #334155;
 }
 
-/* =====================================================
-   BODY LAYOUT
-===================================================== */
+/* =========================================
+   BODY
+========================================= */
 
 .emr-body {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 24px;
-  padding: 24px 28px;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  padding: 20px;
   overflow: hidden;
 }
 
-.emr-left,
+/* =========================================
+   LEFT COLUMN
+========================================= */
+
+.emr-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* =========================================
+   RIGHT COLUMN
+========================================= */
+
 .emr-right {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* =====================================================
+.assistant-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* =========================================
    PANELS
-===================================================== */
+========================================= */
 
 .emr-panel {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
 .emr-panel.large {
-  min-height: 180px;
+  min-height: 200px;
 }
 
 .emr-panel.assistant {
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
 }
 
 .emr-panel-header {
@@ -93,146 +111,97 @@
   align-items: center;
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
+  margin-bottom: 8px;
 }
 
-/* =====================================================
+/* =========================================
    TEXTAREAS
-===================================================== */
+========================================= */
 
 .emr-panel textarea {
-  border: none;
-  outline: none;
   resize: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px;
   font-size: 14px;
-  line-height: 1.5;
   font-family: inherit;
-  color: #0f172a;
-  background: transparent;
+  background: #ffffff;
   min-height: 90px;
 }
 
-.emr-panel textarea::placeholder {
-  color: #94a3b8;
+.emr-panel.large textarea {
+  min-height: 160px;
 }
 
-/* =====================================================
-   ASSISTANT LABEL
-===================================================== */
-
-.assistant-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #64748b;
-  margin-bottom: -6px;
-}
-
-/* =====================================================
-   SMALL ACTION LINKS (Generar)
-===================================================== */
+/* =========================================
+   SMALL LINK BUTTONS (IA GENERAR)
+========================================= */
 
 .emr-link {
-  font-size: 12px;
   background: none;
   border: none;
+  font-size: 12px;
+  font-weight: 600;
   color: #2563eb;
   cursor: pointer;
-  padding: 2px 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.emr-link::before {
-  content: "⚡";
-  font-size: 11px;
+  padding: 0;
 }
 
 .emr-link:hover {
-  opacity: 0.7;
+  text-decoration: underline;
 }
 
-/* =====================================================
-   PRINT BUTTONS (pequeños con icono)
-===================================================== */
+/* =========================================
+   PRINT BUTTON
+========================================= */
 
 .emr-print {
-  margin-top: 6px;
-  align-self: flex-end;
   background: #0f172a;
-  color: #ffffff;
+  color: white;
   border: none;
+  border-radius: 8px;
+  padding: 10px;
   font-size: 13px;
-  padding: 8px 14px;
-  border-radius: 6px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.emr-print::before {
-  content: "🖨";
-  font-size: 13px;
+  margin-top: 6px;
 }
 
 .emr-print:hover {
-  opacity: 0.85;
+  background: #1e293b;
 }
 
-/* =====================================================
-   FOOTER ACTIONS
-===================================================== */
+/* =========================================
+   FOOTER
+========================================= */
 
 .emr-footer {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 16px 28px;
+  padding: 16px 24px;
   display: flex;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 12px;
 }
 
 .emr-save {
   background: #2563eb;
-  color: #ffffff;
+  color: white;
   border: none;
-  padding: 10px 26px;
-  font-size: 14px;
+  padding: 8px 16px;
   border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
 }
 
 .emr-save:hover {
-  background: #1e40af;
+  background: #1d4ed8;
 }
 
 .emr-cancel {
   background: #e2e8f0;
-  color: #1e293b;
   border: none;
-  padding: 10px 22px;
-  font-size: 14px;
+  padding: 8px 16px;
   border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-}
-
-.emr-cancel:hover {
-  background: #cbd5e1;
-}
-
-/* =====================================================
-   RESPONSIVE
-===================================================== */
-
-@media (max-width: 1200px) {
-  .emr-body {
-    grid-template-columns: 1fr;
-  }
-
-  .emr-right {
-    margin-top: 20px;
-  }
 }
