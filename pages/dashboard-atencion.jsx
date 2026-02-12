@@ -1,17 +1,16 @@
 import "../styles/atencion/dashboard-atencion.css";
 
 /*
-DashboardAtencion — BOUTIQUE ICA
+DashboardAtencion — PRODUCCIÓN REAL (ICA)
 
 ✔ UI pura
-✔ Diseño premium
-✔ Separación Médico vs IA
-✔ Jerarquía visual clara
-✔ Elegante, minimal, clínico
+✔ Sin fetch
+✔ Sin lógica
+✔ Cerebro controla todo
+✔ Preparado para historial y expansión admin
 */
 
 export default function DashboardAtencion({
-
   /* ===============================
      FICHA ADMINISTRATIVA
   =============================== */
@@ -34,42 +33,64 @@ export default function DashboardAtencion({
   diagnostico,
   receta,
   examenes,
-  indicaciones,
-  ordenKinesiologia,
-  indicacionQuirurgica,
 
   onChangeAtencion,
   onChangeDiagnostico,
   onChangeReceta,
   onChangeExamenes,
-  onChangeIndicaciones,
-  onChangeOrdenKinesiologia,
-  onChangeIndicacionQuirurgica,
 
   /* ===============================
      ACCIONES
   =============================== */
-  onOrdenKinesiologia,
-  onIndicaciones,
-  onIndicacionQuirurgica,
-  onImprimir,
+  onDictado,
+  dictando,
+  puedeDictar,
 
+  onOrdenarClinicamente,
+  puedeOrdenar,
+
+  onHistorial,
   onGuardar,
-  onModificar,
   onCancelar
 }) {
-
   return (
-    <div className="dashboard dashboard-atencion boutique-ica">
+    <div className="dashboard dashboard-atencion">
 
       {/* ===============================
-          HEADER PREMIUM
+          HEADER — FICHA ADMINISTRATIVA
       =============================== */}
-      <header className="dashboard-header boutique-header">
+      <header className="dashboard-header admin-header">
 
-        <div className="header-title">
+        <div className="admin-header-top">
           <h1>Atención Clínica</h1>
-          <span className="badge-ai">Asistencia Inteligente Activa</span>
+
+          <div className="admin-actions">
+            {onHistorial && (
+              <button
+                className="btn-outline"
+                onClick={onHistorial}
+                title="Ver historial de atenciones"
+              >
+                📚 Historial
+              </button>
+            )}
+
+            <button
+              className={dictando ? "btn-danger" : "btn-primary"}
+              onClick={onDictado}
+              disabled={!puedeDictar}
+            >
+              {dictando ? "⏹ Detener dictado" : "🎙 Dictar"}
+            </button>
+
+            <button
+              className="btn-secondary"
+              disabled={!puedeOrdenar}
+              onClick={onOrdenarClinicamente}
+            >
+              🧠 Ordenar
+            </button>
+          </div>
         </div>
 
         <div className="admin-grid">
@@ -90,16 +111,14 @@ export default function DashboardAtencion({
       </header>
 
       {/* ===============================
-          BODY 2 COLUMNAS
+          BODY — CONTENIDO CLÍNICO
       =============================== */}
       <main className="dashboard-body atencion-split">
 
-        {/* ===============================
-            COLUMNA MÉDICO
-        =============================== */}
+        {/* IZQUIERDA */}
         <div className="col-left">
 
-          <section className="panel panel-clinical">
+          <section className="panel">
             <div className="panel-header">Atención</div>
             <div className="panel-body">
               <textarea
@@ -110,7 +129,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel panel-clinical">
+          <section className="panel">
             <div className="panel-header">Diagnóstico</div>
             <div className="panel-body">
               <textarea
@@ -121,7 +140,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel panel-clinical">
+          <section className="panel">
             <div className="panel-header">Receta</div>
             <div className="panel-body">
               <textarea
@@ -132,7 +151,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel panel-clinical">
+          <section className="panel">
             <div className="panel-header">Exámenes</div>
             <div className="panel-body">
               <textarea
@@ -145,91 +164,54 @@ export default function DashboardAtencion({
 
         </div>
 
-        {/* ===============================
-            COLUMNA IA
-        =============================== */}
-        <div className="col-right ia-zone">
+        {/* DERECHA */}
+        <div className="col-right">
 
-          <div className="ia-title">
-            <span>🧠 Asistente Clínico IA</span>
-          </div>
-
-          <section className="panel panel-ia">
-            <div className="panel-header">
-              Indicaciones
-              <button className="btn-ia" onClick={onIndicaciones}>
-                Generar
-              </button>
-            </div>
+          <section className="panel">
+            <div className="panel-header">Orden kinésica</div>
             <div className="panel-body">
-              <textarea
-                value={indicaciones}
-                onChange={(e) => onChangeIndicaciones(e.target.value)}
-                placeholder="Reposo, control, recomendaciones…"
-              />
+              {/* Aquí irá el contenido cuando lo conectes */}
             </div>
           </section>
 
-          <section className="panel panel-ia">
-            <div className="panel-header">
-              Orden Kinésica
-              <button className="btn-ia" onClick={onOrdenKinesiologia}>
-                Generar
-              </button>
-            </div>
+          <section className="panel">
+            <div className="panel-header">Indicaciones</div>
             <div className="panel-body">
-              <textarea
-                value={ordenKinesiologia}
-                onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
-                placeholder="Detalle de rehabilitación…"
-              />
+              {/* Aquí irá el contenido cuando lo conectes */}
             </div>
           </section>
 
-          <section className="panel panel-ia panel-quirurgico">
-            <div className="panel-header">
-              Indicación Quirúrgica
-              <button className="btn-ia-danger" onClick={onIndicacionQuirurgica}>
-                Generar
-              </button>
-            </div>
+          <section className="panel">
+            <div className="panel-header">Indicación quirúrgica</div>
             <div className="panel-body">
-              <textarea
-                value={indicacionQuirurgica}
-                onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
-                placeholder="Tipo de cirugía, PAD, insumos…"
-              />
+              {/* Aquí irá el contenido cuando lo conectes */}
             </div>
           </section>
-
-          <div className="print-container">
-            <button className="btn-print" onClick={onImprimir}>
-              🖨 Imprimir Documentos
-            </button>
-          </div>
 
         </div>
 
       </main>
 
       {/* ===============================
-          ACCIONES FINALES
+          FOOTER — ACCIONES POST ATENCIÓN
       =============================== */}
-      <div className="action-bar boutique-actions">
+      <footer className="dashboard-footer">
+        <button className="btn-outline">🦵 Orden kinésica</button>
+        <button className="btn-outline">📝 Indicaciones</button>
+        <button className="btn-outline">🔪 Indicación quirúrgica</button>
 
-        <button className="btn-action primary" onClick={onGuardar}>
-          Guardar
-        </button>
+        {onGuardar && (
+          <button className="btn-primary" onClick={onGuardar}>
+            💾 Guardar
+          </button>
+        )}
 
-        <button className="btn-action secondary" onClick={onModificar}>
-          Modificar
-        </button>
-
-        <button className="btn-action danger" onClick={onCancelar}>
-          Cancelar
-        </button>
-
-      </div>
+        {onCancelar && (
+          <button className="btn-outline" onClick={onCancelar}>
+            ❌ Cancelar
+          </button>
+        )}
+      </footer>
 
     </div>
   );
