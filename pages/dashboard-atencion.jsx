@@ -2,7 +2,7 @@ import "../styles/atencion/dashboard-atencion.css";
 
 /*
 DashboardAtencion — PRODUCCIÓN REAL (ICA)
-MODIFICADO: layout mitad y mitad con acciones nuevas
+MITAD Y MITAD EDITABLE + ICONOS IMPRESIÓN
 */
 
 export default function DashboardAtencion({
@@ -22,11 +22,17 @@ export default function DashboardAtencion({
   diagnostico,
   receta,
   examenes,
+  indicaciones,
+  ordenKinesiologia,
+  indicacionQuirurgica,
 
   onChangeAtencion,
   onChangeDiagnostico,
   onChangeReceta,
   onChangeExamenes,
+  onChangeIndicaciones,
+  onChangeOrdenKinesiologia,
+  onChangeIndicacionQuirurgica,
 
   onDictado,
   dictando,
@@ -35,7 +41,7 @@ export default function DashboardAtencion({
   onOrdenarClinicamente,
   puedeOrdenar,
 
-  onHistorial,
+  onImprimir,
   onGuardar,
   onCancelar
 }) {
@@ -49,15 +55,6 @@ export default function DashboardAtencion({
           <h1>Atención Clínica</h1>
 
           <div className="admin-actions">
-            {onHistorial && (
-              <button
-                className="btn-outline"
-                onClick={onHistorial}
-                title="Ver historial de atenciones"
-              >
-                📚 Historial
-              </button>
-            )}
 
             <button
               className={dictando ? "btn-danger" : "btn-primary"}
@@ -74,6 +71,7 @@ export default function DashboardAtencion({
             >
               🧠 Ordenar
             </button>
+
           </div>
         </div>
 
@@ -113,9 +111,10 @@ export default function DashboardAtencion({
             <div className="panel-header">Diagnóstico</div>
             <div className="panel-body">
               <textarea
+                className="textarea-small"
                 value={diagnostico}
                 onChange={(e) => onChangeDiagnostico(e.target.value)}
-                placeholder="Diagnóstico principal y secundarios…"
+                placeholder="Diagnóstico principal…"
               />
             </div>
           </section>
@@ -149,39 +148,69 @@ export default function DashboardAtencion({
 
           <section className="panel">
             <div className="panel-header">
-              Indicaciones
-              <button className="btn-outline-small">Generar</button>
+              <span>Indicaciones</span>
+              <button
+                className="icon-print"
+                onClick={() => onImprimir?.("indicaciones")}
+                title="Imprimir indicaciones"
+              >
+                🖨
+              </button>
             </div>
-            <div className="panel-body"></div>
+            <div className="panel-body">
+              <textarea
+                value={indicaciones}
+                onChange={(e) => onChangeIndicaciones(e.target.value)}
+                placeholder="Reposo, control, recomendaciones…"
+              />
+            </div>
           </section>
 
           <section className="panel">
             <div className="panel-header">
-              Orden kinésica
-              <button className="btn-outline-small">Generar</button>
+              <span>Orden kinésica</span>
+              <button
+                className="icon-print"
+                onClick={() => onImprimir?.("kinesiologia")}
+                title="Imprimir orden kinésica"
+              >
+                🖨
+              </button>
             </div>
-            <div className="panel-body"></div>
+            <div className="panel-body">
+              <textarea
+                value={ordenKinesiologia}
+                onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
+                placeholder="10 sesiones, 3 veces por semana…"
+              />
+            </div>
           </section>
 
           <section className="panel">
             <div className="panel-header">
-              Indicación quirúrgica
-              <button className="btn-outline-small">Generar</button>
+              <span>Indicación quirúrgica</span>
+              <button
+                className="icon-print"
+                onClick={() => onImprimir?.("quirurgica")}
+                title="Imprimir indicación quirúrgica"
+              >
+                🖨
+              </button>
             </div>
-            <div className="panel-body"></div>
-          </section>
-
-          <section className="panel">
-            <button className="btn-dark-full">
-              🖨 Imprimir documentos
-            </button>
+            <div className="panel-body">
+              <textarea
+                value={indicacionQuirurgica}
+                onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
+                placeholder="Procedimiento indicado…"
+              />
+            </div>
           </section>
 
         </div>
 
       </main>
 
-      {/* ================= NUEVAS ACCIONES FINALES ================= */}
+      {/* ================= FOOTER ================= */}
       <div className="action-bar-new">
 
         {onGuardar && (
@@ -189,10 +218,6 @@ export default function DashboardAtencion({
             💾 Guardar
           </button>
         )}
-
-        <button className="btn-secondary-large">
-          ✏ Modificar
-        </button>
 
         {onCancelar && (
           <button className="btn-danger-large" onClick={onCancelar}>
