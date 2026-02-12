@@ -38,6 +38,7 @@ export default function DashboardAtencion({
 
   onImprimir,
   onGuardar,
+  onModificar,     // ✅ agregado
   onCancelar
 }) {
 
@@ -49,6 +50,7 @@ export default function DashboardAtencion({
   return (
     <div className="dashboard dashboard-atencion">
 
+      {/* ================= HEADER ================= */}
       <header className="dashboard-header admin-header">
 
         <div className="admin-header-top">
@@ -88,8 +90,10 @@ export default function DashboardAtencion({
 
       </header>
 
+      {/* ================= BODY ================= */}
       <main className="dashboard-body atencion-split">
 
+        {/* IZQUIERDA */}
         <div className="col-left">
 
           <section className="panel">
@@ -106,7 +110,7 @@ export default function DashboardAtencion({
             <div className="panel-header">Diagnóstico</div>
             <textarea
               value={diagnostico}
-              rows={2}
+              rows={2}   /* ✅ 2 líneas */
               onChange={(e) => onChangeDiagnostico(e.target.value)}
               onInput={autoResize}
             />
@@ -116,6 +120,7 @@ export default function DashboardAtencion({
             <div className="panel-header">
               <span>Receta</span>
               <button
+                type="button"
                 className="icon-print"
                 onClick={() => onImprimir?.("receta")}
               >
@@ -124,7 +129,7 @@ export default function DashboardAtencion({
             </div>
             <textarea
               value={receta}
-              rows={4}
+              rows={4}  /* ✅ 4 líneas */
               onChange={(e) => onChangeReceta(e.target.value)}
               onInput={autoResize}
             />
@@ -134,6 +139,7 @@ export default function DashboardAtencion({
             <div className="panel-header">
               <span>Exámenes</span>
               <button
+                type="button"
                 className="icon-print"
                 onClick={() => onImprimir?.("examenes")}
               >
@@ -142,7 +148,7 @@ export default function DashboardAtencion({
             </div>
             <textarea
               value={examenes}
-              rows={2}
+              rows={2}   /* ✅ 2 líneas */
               onChange={(e) => onChangeExamenes(e.target.value)}
               onInput={autoResize}
             />
@@ -150,12 +156,19 @@ export default function DashboardAtencion({
 
         </div>
 
+        {/* DERECHA */}
         <div className="col-right">
 
           <section className="panel">
             <div className="panel-header">
               <span>Indicaciones</span>
-              <button className="icon-print">🖨</button>
+              <button
+                type="button"
+                className="icon-print"
+                onClick={() => onImprimir?.("indicaciones")}
+              >
+                🖨
+              </button>
             </div>
             <textarea
               value={indicaciones}
@@ -168,7 +181,13 @@ export default function DashboardAtencion({
           <section className="panel">
             <div className="panel-header">
               <span>Orden kinésica</span>
-              <button className="icon-print">🖨</button>
+              <button
+                type="button"
+                className="icon-print"
+                onClick={() => onImprimir?.("kinesiologia")}
+              >
+                🖨
+              </button>
             </div>
             <textarea
               value={ordenKinesiologia}
@@ -181,7 +200,13 @@ export default function DashboardAtencion({
           <section className="panel">
             <div className="panel-header">
               <span>Indicación quirúrgica</span>
-              <button className="icon-print">🖨</button>
+              <button
+                type="button"
+                className="icon-print"
+                onClick={() => onImprimir?.("quirurgica")}
+              >
+                🖨
+              </button>
             </div>
             <textarea
               value={indicacionQuirurgica}
@@ -195,17 +220,27 @@ export default function DashboardAtencion({
 
       </main>
 
+      {/* ================= FOOTER ================= */}
       <div className="action-bar-new">
+
         {onGuardar && (
           <button className="btn-primary-large" onClick={onGuardar}>
             Guardar
           </button>
         )}
+
+        {onModificar && (
+          <button className="btn-secondary-large" onClick={onModificar}>
+            Modificar
+          </button>
+        )}
+
         {onCancelar && (
           <button className="btn-danger-large" onClick={onCancelar}>
             Cancelar
           </button>
         )}
+
       </div>
 
     </div>
