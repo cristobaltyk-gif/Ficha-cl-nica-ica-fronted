@@ -1,5 +1,5 @@
 /* =========================================
-   ICA — DASHBOARD ATENCIÓN PROFESIONAL
+   ICA — DASHBOARD ATENCIÓN LIMPIO REAL
 ========================================= */
 
 .dashboard-atencion {
@@ -17,7 +17,7 @@
 
 .dashboard-header {
   background: #ffffff;
-  padding: 22px 36px;
+  padding: 20px 32px;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -25,86 +25,60 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .admin-header-top h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
 }
 
-/* Botones dictar / ordenar */
 .admin-actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-primary,
 .btn-secondary,
 .btn-danger {
   border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: 6px;
+  padding: 6px 14px;
   font-size: 13px;
   cursor: pointer;
-  transition: 0.15s ease;
 }
 
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-
-.btn-secondary {
-  background: #e2e8f0;
-}
-
-.btn-secondary:hover {
-  background: #cbd5e1;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
+.btn-primary { background: #2563eb; color: white; }
+.btn-secondary { background: #e2e8f0; }
+.btn-danger { background: #dc2626; color: white; }
 
 /* =========================================
-   GRID ADMINISTRATIVO EQUILIBRADO
+   GRID ADMIN
 ========================================= */
 
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px 28px;
-  font-size: 13px;
-}
-
-.admin-grid div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  gap: 8px 20px;
+  font-size: 12px;
 }
 
 .admin-grid strong {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
   font-weight: 600;
 }
 
 /* =========================================
-   BODY MITAD / MITAD
+   BODY MITAD Y MITAD
 ========================================= */
 
 .atencion-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  padding: 30px 36px;
+  gap: 22px;
+  padding: 22px 32px;
   flex: 1;
 }
 
@@ -112,18 +86,18 @@
 .col-right {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 /* =========================================
-   PANEL LIMPIO
+   PANEL
 ========================================= */
 
 .panel {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 18px;
+  border-radius: 10px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
 }
@@ -132,13 +106,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 /* =========================================
-   TEXTAREAS PROPORCIONALES REALES
+   TEXTAREAS ALTURA REAL POR LÍNEAS
 ========================================= */
 
 .panel textarea {
@@ -146,41 +120,46 @@
   resize: none;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 14px;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 13px;
   font-family: inherit;
   background: #ffffff;
-  min-height: 120px;
+}
+
+/* Atención */
+.panel textarea:not(.textarea-diagnostico):not(.textarea-receta):not(.textarea-examenes) {
+  min-height: 100px;
 }
 
 /* Diagnóstico — 2 líneas */
 .textarea-diagnostico {
-  min-height: 48px;
+  min-height: 42px;
 }
 
 /* Receta — 4 líneas */
 .textarea-receta {
-  min-height: 88px;
+  min-height: 84px;
 }
 
 /* Exámenes — 2 líneas */
 .textarea-examenes {
-  min-height: 48px;
+  min-height: 42px;
 }
 
 /* =========================================
-   ICONO IMPRESORA PEQUEÑO PROFESIONAL
+   ICONO IMPRESORA REAL (SIN BOTÓN)
 ========================================= */
 
 .icon-print {
-  background: transparent;
+  background: none;
   border: none;
-  font-size: 14px;
+  padding: 0;
+  margin: 0;
+  font-size: 15px;
   cursor: pointer;
-  padding: 4px;
-  opacity: 0.6;
-  transition: 0.15s ease;
+  opacity: 0.5;
+  line-height: 1;
 }
 
 .icon-print:hover {
@@ -188,38 +167,34 @@
 }
 
 /* =========================================
-   ACTION BAR FINAL
+   FOOTER
 ========================================= */
 
 .action-bar-new {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 22px 36px;
+  padding: 18px 32px;
   display: flex;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 12px;
 }
 
 .btn-primary-large {
   background: #2563eb;
   color: white;
   border: none;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
-}
-
-.btn-primary-large:hover {
-  background: #1d4ed8;
 }
 
 .btn-danger-large {
   background: #dc2626;
   color: white;
   border: none;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 14px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
   cursor: pointer;
 }
