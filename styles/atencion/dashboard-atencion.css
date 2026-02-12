@@ -1,166 +1,238 @@
-import "../styles/atencion/dashboard-atencion.css";
+/* =====================================================
+   ICA – CLINICAL EMR PREMIUM
+   Minimal, profesional, elegante
+===================================================== */
 
-export default function DashboardAtencion({
-  rut,
-  nombre,
-  edad,
-  sexo,
-  direccion,
-  telefono,
-  email,
-  prevision,
-  date,
-  time,
-  professional,
+.dashboard-atencion.clinical-emr {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f4f6f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
+}
 
-  atencion,
-  diagnostico,
-  receta,
-  examenes,
-  indicaciones,
-  ordenKinesiologia,
-  indicacionQuirurgica,
+/* =====================================================
+   HEADER
+===================================================== */
 
-  onChangeAtencion,
-  onChangeDiagnostico,
-  onChangeReceta,
-  onChangeExamenes,
-  onChangeIndicaciones,
-  onChangeOrdenKinesiologia,
-  onChangeIndicacionQuirurgica,
+.emr-header {
+  background: #ffffff;
+  padding: 18px 28px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 
-  onOrdenKinesiologia,
-  onIndicaciones,
-  onIndicacionQuirurgica,
-  onImprimir,
+.emr-title h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
 
-  onGuardar,
-  onCancelar
-}) {
-  return (
-    <div className="dashboard dashboard-atencion clinical-emr">
+.emr-subtitle {
+  font-size: 13px;
+  color: #64748b;
+}
 
-      {/* HEADER */}
-      <header className="emr-header">
-        <div className="emr-title">
-          <h1>Ficha Clínica</h1>
-          <span className="emr-subtitle">Atención médica</span>
-        </div>
+.emr-admin {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 6px 20px;
+  font-size: 13px;
+  color: #334155;
+}
 
-        <div className="emr-admin">
-          <div><strong>Paciente:</strong> {nombre}</div>
-          <div><strong>RUT:</strong> {rut}</div>
-          <div><strong>Edad:</strong> {edad}</div>
-          <div><strong>Profesional:</strong> {professional}</div>
-          <div><strong>Fecha:</strong> {date} {time}</div>
-        </div>
-      </header>
+/* =====================================================
+   BODY LAYOUT
+===================================================== */
 
-      {/* BODY */}
-      <main className="emr-body">
+.emr-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
+  padding: 24px 28px;
+  overflow: hidden;
+}
 
-        {/* IZQUIERDA */}
-        <div className="emr-left">
+.emr-left,
+.emr-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-          <section className="emr-panel large">
-            <div className="emr-panel-header">Atención</div>
-            <textarea
-              value={atencion}
-              onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Evolución, anamnesis, examen físico..."
-            />
-          </section>
+/* =====================================================
+   PANELS
+===================================================== */
 
-          <section className="emr-panel">
-            <div className="emr-panel-header">Diagnóstico</div>
-            <textarea
-              value={diagnostico}
-              onChange={(e) => onChangeDiagnostico(e.target.value)}
-            />
-          </section>
+.emr-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
-          <section className="emr-panel">
-            <div className="emr-panel-header">Receta</div>
-            <textarea
-              value={receta}
-              onChange={(e) => onChangeReceta(e.target.value)}
-            />
-          </section>
+.emr-panel.large {
+  min-height: 180px;
+}
 
-          <section className="emr-panel">
-            <div className="emr-panel-header">Exámenes</div>
-            <textarea
-              value={examenes}
-              onChange={(e) => onChangeExamenes(e.target.value)}
-            />
-          </section>
+.emr-panel.assistant {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
 
-        </div>
+.emr-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
 
-        {/* DERECHA */}
-        <aside className="emr-right">
+/* =====================================================
+   TEXTAREAS
+===================================================== */
 
-          <div className="assistant-label">
-            Asistente Clínico
-          </div>
+.emr-panel textarea {
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  color: #0f172a;
+  background: transparent;
+  min-height: 90px;
+}
 
-          <section className="emr-panel assistant">
-            <div className="emr-panel-header">
-              Indicaciones
-              <button className="emr-link" onClick={onIndicaciones}>
-                Generar
-              </button>
-            </div>
-            <textarea
-              value={indicaciones}
-              onChange={(e) => onChangeIndicaciones(e.target.value)}
-            />
-          </section>
+.emr-panel textarea::placeholder {
+  color: #94a3b8;
+}
 
-          <section className="emr-panel assistant">
-            <div className="emr-panel-header">
-              Orden kinésica
-              <button className="emr-link" onClick={onOrdenKinesiologia}>
-                Generar
-              </button>
-            </div>
-            <textarea
-              value={ordenKinesiologia}
-              onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
-            />
-          </section>
+/* =====================================================
+   ASSISTANT LABEL
+===================================================== */
 
-          <section className="emr-panel assistant">
-            <div className="emr-panel-header">
-              Indicación quirúrgica
-              <button className="emr-link" onClick={onIndicacionQuirurgica}>
-                Generar
-              </button>
-            </div>
-            <textarea
-              value={indicacionQuirurgica}
-              onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
-            />
-          </section>
+.assistant-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: -6px;
+}
 
-          <button className="emr-print" onClick={onImprimir}>
-            Imprimir documentos
-          </button>
+/* =====================================================
+   SMALL ACTION LINKS (Generar)
+===================================================== */
 
-        </aside>
+.emr-link {
+  font-size: 12px;
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
-      </main>
+.emr-link::before {
+  content: "⚡";
+  font-size: 11px;
+}
 
-      {/* FOOTER */}
-      <footer className="emr-footer">
-        <button className="emr-save" onClick={onGuardar}>
-          Guardar
-        </button>
-        <button className="emr-cancel" onClick={onCancelar}>
-          Cancelar
-        </button>
-      </footer>
+.emr-link:hover {
+  opacity: 0.7;
+}
 
-    </div>
-  );
+/* =====================================================
+   PRINT BUTTONS (pequeños con icono)
+===================================================== */
+
+.emr-print {
+  margin-top: 6px;
+  align-self: flex-end;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.emr-print::before {
+  content: "🖨";
+  font-size: 13px;
+}
+
+.emr-print:hover {
+  opacity: 0.85;
+}
+
+/* =====================================================
+   FOOTER ACTIONS
+===================================================== */
+
+.emr-footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 16px 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+.emr-save {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 10px 26px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.emr-save:hover {
+  background: #1e40af;
+}
+
+.emr-cancel {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: none;
+  padding: 10px 22px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.emr-cancel:hover {
+  background: #cbd5e1;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1200px) {
+  .emr-body {
+    grid-template-columns: 1fr;
+  }
+
+  .emr-right {
+    margin-top: 20px;
+  }
 }
