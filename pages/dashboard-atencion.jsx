@@ -1,10 +1,5 @@
 import "../styles/atencion/dashboard-atencion.css";
 
-/*
-DashboardAtencion — PRODUCCIÓN REAL (ICA)
-MITAD Y MITAD EDITABLE + ICONOS IMPRESIÓN
-*/
-
 export default function DashboardAtencion({
   rut,
   nombre,
@@ -67,7 +62,7 @@ export default function DashboardAtencion({
               onClick={onDictado}
               disabled={!puedeDictar}
             >
-              {dictando ? "■ Detener dictado" : "🎤 Dictar"}
+              {dictando ? "■ Detener" : "🎙"}
             </button>
 
             <button
@@ -75,7 +70,7 @@ export default function DashboardAtencion({
               disabled={!puedeOrdenar}
               onClick={onOrdenarClinicamente}
             >
-              🧠 Ordenar clínicamente
+              🧠
             </button>
 
           </div>
@@ -133,7 +128,6 @@ export default function DashboardAtencion({
               <button
                 className="icon-print"
                 onClick={() => onImprimir?.("receta")}
-                title="Imprimir receta"
               >
                 🖨
               </button>
@@ -155,7 +149,6 @@ export default function DashboardAtencion({
               <button
                 className="icon-print"
                 onClick={() => onImprimir?.("examenes")}
-                title="Imprimir orden de exámenes"
               >
                 🖨
               </button>
@@ -179,11 +172,7 @@ export default function DashboardAtencion({
           <section className="panel">
             <div className="panel-header">
               <span>Indicaciones</span>
-              <button
-                className="icon-print"
-                onClick={() => onImprimir?.("indicaciones")}
-                title="Imprimir indicaciones"
-              >
+              <button className="icon-print">
                 🖨
               </button>
             </div>
@@ -192,7 +181,6 @@ export default function DashboardAtencion({
                 value={indicaciones}
                 onChange={(e) => onChangeIndicaciones(e.target.value)}
                 onInput={autoResize}
-                placeholder="Reposo, control, recomendaciones…"
               />
             </div>
           </section>
@@ -200,11 +188,7 @@ export default function DashboardAtencion({
           <section className="panel">
             <div className="panel-header">
               <span>Orden kinésica</span>
-              <button
-                className="icon-print"
-                onClick={() => onImprimir?.("kinesiologia")}
-                title="Imprimir orden kinésica"
-              >
+              <button className="icon-print">
                 🖨
               </button>
             </div>
@@ -213,7 +197,6 @@ export default function DashboardAtencion({
                 value={ordenKinesiologia}
                 onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
                 onInput={autoResize}
-                placeholder="10 sesiones, 3 veces por semana…"
               />
             </div>
           </section>
@@ -221,11 +204,7 @@ export default function DashboardAtencion({
           <section className="panel">
             <div className="panel-header">
               <span>Indicación quirúrgica</span>
-              <button
-                className="icon-print"
-                onClick={() => onImprimir?.("quirurgica")}
-                title="Imprimir indicación quirúrgica"
-              >
+              <button className="icon-print">
                 🖨
               </button>
             </div>
@@ -234,7 +213,6 @@ export default function DashboardAtencion({
                 value={indicacionQuirurgica}
                 onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
                 onInput={autoResize}
-                placeholder="Procedimiento indicado…"
               />
             </div>
           </section>
@@ -243,18 +221,17 @@ export default function DashboardAtencion({
 
       </main>
 
-      {/* ================= FOOTER ================= */}
       <div className="action-bar-new">
 
         {onGuardar && (
           <button className="btn-primary-large" onClick={onGuardar}>
-            💾 Guardar
+            Guardar
           </button>
         )}
 
         {onCancelar && (
           <button className="btn-danger-large" onClick={onCancelar}>
-            ✖ Cancelar
+            Cancelar
           </button>
         )}
 
