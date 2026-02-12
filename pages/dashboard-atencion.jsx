@@ -45,6 +45,12 @@ export default function DashboardAtencion({
   onGuardar,
   onCancelar
 }) {
+
+  const autoResize = (e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = e.target.scrollHeight + "px";
+  };
+
   return (
     <div className="dashboard dashboard-atencion">
 
@@ -61,7 +67,7 @@ export default function DashboardAtencion({
               onClick={onDictado}
               disabled={!puedeDictar}
             >
-              {dictando ? "⏹ Detener dictado" : "🎙 Dictar"}
+              {dictando ? "■ Detener dictado" : "🎤 Dictar"}
             </button>
 
             <button
@@ -69,7 +75,7 @@ export default function DashboardAtencion({
               disabled={!puedeOrdenar}
               onClick={onOrdenarClinicamente}
             >
-              🧠 Ordenar
+              🧠 Ordenar clínicamente
             </button>
 
           </div>
@@ -102,6 +108,7 @@ export default function DashboardAtencion({
               <textarea
                 value={atencion}
                 onChange={(e) => onChangeAtencion(e.target.value)}
+                onInput={autoResize}
                 placeholder="Evolución, anamnesis, examen físico…"
               />
             </div>
@@ -111,31 +118,54 @@ export default function DashboardAtencion({
             <div className="panel-header">Diagnóstico</div>
             <div className="panel-body">
               <textarea
-                className="textarea-small"
+                className="textarea-diagnostico"
                 value={diagnostico}
                 onChange={(e) => onChangeDiagnostico(e.target.value)}
+                onInput={autoResize}
                 placeholder="Diagnóstico principal…"
               />
             </div>
           </section>
 
           <section className="panel">
-            <div className="panel-header">Receta</div>
+            <div className="panel-header">
+              <span>Receta</span>
+              <button
+                className="icon-print"
+                onClick={() => onImprimir?.("receta")}
+                title="Imprimir receta"
+              >
+                🖨
+              </button>
+            </div>
             <div className="panel-body">
               <textarea
+                className="textarea-receta"
                 value={receta}
                 onChange={(e) => onChangeReceta(e.target.value)}
+                onInput={autoResize}
                 placeholder="Medicamentos, dosis, frecuencia…"
               />
             </div>
           </section>
 
           <section className="panel">
-            <div className="panel-header">Exámenes</div>
+            <div className="panel-header">
+              <span>Exámenes</span>
+              <button
+                className="icon-print"
+                onClick={() => onImprimir?.("examenes")}
+                title="Imprimir orden de exámenes"
+              >
+                🖨
+              </button>
+            </div>
             <div className="panel-body">
               <textarea
+                className="textarea-examenes"
                 value={examenes}
                 onChange={(e) => onChangeExamenes(e.target.value)}
+                onInput={autoResize}
                 placeholder="Exámenes solicitados…"
               />
             </div>
@@ -161,6 +191,7 @@ export default function DashboardAtencion({
               <textarea
                 value={indicaciones}
                 onChange={(e) => onChangeIndicaciones(e.target.value)}
+                onInput={autoResize}
                 placeholder="Reposo, control, recomendaciones…"
               />
             </div>
@@ -181,6 +212,7 @@ export default function DashboardAtencion({
               <textarea
                 value={ordenKinesiologia}
                 onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
+                onInput={autoResize}
                 placeholder="10 sesiones, 3 veces por semana…"
               />
             </div>
@@ -201,6 +233,7 @@ export default function DashboardAtencion({
               <textarea
                 value={indicacionQuirurgica}
                 onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
+                onInput={autoResize}
                 placeholder="Procedimiento indicado…"
               />
             </div>
@@ -221,7 +254,7 @@ export default function DashboardAtencion({
 
         {onCancelar && (
           <button className="btn-danger-large" onClick={onCancelar}>
-            ❌ Cancelar
+            ✖ Cancelar
           </button>
         )}
 
