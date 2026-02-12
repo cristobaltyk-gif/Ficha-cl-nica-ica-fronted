@@ -1,5 +1,5 @@
 /* =========================================
-   ICA — DASHBOARD ATENCIÓN LIMPIO REAL
+   ICA — DASHBOARD ATENCIÓN FINAL CORREGIDO
 ========================================= */
 
 .dashboard-atencion {
@@ -36,32 +36,24 @@
 
 .admin-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
-
-.btn-primary,
-.btn-secondary,
-.btn-danger {
-  border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-primary { background: #2563eb; color: white; }
-.btn-secondary { background: #e2e8f0; }
-.btn-danger { background: #dc2626; color: white; }
 
 /* =========================================
-   GRID ADMIN
+   GRID ADMINISTRATIVO
 ========================================= */
 
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px 20px;
-  font-size: 12px;
+  gap: 10px 24px;
+  font-size: 13px;
+}
+
+.admin-grid div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .admin-grid strong {
@@ -71,14 +63,14 @@
 }
 
 /* =========================================
-   BODY MITAD Y MITAD
+   BODY MITAD / MITAD
 ========================================= */
 
 .atencion-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 22px;
-  padding: 22px 32px;
+  gap: 24px;
+  padding: 24px 32px;
   flex: 1;
 }
 
@@ -108,75 +100,75 @@
   align-items: center;
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 /* =========================================
-   TEXTAREAS ALTURA REAL POR LÍNEAS
+   TEXTAREAS PROPORCIONALES
 ========================================= */
 
 .panel textarea {
-  width: 100%;
   resize: none;
-  overflow: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 8px;
   font-size: 13px;
   font-family: inherit;
+  line-height: 1.4;
   background: #ffffff;
+  overflow: hidden;
 }
 
-/* Atención */
-.panel textarea:not(.textarea-diagnostico):not(.textarea-receta):not(.textarea-examenes) {
-  min-height: 100px;
+/* Atención (grande) */
+.col-left .panel:nth-child(1) textarea {
+  min-height: 120px;
 }
 
 /* Diagnóstico — 2 líneas */
 .textarea-diagnostico {
-  min-height: 42px;
+  min-height: 44px;
 }
 
 /* Receta — 4 líneas */
 .textarea-receta {
-  min-height: 84px;
+  min-height: 88px;
 }
 
 /* Exámenes — 2 líneas */
 .textarea-examenes {
-  min-height: 42px;
+  min-height: 44px;
 }
 
 /* =========================================
-   ICONO IMPRESORA REAL (SIN BOTÓN)
+   ICONO IMPRESORA PEQUEÑO (NO BOTÓN)
 ========================================= */
 
 .icon-print {
   background: none;
   border: none;
   padding: 0;
-  margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
-  opacity: 0.5;
-  line-height: 1;
+  color: #64748b;
+  transition: 0.2s ease;
 }
 
 .icon-print:hover {
-  opacity: 1;
+  color: #1e293b;
+  transform: scale(1.1);
 }
 
 /* =========================================
-   FOOTER
+   ACTION BAR
 ========================================= */
 
 .action-bar-new {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 18px 32px;
+  padding: 16px 32px;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 14px;
 }
 
 .btn-primary-large {
