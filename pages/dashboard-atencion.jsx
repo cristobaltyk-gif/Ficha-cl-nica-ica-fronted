@@ -38,7 +38,7 @@ export default function DashboardAtencion({
 
   onImprimir,
   onGuardar,
-  onModificar,     // ✅ agregado
+  onModificar,
   onCancelar
 }) {
 
@@ -51,7 +51,7 @@ export default function DashboardAtencion({
     <div className="dashboard dashboard-atencion">
 
       {/* ================= HEADER ================= */}
-      <header className="dashboard-header admin-header">
+      <header className="dashboard-header admin-header compact-header">
 
         <div className="admin-header-top">
           <h1>Atención Clínica</h1>
@@ -110,7 +110,7 @@ export default function DashboardAtencion({
             <div className="panel-header">Diagnóstico</div>
             <textarea
               value={diagnostico}
-              rows={2}   /* ✅ 2 líneas */
+              rows={2}
               onChange={(e) => onChangeDiagnostico(e.target.value)}
               onInput={autoResize}
             />
@@ -129,7 +129,7 @@ export default function DashboardAtencion({
             </div>
             <textarea
               value={receta}
-              rows={4}  /* ✅ 4 líneas */
+              rows={4}
               onChange={(e) => onChangeReceta(e.target.value)}
               onInput={autoResize}
             />
@@ -148,7 +148,7 @@ export default function DashboardAtencion({
             </div>
             <textarea
               value={examenes}
-              rows={2}   /* ✅ 2 líneas */
+              rows={2}
               onChange={(e) => onChangeExamenes(e.target.value)}
               onInput={autoResize}
             />
