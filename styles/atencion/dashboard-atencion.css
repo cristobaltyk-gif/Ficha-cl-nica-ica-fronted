@@ -1,15 +1,16 @@
 /* =========================================
-   ICA — DASHBOARD ATENCIÓN FINAL CORREGIDO
+   ICA — DASHBOARD ATENCIÓN PREMIUM
 ========================================= */
 
 .dashboard-atencion {
   display: flex;
   flex-direction: column;
-  background: #f4f6f9;
+  background: #f6f8fb;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1e293b;
 }
+
 
 /* =========================================
    HEADER
@@ -17,27 +18,84 @@
 
 .dashboard-header {
   background: #ffffff;
-  padding: 20px 32px;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 22px 36px;
+  border-bottom: 1px solid #e5e9f2;
 }
 
 .admin-header-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .admin-header-top h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
+  letter-spacing: -0.3px;
 }
+
+
+/* =========================================
+   BOTONES HEADER (PREMIUM)
+========================================= */
 
 .admin-actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
+
+/* Dictar */
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+}
+
+/* Detener */
+.btn-danger {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+  transition: all 0.2s ease;
+}
+
+/* Ordenar */
+.btn-secondary {
+  background: #f1f5f9;
+  border: 1px solid #dbe2ef;
+  color: #1e293b;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
 
 /* =========================================
    GRID ADMINISTRATIVO
@@ -46,21 +104,24 @@
 .admin-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px 24px;
+  gap: 12px 26px;
   font-size: 13px;
 }
 
 .admin-grid div {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .admin-grid strong {
   font-size: 11px;
   color: #64748b;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
+
 
 /* =========================================
    BODY MITAD / MITAD
@@ -69,8 +130,8 @@
 .atencion-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding: 24px 32px;
+  gap: 26px;
+  padding: 28px 36px;
   flex: 1;
 }
 
@@ -78,79 +139,87 @@
 .col-right {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
+
 /* =========================================
-   PANEL
+   PANEL PREMIUM
 ========================================= */
 
 .panel {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  border: 1px solid #eef2f7;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  color: #1e293b;
 }
 
+
 /* =========================================
-   TEXTAREAS PROPORCIONALES
+   TEXTAREAS (EMR STYLE)
 ========================================= */
 
 .panel textarea {
   resize: none;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 8px;
+  border: 1px solid #dbe2ef;
+  border-radius: 8px;
+  padding: 10px 12px;
   font-size: 13px;
-  font-family: inherit;
-  line-height: 1.4;
+  line-height: 1.5;
+  background: #fbfcfe;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.panel textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
   background: #ffffff;
-  overflow: hidden;
 }
 
-/* Atención (grande) */
+/* Alturas específicas */
 .col-left .panel:nth-child(1) textarea {
-  min-height: 120px;
+  min-height: 120px;   /* Atención */
 }
 
-/* Diagnóstico — 2 líneas */
-.textarea-diagnostico {
-  min-height: 44px;
+.col-left .panel:nth-child(2) textarea {
+  min-height: 44px;    /* Diagnóstico */
 }
 
-/* Receta — 4 líneas */
-.textarea-receta {
-  min-height: 88px;
+.col-left .panel:nth-child(3) textarea {
+  min-height: 88px;    /* Receta */
 }
 
-/* Exámenes — 2 líneas */
-.textarea-examenes {
-  min-height: 44px;
+.col-left .panel:nth-child(4) textarea {
+  min-height: 44px;    /* Exámenes */
 }
+
 
 /* =========================================
-   ICONO IMPRESORA PEQUEÑO (NO BOTÓN)
+   ICONO IMPRESORA (LIMPIO Y DISCRETO)
 ========================================= */
 
 .icon-print {
   background: none;
   border: none;
   padding: 0;
-  font-size: 16px;
+  font-size: 15px;
   cursor: pointer;
-  color: #64748b;
-  transition: 0.2s ease;
+  color: #94a3b8;
+  transition: all 0.2s ease;
 }
 
 .icon-print:hover {
@@ -158,35 +227,55 @@
   transform: scale(1.1);
 }
 
+
 /* =========================================
-   ACTION BAR
+   FOOTER ACTION BAR
 ========================================= */
 
 .action-bar-new {
   background: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  padding: 16px 32px;
+  border-top: 1px solid #e5e9f2;
+  padding: 18px 36px;
   display: flex;
   justify-content: flex-end;
   gap: 14px;
 }
 
 .btn-primary-large {
-  background: #2563eb;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white;
   border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
+  padding: 9px 20px;
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-primary-large:hover {
+  transform: translateY(-1px);
+}
+
+.btn-secondary-large {
+  background: #f1f5f9;
+  border: 1px solid #dbe2ef;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
 }
 
 .btn-danger-large {
-  background: #dc2626;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
   color: white;
   border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
+  padding: 9px 20px;
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
 }
