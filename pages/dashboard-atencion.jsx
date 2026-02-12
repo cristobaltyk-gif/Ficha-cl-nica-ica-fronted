@@ -1,13 +1,13 @@
 import "../styles/atencion/dashboard-atencion.css";
 
 /*
-DashboardAtencion — ICA 2 COLUMNAS
+DashboardAtencion — BOUTIQUE ICA
 
 ✔ UI pura
-✔ Sin fetch
-✔ Sin lógica
-✔ División clínica estructurada
-✔ Panel quirúrgico separado
+✔ Diseño premium
+✔ Separación Médico vs IA
+✔ Jerarquía visual clara
+✔ Elegante, minimal, clínico
 */
 
 export default function DashboardAtencion({
@@ -60,14 +60,16 @@ export default function DashboardAtencion({
 }) {
 
   return (
-    <div className="dashboard dashboard-atencion">
+    <div className="dashboard dashboard-atencion boutique-ica">
 
       {/* ===============================
-          HEADER
+          HEADER PREMIUM
       =============================== */}
-      <header className="dashboard-header admin-header">
-        <div className="admin-header-top">
+      <header className="dashboard-header boutique-header">
+
+        <div className="header-title">
           <h1>Atención Clínica</h1>
+          <span className="badge-ai">Asistencia Inteligente Activa</span>
         </div>
 
         <div className="admin-grid">
@@ -84,6 +86,7 @@ export default function DashboardAtencion({
           <div><strong>Fecha</strong><span>{date} {time}</span></div>
           <div><strong>Profesional</strong><span>{professional}</span></div>
         </div>
+
       </header>
 
       {/* ===============================
@@ -92,11 +95,11 @@ export default function DashboardAtencion({
       <main className="dashboard-body atencion-split">
 
         {/* ===============================
-            COLUMNA IZQUIERDA
+            COLUMNA MÉDICO
         =============================== */}
         <div className="col-left">
 
-          <section className="panel">
+          <section className="panel panel-clinical">
             <div className="panel-header">Atención</div>
             <div className="panel-body">
               <textarea
@@ -107,7 +110,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel panel-clinical">
             <div className="panel-header">Diagnóstico</div>
             <div className="panel-body">
               <textarea
@@ -118,7 +121,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel panel-clinical">
             <div className="panel-header">Receta</div>
             <div className="panel-body">
               <textarea
@@ -129,7 +132,7 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel panel-clinical">
             <div className="panel-header">Exámenes</div>
             <div className="panel-body">
               <textarea
@@ -143,18 +146,18 @@ export default function DashboardAtencion({
         </div>
 
         {/* ===============================
-            COLUMNA DERECHA
+            COLUMNA IA
         =============================== */}
-        <div className="col-right">
+        <div className="col-right ia-zone">
 
-          {/* INDICACIONES */}
-          <section className="panel panel-accent">
+          <div className="ia-title">
+            <span>🧠 Asistente Clínico IA</span>
+          </div>
+
+          <section className="panel panel-ia">
             <div className="panel-header">
               Indicaciones
-              <button
-                className="btn-small"
-                onClick={onIndicaciones}
-              >
+              <button className="btn-ia" onClick={onIndicaciones}>
                 Generar
               </button>
             </div>
@@ -167,14 +170,10 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          {/* ORDEN KINESIOLOGÍA */}
-          <section className="panel panel-accent">
+          <section className="panel panel-ia">
             <div className="panel-header">
               Orden Kinésica
-              <button
-                className="btn-small"
-                onClick={onOrdenKinesiologia}
-              >
+              <button className="btn-ia" onClick={onOrdenKinesiologia}>
                 Generar
               </button>
             </div>
@@ -187,14 +186,10 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          {/* INDICACIÓN QUIRÚRGICA */}
-          <section className="panel panel-accent panel-quirurgico">
+          <section className="panel panel-ia panel-quirurgico">
             <div className="panel-header">
               Indicación Quirúrgica
-              <button
-                className="btn-danger-small"
-                onClick={onIndicacionQuirurgica}
-              >
+              <button className="btn-ia-danger" onClick={onIndicacionQuirurgica}>
                 Generar
               </button>
             </div>
@@ -207,12 +202,8 @@ export default function DashboardAtencion({
             </div>
           </section>
 
-          {/* IMPRIMIR */}
-          <div className="panel print-panel">
-            <button
-              className="btn-print"
-              onClick={onImprimir}
-            >
+          <div className="print-container">
+            <button className="btn-print" onClick={onImprimir}>
               🖨 Imprimir Documentos
             </button>
           </div>
@@ -222,29 +213,20 @@ export default function DashboardAtencion({
       </main>
 
       {/* ===============================
-          ACCIONES GRANDES FINALES
+          ACCIONES FINALES
       =============================== */}
-      <div className="action-bar">
+      <div className="action-bar boutique-actions">
 
-        <button
-          className="btn-big btn-primary"
-          onClick={onGuardar}
-        >
-          💾 Guardar
+        <button className="btn-action primary" onClick={onGuardar}>
+          Guardar
         </button>
 
-        <button
-          className="btn-big btn-secondary"
-          onClick={onModificar}
-        >
-          ✏ Modificar
+        <button className="btn-action secondary" onClick={onModificar}>
+          Modificar
         </button>
 
-        <button
-          className="btn-big btn-danger"
-          onClick={onCancelar}
-        >
-          ❌ Cancelar
+        <button className="btn-action danger" onClick={onCancelar}>
+          Cancelar
         </button>
 
       </div>
