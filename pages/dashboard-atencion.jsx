@@ -49,20 +49,18 @@ export default function DashboardAtencion({
   return (
     <div className="dashboard dashboard-atencion">
 
-      {/* ================= HEADER ================= */}
       <header className="dashboard-header admin-header">
 
         <div className="admin-header-top">
           <h1>Atención Clínica</h1>
 
           <div className="admin-actions">
-
             <button
               className={dictando ? "btn-danger" : "btn-primary"}
               onClick={onDictado}
               disabled={!puedeDictar}
             >
-              {dictando ? "■ Detener" : "🎙"}
+              {dictando ? "■" : "🎙"}
             </button>
 
             <button
@@ -72,7 +70,6 @@ export default function DashboardAtencion({
             >
               🧠
             </button>
-
           </div>
         </div>
 
@@ -91,35 +88,28 @@ export default function DashboardAtencion({
 
       </header>
 
-      {/* ================= BODY MITAD Y MITAD ================= */}
       <main className="dashboard-body atencion-split">
 
-        {/* IZQUIERDA */}
         <div className="col-left">
 
           <section className="panel">
             <div className="panel-header">Atención</div>
-            <div className="panel-body">
-              <textarea
-                value={atencion}
-                onChange={(e) => onChangeAtencion(e.target.value)}
-                onInput={autoResize}
-                placeholder="Evolución, anamnesis, examen físico…"
-              />
-            </div>
+            <textarea
+              value={atencion}
+              rows={5}
+              onChange={(e) => onChangeAtencion(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
           <section className="panel">
             <div className="panel-header">Diagnóstico</div>
-            <div className="panel-body">
-              <textarea
-                className="textarea-diagnostico"
-                value={diagnostico}
-                onChange={(e) => onChangeDiagnostico(e.target.value)}
-                onInput={autoResize}
-                placeholder="Diagnóstico principal…"
-              />
-            </div>
+            <textarea
+              value={diagnostico}
+              rows={2}
+              onChange={(e) => onChangeDiagnostico(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
           <section className="panel">
@@ -132,15 +122,12 @@ export default function DashboardAtencion({
                 🖨
               </button>
             </div>
-            <div className="panel-body">
-              <textarea
-                className="textarea-receta"
-                value={receta}
-                onChange={(e) => onChangeReceta(e.target.value)}
-                onInput={autoResize}
-                placeholder="Medicamentos, dosis, frecuencia…"
-              />
-            </div>
+            <textarea
+              value={receta}
+              rows={4}
+              onChange={(e) => onChangeReceta(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
           <section className="panel">
@@ -153,68 +140,55 @@ export default function DashboardAtencion({
                 🖨
               </button>
             </div>
-            <div className="panel-body">
-              <textarea
-                className="textarea-examenes"
-                value={examenes}
-                onChange={(e) => onChangeExamenes(e.target.value)}
-                onInput={autoResize}
-                placeholder="Exámenes solicitados…"
-              />
-            </div>
+            <textarea
+              value={examenes}
+              rows={2}
+              onChange={(e) => onChangeExamenes(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
         </div>
 
-        {/* DERECHA */}
         <div className="col-right">
 
           <section className="panel">
             <div className="panel-header">
               <span>Indicaciones</span>
-              <button className="icon-print">
-                🖨
-              </button>
+              <button className="icon-print">🖨</button>
             </div>
-            <div className="panel-body">
-              <textarea
-                value={indicaciones}
-                onChange={(e) => onChangeIndicaciones(e.target.value)}
-                onInput={autoResize}
-              />
-            </div>
+            <textarea
+              value={indicaciones}
+              rows={3}
+              onChange={(e) => onChangeIndicaciones(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
           <section className="panel">
             <div className="panel-header">
               <span>Orden kinésica</span>
-              <button className="icon-print">
-                🖨
-              </button>
+              <button className="icon-print">🖨</button>
             </div>
-            <div className="panel-body">
-              <textarea
-                value={ordenKinesiologia}
-                onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
-                onInput={autoResize}
-              />
-            </div>
+            <textarea
+              value={ordenKinesiologia}
+              rows={3}
+              onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
           <section className="panel">
             <div className="panel-header">
               <span>Indicación quirúrgica</span>
-              <button className="icon-print">
-                🖨
-              </button>
+              <button className="icon-print">🖨</button>
             </div>
-            <div className="panel-body">
-              <textarea
-                value={indicacionQuirurgica}
-                onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
-                onInput={autoResize}
-              />
-            </div>
+            <textarea
+              value={indicacionQuirurgica}
+              rows={3}
+              onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
+              onInput={autoResize}
+            />
           </section>
 
         </div>
@@ -222,19 +196,16 @@ export default function DashboardAtencion({
       </main>
 
       <div className="action-bar-new">
-
         {onGuardar && (
           <button className="btn-primary-large" onClick={onGuardar}>
             Guardar
           </button>
         )}
-
         {onCancelar && (
           <button className="btn-danger-large" onClick={onCancelar}>
             Cancelar
           </button>
         )}
-
       </div>
 
     </div>
