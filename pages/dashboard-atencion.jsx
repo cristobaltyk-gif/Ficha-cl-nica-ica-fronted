@@ -1,4 +1,5 @@
 import "../styles/atencion/dashboard-atencion.css";
+import { useState, useRef, useMemo, useEffect } from "react";
 
 export default function DashboardAtencion({
   rut,
@@ -42,206 +43,207 @@ export default function DashboardAtencion({
   onCancelar
 }) {
 
-  const autoResize = (e) => {
-    e.target.style.height = "auto";
-    e.target.style.height = e.target.scrollHeight + "px";
+  const [activeTab, setActiveTab] = useState("atencion");
+  const textareaRef = useRef(null);
+
+  // =========================
+  // CONFIG BASE (ESTÁTICA)
+  // =========================
+  const sectionConfig = {
+    atencion: { title: "Atención Clínica", rows: 8, print: null },
+    diagnostico: { title: "Diagnóstico", rows: 4, print: null },
+    receta: { title: "Receta Médica", rows: 6, print: "receta" },
+    examenes: { title: "Exámenes Complementarios", rows: 4, print: "examenes" },
+    indicaciones: { title: "Indicaciones Generales", rows: 5, print: "indicaciones" },
+    kinesiologia: { title: "Orden Kinésica", rows: 5, print: "kinesiologia" },
+    quirurgica: { title: "Indicación Quirúrgica", rows: 5, print: "quirurgica" }
   };
 
+  // =========================
+  // SECTIONS DINÁMICAS
+  // =========================
+  const sections = useMemo(() => ({
+    atencion: { ...sectionConfig.atencion, content: atencion ?? "", onChange: onChangeAtencion },
+    diagnostico: { ...sectionConfig.diagnostico, content: diagnostico ?? "", onChange: onChangeDiagnostico },
+    receta: { ...sectionConfig.receta, content: receta ?? "", onChange: onChangeReceta },
+    examenes: { ...sectionConfig.examenes, content: examenes ?? "", onChange: onChangeExamenes },
+    indicaciones: { ...sectionConfig.indicaciones, content: indicaciones ?? "", onChange: onChangeIndicaciones },
+    kinesiologia: { ...sectionConfig.kinesiologia, content: ordenKinesiologia ?? "", onChange: onChangeOrdenKinesiologia },
+    quirurgica: { ...sectionConfig.quirurgica, content: indicacionQuirurgica ?? "", onChange: onChangeIndicacionQuirurgica }
+  }), [
+    atencion,
+    diagnostico,
+    receta,
+    examenes,
+    indicaciones,
+    ordenKinesiologia,
+    indicacionQuirurgica,
+    onChangeAtencion,
+    onChangeDiagnostico,
+    onChangeReceta,
+    onChangeExamenes,
+    onChangeIndicaciones,
+    onChangeOrdenKinesiologia,
+    onChangeIndicacionQuirurgica
+  ]);
+
+  // =========================
+  // AUTO RESIZE
+  // =========================
+  const autoResize = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    autoResize();
+  }, [activeTab, sections]);
+
+  const handlePrint = () => {
+    const printType = sections[activeTab]?.print;
+    if (printType) onImprimir?.(printType);
+  };
+
+  // =========================
+  // RENDER
+  // =========================
   return (
-    <div className="dashboard dashboard-atencion">
+    <div className="clinical-dashboard">
 
-      {/* ================= HEADER ================= */}
-      <header className="dashboard-header admin-header compact-header">
+      {/* HEADER */}
+      <header className="clinical-header">
+        <div className="header-content">
 
-        <div className="admin-header-top">
-          <h1>Atención Clínica</h1>
+          <div className="patient-card">
+            <div className="patient-avatar">
+              <div className="avatar-icon">👤</div>
+            </div>
+            <div className="patient-info">
+              <h1 className="patient-name">{nombre || "Paciente"}</h1>
+              <div className="patient-meta">
+                <span><strong>RUT:</strong> {rut || "—"}</span>
+                <span><strong>Edad:</strong> {edad || "—"}</span>
+                <span><strong>Sexo:</strong> {sexo || "—"}</span>
+              </div>
+            </div>
+          </div>
 
-          <div className="admin-actions">
-            <button
-              className={dictando ? "btn-danger" : "btn-primary"}
-              onClick={onDictado}
-              disabled={!puedeDictar}
-            >
-              {dictando ? "■" : "🎙"}
-            </button>
+          <div className="header-actions">
 
-            <button
-              className="btn-secondary"
-              disabled={!puedeOrdenar}
-              onClick={onOrdenarClinicamente}
-            >
-              🧠
-            </button>
+            <div className="action-group">
+              <button
+                className={`voice-btn ${dictando ? "active" : ""}`}
+                onClick={onDictado}
+                disabled={!puedeDictar}
+                title="Dictado por voz"
+              >
+                {dictando ? "⏹️" : "🎤"}
+              </button>
+
+              <button
+                className="ai-btn"
+                onClick={onOrdenarClinicamente}
+                disabled={!puedeOrdenar}
+                title="Ordenar clínicamente"
+              >
+                🧠 AI
+              </button>
+            </div>
+
+            <div className="header-meta">
+              <div>
+                <strong>Fecha:</strong> {date} {time}
+              </div>
+              <div>
+                <strong>Profesional:</strong> {professional}
+              </div>
+              <div>
+                <strong>Previsión:</strong> {prevision || "—"}
+              </div>
+            </div>
+
           </div>
         </div>
-
-        <div className="admin-grid">
-          <div><strong>Paciente</strong><span>{nombre}</span></div>
-          <div><strong>RUT</strong><span>{rut}</span></div>
-          <div><strong>Edad</strong><span>{edad}</span></div>
-          <div><strong>Sexo</strong><span>{sexo}</span></div>
-          <div><strong>Dirección</strong><span>{direccion || "—"}</span></div>
-          <div><strong>Teléfono</strong><span>{telefono || "—"}</span></div>
-          <div><strong>Email</strong><span>{email || "—"}</span></div>
-          <div><strong>Previsión</strong><span>{prevision || "—"}</span></div>
-          <div><strong>Fecha</strong><span>{date} {time}</span></div>
-          <div><strong>Profesional</strong><span>{professional}</span></div>
-        </div>
-
       </header>
 
-      {/* ================= BODY ================= */}
-      <main className="dashboard-body atencion-split">
+      {/* MAIN */}
+      <main className="clinical-main">
 
-        {/* IZQUIERDA */}
-        <div className="col-left">
+        <nav className="clinical-tabs">
+          {Object.keys(sections).map((key) => (
+            <button
+              key={key}
+              className={`tab-btn ${activeTab === key ? "active" : ""}`}
+              onClick={() => setActiveTab(key)}
+            >
+              {sections[key].title}
+            </button>
+          ))}
+        </nav>
 
-          <section className="panel">
-            <div className="panel-header">Atención</div>
-            <textarea
-              value={atencion}
-              rows={5}
-              onChange={(e) => onChangeAtencion(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
+        <section className="clinical-section">
+          <div className="section-header">
+            <h2>{sections[activeTab].title}</h2>
 
-          <section className="panel">
-            <div className="panel-header">Diagnóstico</div>
-            <textarea
-              value={diagnostico}
-              rows={2}
-              onChange={(e) => onChangeDiagnostico(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <span>Receta</span>
+            {sections[activeTab].print && (
               <button
-                type="button"
-                className="icon-print"
-                onClick={() => onImprimir?.("receta")}
+                className="print-btn"
+                onClick={handlePrint}
+                title="Imprimir"
               >
-                🖨
+                🖨️
               </button>
-            </div>
-            <textarea
-              value={receta}
-              rows={4}
-              onChange={(e) => onChangeReceta(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
+            )}
+          </div>
 
-          <section className="panel">
-            <div className="panel-header">
-              <span>Exámenes</span>
-              <button
-                type="button"
-                className="icon-print"
-                onClick={() => onImprimir?.("examenes")}
-              >
-                🖨
-              </button>
-            </div>
-            <textarea
-              value={examenes}
-              rows={2}
-              onChange={(e) => onChangeExamenes(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
+          <textarea
+            ref={textareaRef}
+            className="clinical-editor"
+            value={sections[activeTab].content}
+            rows={sections[activeTab].rows}
+            onChange={(e) => sections[activeTab].onChange?.(e.target.value)}
+            onInput={autoResize}
+            placeholder={`Escriba aquí ${sections[activeTab].title.toLowerCase()}...`}
+          />
+        </section>
 
-        </div>
-
-        {/* DERECHA */}
-        <div className="col-right">
-
-          <section className="panel">
-            <div className="panel-header">
-              <span>Indicaciones</span>
-              <button
-                type="button"
-                className="icon-print"
-                onClick={() => onImprimir?.("indicaciones")}
-              >
-                🖨
-              </button>
-            </div>
-            <textarea
-              value={indicaciones}
-              rows={3}
-              onChange={(e) => onChangeIndicaciones(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <span>Orden kinésica</span>
-              <button
-                type="button"
-                className="icon-print"
-                onClick={() => onImprimir?.("kinesiologia")}
-              >
-                🖨
-              </button>
-            </div>
-            <textarea
-              value={ordenKinesiologia}
-              rows={3}
-              onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
-
-          <section className="panel">
-            <div className="panel-header">
-              <span>Indicación quirúrgica</span>
-              <button
-                type="button"
-                className="icon-print"
-                onClick={() => onImprimir?.("quirurgica")}
-              >
-                🖨
-              </button>
-            </div>
-            <textarea
-              value={indicacionQuirurgica}
-              rows={3}
-              onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
-              onInput={autoResize}
-            />
-          </section>
-
-        </div>
+        <aside className="patient-sidebar">
+          <div className="sidebar-card">
+            <h3>Contacto</h3>
+            <div>📱 {telefono || "No registrado"}</div>
+            <div>✉️ {email || "No registrado"}</div>
+            <div>🏠 {direccion || "No registrado"}</div>
+          </div>
+        </aside>
 
       </main>
 
-      {/* ================= FOOTER ================= */}
-      <div className="action-bar-new">
+      {/* FOOTER */}
+      <footer className="clinical-footer">
+        <div className="footer-actions">
 
-        {onGuardar && (
-          <button className="btn-primary-large" onClick={onGuardar}>
-            Guardar
-          </button>
-        )}
+          {onCancelar && (
+            <button className="btn-cancel" onClick={onCancelar}>
+              Cancelar
+            </button>
+          )}
 
-        {onModificar && (
-          <button className="btn-secondary-large" onClick={onModificar}>
-            Modificar
-          </button>
-        )}
+          {onModificar && (
+            <button className="btn-secondary" onClick={onModificar}>
+              Modificar
+            </button>
+          )}
 
-        {onCancelar && (
-          <button className="btn-danger-large" onClick={onCancelar}>
-            Cancelar
-          </button>
-        )}
+          {onGuardar && (
+            <button className="btn-primary" onClick={onGuardar}>
+              💾 Guardar Atención
+            </button>
+          )}
 
-      </div>
+        </div>
+      </footer>
 
     </div>
   );
