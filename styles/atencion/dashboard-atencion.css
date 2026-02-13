@@ -1,154 +1,235 @@
-/* =========================================
-   ICA — PREMIUM STYLE (DOM REAL)
-========================================= */
+/* =========================================================
+   ICA — ATENCIÓN CLÍNICA PRO
+   Diseño médico sobrio y premium
+========================================================= */
 
 .dashboard-atencion {
+  background: #f3f6fa;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: #f1f5f9;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  color: #0f172a;
 }
 
-/* ================= HEADER ================= */
+/* =========================================================
+   HEADER COMPACTO PROFESIONAL
+========================================================= */
 
 .header-compact {
-  padding: 16px 28px;
   background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 28px;
+  border-bottom: 1px solid #e6ebf2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.header-compact h1 {
+.header-compact h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.3px;
 }
 
-/* ================= BODY ================= */
+/* Línea paciente */
+.header-compact .patient-line {
+  font-size: 13px;
+  color: #475569;
+}
+
+/* =========================================================
+   BOTONES HEADER (MIC + IA)
+========================================================= */
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Micrófono premium */
+.btn-mic {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 10px rgba(30, 64, 175, 0.25);
+}
+
+.btn-mic:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(30, 64, 175, 0.35);
+}
+
+.btn-mic.active {
+  background: linear-gradient(145deg, #b91c1c, #ef4444);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+/* IA ordenar clínicamente */
+.btn-ai {
+  padding: 8px 16px;
+  border-radius: 24px;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  background: #eef2ff;
+  color: #3730a3;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ai:hover {
+  background: #e0e7ff;
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   SPLIT LAYOUT
+========================================================= */
 
 .split-layout {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding: 24px 28px;
-  overflow: auto;
+  gap: 26px;
+  padding: 28px;
+  flex: 1;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-/* ================= CARD ================= */
+/* =========================================================
+   CARD ESTILO CLÍNICO
+========================================================= */
 
 .card {
   background: #ffffff;
   border-radius: 14px;
+  border: 1px solid #e5eaf1;
   padding: 18px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s ease;
 }
 
+.card:hover {
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* Header card */
 .card-header {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
 }
 
-/* ================= TEXTAREAS ================= */
+/* =========================================================
+   ICONO IMPRESIÓN REAL
+========================================================= */
+
+.icon-print {
+  background: none;
+  border: none;
+  font-size: 15px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-print:hover {
+  color: #1e3a8a;
+  transform: scale(1.15);
+}
+
+/* =========================================================
+   TEXTAREA MÉDICO
+========================================================= */
 
 .card textarea {
-  width: 100%;
   resize: none;
-  border: 1px solid #e2e8f0;
+  width: 100%;
   border-radius: 10px;
-  padding: 12px;
+  border: 1px solid #dbe2ea;
+  padding: 14px;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   font-family: inherit;
-  background: #f8fafc;
+  background: #f9fbfd;
   transition: all 0.2s ease;
 }
 
 .card textarea:focus {
   outline: none;
-  border-color: #2563eb;
+  border-color: #1d4ed8;
   background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
 }
 
-/* ================= PRINT ICON (REAL ICON) ================= */
-
-.card-header button {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: 0.2s ease;
-}
-
-.card-header button:hover {
-  opacity: 1;
-  transform: scale(1.15);
-}
-
-/* ================= FOOTER ================= */
+/* =========================================================
+   FOOTER BAR PROFESIONAL
+========================================================= */
 
 .footer-bar {
-  padding: 18px 28px;
   background: #ffffff;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #e6ebf2;
+  padding: 18px 28px;
   display: flex;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 16px;
 }
 
-/* ================= BUTTONS PREMIUM ================= */
+/* BOTONES FOOTER */
 
-.footer-bar button {
-  padding: 9px 22px;
-  border-radius: 10px;
-  font-size: 13px;
+.btn-cancel {
+  background: #ef4444;
+  color: white;
   border: none;
+  padding: 10px 28px;
+  border-radius: 10px;
+  font-size: 14px;
   cursor: pointer;
   transition: 0.2s ease;
-  font-weight: 500;
 }
 
-/* Guardar */
-.footer-bar button:last-child {
-  background: #2563eb;
-  color: white;
+.btn-cancel:hover {
+  background: #dc2626;
 }
 
-.footer-bar button:last-child:hover {
-  background: #1d4ed8;
-}
-
-/* Modificar */
-.footer-bar button:nth-child(2) {
+.btn-secondary {
   background: #e2e8f0;
+  color: #334155;
+  border: none;
+  padding: 10px 28px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
 }
 
-.footer-bar button:nth-child(2):hover {
+.btn-secondary:hover {
   background: #cbd5e1;
 }
 
-/* Cancelar */
-.footer-bar button:first-child {
-  background: #ef4444;
+.btn-primary {
+  background: linear-gradient(145deg, #1e3a8a, #2563eb);
   color: white;
+  border: none;
+  padding: 10px 32px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-.footer-bar button:first-child:hover {
-  background: #dc2626;
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
 }
