@@ -1,181 +1,154 @@
-/* ===============================
-   HEADER ESPECÍFICO ATENCIÓN
-================================= */
+/* =========================================
+   ICA — PREMIUM STYLE (DOM REAL)
+========================================= */
 
-.atencion-header {
+.dashboard-atencion {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 28px; /* más compacto */
+  flex-direction: column;
+  height: 100%;
+  background: #f1f5f9;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: #0f172a;
 }
 
-.header-right {
-  display: flex;
-  gap: 10px;
+/* ================= HEADER ================= */
+
+.header-compact {
+  padding: 16px 28px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* Dictado elegante */
-
-.btn-voice {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #e2e8f0;
-  font-size: 15px;
-  cursor: pointer;
-  transition: 0.2s ease;
+.header-compact h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
 }
 
-.btn-voice:hover {
-  background: #cbd5e1;
-}
+/* ================= BODY ================= */
 
-.btn-voice.active {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-/* IA sobria */
-
-.btn-ai {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 18px;
-  border: none;
-  background: #eef2ff;
-  color: #3730a3;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-ai:hover {
-  background: #e0e7ff;
-}
-
-/* ===============================
-   BODY
-================================= */
-
-.atencion-body {
+.split-layout {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  gap: 24px;
+  padding: 24px 28px;
+  overflow: auto;
 }
 
-/* Panel limpio premium */
-
-.panel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.panel-header {
+.column {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ================= CARD ================= */
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* Impresora como icono real */
+/* ================= TEXTAREAS ================= */
 
-.print-icon {
-  background: transparent;
-  border: none;
-  font-size: 15px;
-  opacity: 0.6;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.print-icon:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-/* Textarea premium */
-
-.panel textarea {
+.card textarea {
   width: 100%;
   resize: none;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 12px;
   font-size: 14px;
-  background: #fafafa;
-  transition: 0.2s ease;
+  line-height: 1.5;
+  font-family: inherit;
+  background: #f8fafc;
+  transition: all 0.2s ease;
 }
 
-.panel textarea:focus {
+.card textarea:focus {
   outline: none;
   border-color: #2563eb;
   background: #ffffff;
 }
 
-/* ===============================
-   FOOTER
-================================= */
+/* ================= PRINT ICON (REAL ICON) ================= */
 
-.atencion-footer {
-  flex-shrink: 0;
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
-  padding: 18px 28px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.footer-actions {
-  display: flex;
-  gap: 14px;
-}
-
-/* Botones profesionales */
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
+.card-header button {
+  background: transparent;
   border: none;
-  padding: 9px 24px;
-  border-radius: 8px;
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
+  opacity: 0.6;
   transition: 0.2s ease;
 }
 
-.btn-primary:hover {
+.card-header button:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* ================= FOOTER ================= */
+
+.footer-bar {
+  padding: 18px 28px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+}
+
+/* ================= BUTTONS PREMIUM ================= */
+
+.footer-bar button {
+  padding: 9px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-weight: 500;
+}
+
+/* Guardar */
+.footer-bar button:last-child {
+  background: #2563eb;
+  color: white;
+}
+
+.footer-bar button:last-child:hover {
   background: #1d4ed8;
 }
 
-.btn-secondary {
+/* Modificar */
+.footer-bar button:nth-child(2) {
   background: #e2e8f0;
-  border: none;
-  padding: 9px 24px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
 }
 
-.btn-secondary:hover {
+.footer-bar button:nth-child(2):hover {
   background: #cbd5e1;
 }
 
-.btn-cancel {
+/* Cancelar */
+.footer-bar button:first-child {
   background: #ef4444;
   color: white;
-  border: none;
-  padding: 9px 24px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
 }
 
-.btn-cancel:hover {
+.footer-bar button:first-child:hover {
   background: #dc2626;
 }
