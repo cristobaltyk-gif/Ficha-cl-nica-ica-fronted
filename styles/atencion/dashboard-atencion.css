@@ -1,281 +1,251 @@
-/* =========================================
-   ICA — DASHBOARD ATENCIÓN PREMIUM
-========================================= */
+import "../styles/atencion/dashboard-atencion.css";
+import { useState, useRef, useEffect } from "react";
 
-.dashboard-atencion {
-  display: flex;
-  flex-direction: column;
-  background: #f6f8fb;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1e293b;
-}
+export default function DashboardAtencion({
+  rut,
+  nombre,
+  edad,
+  sexo,
+  direccion,
+  telefono,
+  email,
+  prevision,
+  date,
+  time,
+  professional,
 
+  atencion,
+  diagnostico,
+  receta,
+  examenes,
+  indicaciones,
+  ordenKinesiologia,
+  indicacionQuirurgica,
 
-/* =========================================
-   HEADER
-========================================= */
+  onChangeAtencion,
+  onChangeDiagnostico,
+  onChangeReceta,
+  onChangeExamenes,
+  onChangeIndicaciones,
+  onChangeOrdenKinesiologia,
+  onChangeIndicacionQuirurgica,
 
-.dashboard-header {
-  background: #ffffff;
-  padding: 22px 36px;
-  border-bottom: 1px solid #e5e9f2;
-}
+  onDictado,
+  dictando,
+  puedeDictar,
 
-.admin-header-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
+  onOrdenarClinicamente,
+  puedeOrdenar,
 
-.admin-header-top h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-}
+  onImprimir,
+  onGuardar,
+  onModificar,
+  onCancelar
+}) {
+  const [activeTab, setActiveTab] = useState('atencion');
+  const textareaRefs = useRef({});
 
+  const autoResize = (e) => {
+    const textarea = e.target;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
 
-/* =========================================
-   BOTONES HEADER (PREMIUM)
-========================================= */
+  const sections = {
+    atencion: { 
+      title: "Atención Clínica", 
+      content: atencion, 
+      onChange: onChangeAtencion,
+      rows: 8,
+      print: null
+    },
+    diagnostico: { 
+      title: "Diagnóstico", 
+      content: diagnostico, 
+      onChange: onChangeDiagnostico,
+      rows: 4,
+      print: null
+    },
+    receta: { 
+      title: "Receta Médica", 
+      content: receta, 
+      onChange: onChangeReceta,
+      rows: 6,
+      print: "receta"
+    },
+    examenes: { 
+      title: "Exámenes Complementarios", 
+      content: examenes, 
+      onChange: onChangeExamenes,
+      rows: 4,
+      print: "examenes"
+    },
+    indicaciones: { 
+      title: "Indicaciones Generales", 
+      content: indicaciones, 
+      onChange: onChangeIndicaciones,
+      rows: 5,
+      print: "indicaciones"
+    },
+    kinesiologia: { 
+      title: "Orden Kinésica", 
+      content: ordenKinesiologia, 
+      onChange: onChangeOrdenKinesiologia,
+      rows: 5,
+      print: "kinesiologia"
+    },
+    quirurgica: { 
+      title: "Indicación Quirúrgica", 
+      content: indicacionQuirurgica, 
+      onChange: onChangeIndicacionQuirurgica,
+      rows: 5,
+      print: "quirurgica"
+    }
+  };
 
-.admin-actions {
-  display: flex;
-  gap: 12px;
-}
+  const handlePrint = (section) => {
+    onImprimir?.(sections[section].print);
+  };
 
-/* Dictar */
-.btn-primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-  transition: all 0.2s ease;
-}
+  return (
+    <div className="clinical-dashboard">
+      
+      {/* HEADER PROFESIONAL */}
+      <header className="clinical-header">
+        <div className="header-content">
+          <div className="patient-card">
+            <div className="patient-avatar">
+              <div className="avatar-icon">👤</div>
+            </div>
+            <div className="patient-info">
+              <h1 className="patient-name">{nombre}</h1>
+              <div className="patient-meta">
+                <span className="meta-item"><strong>RUT:</strong> {rut}</span>
+                <span className="meta-item"><strong>Edad:</strong> {edad}</span>
+                <span className="meta-item"><strong>Sexo:</strong> {sexo}</span>
+              </div>
+            </div>
+          </div>
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
-}
+          <div className="header-actions">
+            <div className="action-group">
+              <button
+                className={`voice-btn ${dictando ? 'active' : ''}`}
+                onClick={onDictado}
+                disabled={!puedeDictar}
+                title="Dictado por voz"
+              >
+                {dictando ? "⏹️" : "🎤"}
+              </button>
+              <button
+                className="ai-btn"
+                onClick={onOrdenarClinicamente}
+                disabled={!puedeOrdenar}
+                title="Ordenar clínicamente"
+              >
+                🧠 AI
+              </button>
+            </div>
+            <div className="header-meta">
+              <div className="meta-row">
+                <span><strong>Fecha:</strong> {date} {time}</span>
+                <span><strong>Profesional:</strong> {professional}</span>
+              </div>
+              <div className="meta-row">
+                <span><strong>Previsión:</strong> {prevision || "—"}</span>
+                <span><strong>Tel:</strong> {telefono || "—"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-/* Detener */
-.btn-danger {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
-  transition: all 0.2s ease;
-}
+      {/* MAIN CONTENT */}
+      <main className="clinical-main">
+        
+        {/* TABS NAVIGATION */}
+        <nav className="clinical-tabs">
+          {Object.entries(sections).map(([key, section]) => (
+            <button
+              key={key}
+              className={`tab-btn ${activeTab === key ? 'active' : ''}`}
+              onClick={() => setActiveTab(key)}
+            >
+              {section.title.split(' ')[0]}
+            </button>
+          ))}
+        </nav>
 
-/* Ordenar */
-.btn-secondary {
-  background: #f1f5f9;
-  border: 1px solid #dbe2ef;
-  color: #1e293b;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+        {/* ACTIVE SECTION */}
+        <section className="clinical-section">
+          <div className="section-header">
+            <h2>{sections[activeTab].title}</h2>
+            {sections[activeTab].print && (
+              <button
+                className="print-btn"
+                onClick={() => handlePrint(activeTab)}
+                title="Imprimir"
+              >
+                🖨️
+              </button>
+            )}
+          </div>
+          
+          <div className="editor-container">
+            <textarea
+              ref={(el) => { if (el) textareaRefs.current[activeTab] = el; }}
+              className="clinical-editor"
+              value={sections[activeTab].content}
+              rows={sections[activeTab].rows}
+              onChange={(e) => sections[activeTab].onChange(e.target.value)}
+              onInput={autoResize}
+              placeholder={`Escriba aquí las ${sections[activeTab].title.toLowerCase()}...`}
+            />
+          </div>
+        </section>
 
-.btn-secondary:hover {
-  background: #e2e8f0;
-}
+        {/* CONTACT INFO SIDEBAR */}
+        <aside className="patient-sidebar">
+          <div className="sidebar-card">
+            <h3>📍 Contacto</h3>
+            <div className="contact-item">
+              <span className="icon">📱</span>
+              <span>{telefono || "No registrado"}</span>
+            </div>
+            <div className="contact-item">
+              <span className="icon">✉️</span>
+              <span>{email || "No registrado"}</span>
+            </div>
+            <div className="contact-item">
+              <span className="icon">🏠</span>
+              <span>{direccion || "No registrado"}</span>
+            </div>
+          </div>
+        </aside>
 
+      </main>
 
-/* =========================================
-   GRID ADMINISTRATIVO
-========================================= */
+      {/* ACTION BAR */}
+      <footer className="clinical-footer">
+        <div className="footer-actions">
+          {onCancelar && (
+            <button className="btn-cancel" onClick={onCancelar}>
+              Cancelar
+            </button>
+          )}
+          {onModificar && (
+            <button className="btn-secondary" onClick={onModificar}>
+              Modificar
+            </button>
+          )}
+          {onGuardar && (
+            <button className="btn-primary" onClick={onGuardar}>
+              💾 Guardar Atención
+            </button>
+          )}
+        </div>
+      </footer>
 
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px 26px;
-  font-size: 13px;
-}
-
-.admin-grid div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.admin-grid strong {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-
-/* =========================================
-   BODY MITAD / MITAD
-========================================= */
-
-.atencion-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 26px;
-  padding: 28px 36px;
-  flex: 1;
-}
-
-.col-left,
-.col-right {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-
-/* =========================================
-   PANEL PREMIUM
-========================================= */
-
-.panel {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-  border: 1px solid #eef2f7;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #1e293b;
-}
-
-
-/* =========================================
-   TEXTAREAS (EMR STYLE)
-========================================= */
-
-.panel textarea {
-  resize: none;
-  border: 1px solid #dbe2ef;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 13px;
-  line-height: 1.5;
-  background: #fbfcfe;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
-
-.panel textarea:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
-  background: #ffffff;
-}
-
-/* Alturas específicas */
-.col-left .panel:nth-child(1) textarea {
-  min-height: 120px;   /* Atención */
-}
-
-.col-left .panel:nth-child(2) textarea {
-  min-height: 44px;    /* Diagnóstico */
-}
-
-.col-left .panel:nth-child(3) textarea {
-  min-height: 88px;    /* Receta */
-}
-
-.col-left .panel:nth-child(4) textarea {
-  min-height: 44px;    /* Exámenes */
-}
-
-
-/* =========================================
-   ICONO IMPRESORA (LIMPIO Y DISCRETO)
-========================================= */
-
-.icon-print {
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 15px;
-  cursor: pointer;
-  color: #94a3b8;
-  transition: all 0.2s ease;
-}
-
-.icon-print:hover {
-  color: #1e293b;
-  transform: scale(1.1);
-}
-
-
-/* =========================================
-   FOOTER ACTION BAR
-========================================= */
-
-.action-bar-new {
-  background: #ffffff;
-  border-top: 1px solid #e5e9f2;
-  padding: 18px 36px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 14px;
-}
-
-.btn-primary-large {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
-  transition: all 0.2s ease;
-}
-
-.btn-primary-large:hover {
-  transform: translateY(-1px);
-}
-
-.btn-secondary-large {
-  background: #f1f5f9;
-  border: 1px solid #dbe2ef;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.btn-danger-large {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  color: white;
-  border: none;
-  padding: 9px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+    </div>
+  );
 }
