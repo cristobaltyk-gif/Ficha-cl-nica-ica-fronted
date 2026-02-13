@@ -1,251 +1,324 @@
-import "../styles/atencion/dashboard-atencion.css";
-import { useState, useRef, useEffect } from "react";
+/* =====================================================
+   ICA — CLINICAL DASHBOARD PREMIUM
+   Diseño sobrio, profesional, limpio
+===================================================== */
 
-export default function DashboardAtencion({
-  rut,
-  nombre,
-  edad,
-  sexo,
-  direccion,
-  telefono,
-  email,
-  prevision,
-  date,
-  time,
-  professional,
+.clinical-dashboard {
+  background: #f4f6f9;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+}
 
-  atencion,
-  diagnostico,
-  receta,
-  examenes,
-  indicaciones,
-  ordenKinesiologia,
-  indicacionQuirurgica,
+/* =====================================================
+   HEADER
+===================================================== */
 
-  onChangeAtencion,
-  onChangeDiagnostico,
-  onChangeReceta,
-  onChangeExamenes,
-  onChangeIndicaciones,
-  onChangeOrdenKinesiologia,
-  onChangeIndicacionQuirurgica,
+.clinical-header {
+  background: #ffffff;
+  padding: 18px 32px;
+  border-bottom: 1px solid #e2e8f0;
+}
 
-  onDictado,
-  dictando,
-  puedeDictar,
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
 
-  onOrdenarClinicamente,
-  puedeOrdenar,
+.patient-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
 
-  onImprimir,
-  onGuardar,
-  onModificar,
-  onCancelar
-}) {
-  const [activeTab, setActiveTab] = useState('atencion');
-  const textareaRefs = useRef({});
+.patient-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
 
-  const autoResize = (e) => {
-    const textarea = e.target;
-    textarea.style.height = "auto";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  };
+.patient-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
 
-  const sections = {
-    atencion: { 
-      title: "Atención Clínica", 
-      content: atencion, 
-      onChange: onChangeAtencion,
-      rows: 8,
-      print: null
-    },
-    diagnostico: { 
-      title: "Diagnóstico", 
-      content: diagnostico, 
-      onChange: onChangeDiagnostico,
-      rows: 4,
-      print: null
-    },
-    receta: { 
-      title: "Receta Médica", 
-      content: receta, 
-      onChange: onChangeReceta,
-      rows: 6,
-      print: "receta"
-    },
-    examenes: { 
-      title: "Exámenes Complementarios", 
-      content: examenes, 
-      onChange: onChangeExamenes,
-      rows: 4,
-      print: "examenes"
-    },
-    indicaciones: { 
-      title: "Indicaciones Generales", 
-      content: indicaciones, 
-      onChange: onChangeIndicaciones,
-      rows: 5,
-      print: "indicaciones"
-    },
-    kinesiologia: { 
-      title: "Orden Kinésica", 
-      content: ordenKinesiologia, 
-      onChange: onChangeOrdenKinesiologia,
-      rows: 5,
-      print: "kinesiologia"
-    },
-    quirurgica: { 
-      title: "Indicación Quirúrgica", 
-      content: indicacionQuirurgica, 
-      onChange: onChangeIndicacionQuirurgica,
-      rows: 5,
-      print: "quirurgica"
-    }
-  };
+.patient-meta {
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  color: #475569;
+  margin-top: 4px;
+}
 
-  const handlePrint = (section) => {
-    onImprimir?.(sections[section].print);
-  };
+/* HEADER RIGHT */
 
-  return (
-    <div className="clinical-dashboard">
-      
-      {/* HEADER PROFESIONAL */}
-      <header className="clinical-header">
-        <div className="header-content">
-          <div className="patient-card">
-            <div className="patient-avatar">
-              <div className="avatar-icon">👤</div>
-            </div>
-            <div className="patient-info">
-              <h1 className="patient-name">{nombre}</h1>
-              <div className="patient-meta">
-                <span className="meta-item"><strong>RUT:</strong> {rut}</span>
-                <span className="meta-item"><strong>Edad:</strong> {edad}</span>
-                <span className="meta-item"><strong>Sexo:</strong> {sexo}</span>
-              </div>
-            </div>
-          </div>
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
 
-          <div className="header-actions">
-            <div className="action-group">
-              <button
-                className={`voice-btn ${dictando ? 'active' : ''}`}
-                onClick={onDictado}
-                disabled={!puedeDictar}
-                title="Dictado por voz"
-              >
-                {dictando ? "⏹️" : "🎤"}
-              </button>
-              <button
-                className="ai-btn"
-                onClick={onOrdenarClinicamente}
-                disabled={!puedeOrdenar}
-                title="Ordenar clínicamente"
-              >
-                🧠 AI
-              </button>
-            </div>
-            <div className="header-meta">
-              <div className="meta-row">
-                <span><strong>Fecha:</strong> {date} {time}</span>
-                <span><strong>Profesional:</strong> {professional}</span>
-              </div>
-              <div className="meta-row">
-                <span><strong>Previsión:</strong> {prevision || "—"}</span>
-                <span><strong>Tel:</strong> {telefono || "—"}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+.action-group {
+  display: flex;
+  gap: 10px;
+}
 
-      {/* MAIN CONTENT */}
-      <main className="clinical-main">
-        
-        {/* TABS NAVIGATION */}
-        <nav className="clinical-tabs">
-          {Object.entries(sections).map(([key, section]) => (
-            <button
-              key={key}
-              className={`tab-btn ${activeTab === key ? 'active' : ''}`}
-              onClick={() => setActiveTab(key)}
-            >
-              {section.title.split(' ')[0]}
-            </button>
-          ))}
-        </nav>
+/* Dictado */
 
-        {/* ACTIVE SECTION */}
-        <section className="clinical-section">
-          <div className="section-header">
-            <h2>{sections[activeTab].title}</h2>
-            {sections[activeTab].print && (
-              <button
-                className="print-btn"
-                onClick={() => handlePrint(activeTab)}
-                title="Imprimir"
-              >
-                🖨️
-              </button>
-            )}
-          </div>
-          
-          <div className="editor-container">
-            <textarea
-              ref={(el) => { if (el) textareaRefs.current[activeTab] = el; }}
-              className="clinical-editor"
-              value={sections[activeTab].content}
-              rows={sections[activeTab].rows}
-              onChange={(e) => sections[activeTab].onChange(e.target.value)}
-              onInput={autoResize}
-              placeholder={`Escriba aquí las ${sections[activeTab].title.toLowerCase()}...`}
-            />
-          </div>
-        </section>
+.voice-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: #e2e8f0;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 16px;
+}
 
-        {/* CONTACT INFO SIDEBAR */}
-        <aside className="patient-sidebar">
-          <div className="sidebar-card">
-            <h3>📍 Contacto</h3>
-            <div className="contact-item">
-              <span className="icon">📱</span>
-              <span>{telefono || "No registrado"}</span>
-            </div>
-            <div className="contact-item">
-              <span className="icon">✉️</span>
-              <span>{email || "No registrado"}</span>
-            </div>
-            <div className="contact-item">
-              <span className="icon">🏠</span>
-              <span>{direccion || "No registrado"}</span>
-            </div>
-          </div>
-        </aside>
+.voice-btn:hover {
+  background: #cbd5e1;
+}
 
-      </main>
+.voice-btn.active {
+  background: #fee2e2;
+  color: #b91c1c;
+}
 
-      {/* ACTION BAR */}
-      <footer className="clinical-footer">
-        <div className="footer-actions">
-          {onCancelar && (
-            <button className="btn-cancel" onClick={onCancelar}>
-              Cancelar
-            </button>
-          )}
-          {onModificar && (
-            <button className="btn-secondary" onClick={onModificar}>
-              Modificar
-            </button>
-          )}
-          {onGuardar && (
-            <button className="btn-primary" onClick={onGuardar}>
-              💾 Guardar Atención
-            </button>
-          )}
-        </div>
-      </footer>
+/* IA */
 
-    </div>
-  );
+.ai-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.ai-btn:hover {
+  background: #e0e7ff;
+}
+
+/* Meta info */
+
+.header-meta {
+  font-size: 12px;
+  color: #64748b;
+  text-align: right;
+}
+
+.meta-row {
+  display: flex;
+  gap: 20px;
+}
+
+/* =====================================================
+   MAIN LAYOUT
+===================================================== */
+
+.clinical-main {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 24px;
+  padding: 28px 32px;
+  flex: 1;
+}
+
+/* =====================================================
+   TABS
+===================================================== */
+
+.clinical-tabs {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  border: none;
+  background: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: #cbd5e1;
+}
+
+.tab-btn.active {
+  background: #1e293b;
+  color: white;
+}
+
+/* =====================================================
+   SECTION
+===================================================== */
+
+.clinical-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Impresora como ICONO real */
+
+.print-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: 0.2s ease;
+}
+
+.print-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Editor */
+
+.editor-container {
+  width: 100%;
+}
+
+.clinical-editor {
+  width: 100%;
+  resize: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  background: #fafafa;
+  transition: border 0.2s ease;
+}
+
+.clinical-editor:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.patient-sidebar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  height: fit-content;
+}
+
+.sidebar-card h3 {
+  margin-top: 0;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #475569;
+}
+
+/* =====================================================
+   FOOTER ACTION BAR (SIEMPRE VISIBLE)
+===================================================== */
+
+.clinical-footer {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding: 18px 32px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 14px;
+}
+
+/* BOTONES PROFESIONALES */
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e1;
+}
+
+.btn-cancel {
+  background: #f87171;
+  color: white;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #ef4444;
 }
