@@ -1,71 +1,69 @@
 /* =====================================================
-   ICA — CLINICAL DASHBOARD PREMIUM
-   Diseño sobrio, profesional, limpio
+   ICA — CLINICAL DASHBOARD PREMIUM CORREGIDO
+   Compatible con .dashboard y .dashboard-body global
 ===================================================== */
 
 .clinical-dashboard {
-  background: #f4f6f9;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   color: #1e293b;
+  background: #f8fafc;
 }
 
 /* =====================================================
-   HEADER
+   HEADER (más compacto)
 ===================================================== */
 
 .clinical-header {
+  padding: 14px 28px;
   background: #ffffff;
-  padding: 18px 32px;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-}
-
-.patient-card {
-  display: flex;
-  gap: 14px;
   align-items: center;
 }
 
+/* Paciente */
+
+.patient-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .patient-avatar {
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .patient-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
 }
 
 .patient-meta {
   display: flex;
-  gap: 18px;
-  font-size: 13px;
-  color: #475569;
-  margin-top: 4px;
+  gap: 16px;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
-/* HEADER RIGHT */
+/* Acciones header */
 
 .header-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
+  align-items: center;
+  gap: 18px;
 }
 
 .action-group {
@@ -73,17 +71,17 @@
   gap: 10px;
 }
 
-/* Dictado */
+/* Dictado sobrio */
 
 .voice-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
   background: #e2e8f0;
   cursor: pointer;
-  transition: 0.2s ease;
-  font-size: 16px;
+  font-size: 15px;
+  transition: all 0.2s ease;
 }
 
 .voice-btn:hover {
@@ -95,7 +93,7 @@
   color: #b91c1c;
 }
 
-/* IA */
+/* AI elegante */
 
 .ai-btn {
   padding: 6px 14px;
@@ -103,7 +101,7 @@
   border: none;
   background: #eef2ff;
   color: #3730a3;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: 0.2s ease;
 }
@@ -112,29 +110,29 @@
   background: #e0e7ff;
 }
 
-/* Meta info */
+/* Meta derecha */
 
 .header-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
   text-align: right;
 }
 
 .meta-row {
   display: flex;
-  gap: 20px;
+  gap: 16px;
 }
 
 /* =====================================================
-   MAIN LAYOUT
+   MAIN
+   (va dentro de .dashboard-body global)
 ===================================================== */
 
 .clinical-main {
   display: grid;
   grid-template-columns: 3fr 1fr;
   gap: 24px;
-  padding: 28px 32px;
-  flex: 1;
+  padding: 24px 28px;
 }
 
 /* =====================================================
@@ -145,7 +143,7 @@
   grid-column: 1 / -1;
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .tab-btn {
@@ -174,33 +172,34 @@
 .clinical-section {
   background: #ffffff;
   border-radius: 12px;
-  padding: 20px;
+  padding: 18px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .section-header h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 
-/* Impresora como ICONO real */
+/* Impresora = ICONO REAL */
 
 .print-btn {
   background: transparent;
   border: none;
-  font-size: 16px;
+  padding: 0;
+  font-size: 15px;
   cursor: pointer;
-  opacity: 0.6;
-  transition: 0.2s ease;
+  opacity: 0.55;
+  transition: all 0.2s ease;
 }
 
 .print-btn:hover {
@@ -210,19 +209,14 @@
 
 /* Editor */
 
-.editor-container {
-  width: 100%;
-}
-
 .clinical-editor {
   width: 100%;
   resize: none;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 12px;
   font-size: 14px;
   line-height: 1.5;
-  font-family: inherit;
   background: #fafafa;
   transition: border 0.2s ease;
 }
@@ -240,34 +234,33 @@
 .patient-sidebar {
   background: #ffffff;
   border-radius: 12px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid #e2e8f0;
   height: fit-content;
 }
 
 .sidebar-card h3 {
-  margin-top: 0;
-  font-size: 14px;
-  margin-bottom: 12px;
+  margin: 0 0 12px 0;
+  font-size: 13px;
 }
 
 .contact-item {
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13px;
+  font-size: 12px;
   margin-bottom: 8px;
   color: #475569;
 }
 
 /* =====================================================
-   FOOTER ACTION BAR (SIEMPRE VISIBLE)
+   FOOTER ACTION BAR
 ===================================================== */
 
 .clinical-footer {
-  background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 18px 32px;
+  background: #ffffff;
+  padding: 16px 28px;
   display: flex;
   justify-content: flex-end;
 }
@@ -277,13 +270,13 @@
   gap: 14px;
 }
 
-/* BOTONES PROFESIONALES */
+/* Botones elegantes */
 
 .btn-primary {
   background: #2563eb;
   color: white;
   border: none;
-  padding: 8px 22px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
@@ -297,7 +290,7 @@
 .btn-secondary {
   background: #e2e8f0;
   border: none;
-  padding: 8px 22px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
@@ -309,10 +302,10 @@
 }
 
 .btn-cancel {
-  background: #f87171;
+  background: #ef4444;
   color: white;
   border: none;
-  padding: 8px 22px;
+  padding: 8px 20px;
   border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
@@ -320,5 +313,5 @@
 }
 
 .btn-cancel:hover {
-  background: #ef4444;
+  background: #dc2626;
 }
