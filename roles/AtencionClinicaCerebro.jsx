@@ -251,6 +251,29 @@ function handlePrintQuirurgica() {
     insumos: ""
   });
 }
+
+  // =========================
+// GUARDAR TODO
+// =========================
+
+async function handleGuardarTodo() {
+
+  if (receta.trim()) {
+    await handlePrintReceta();
+  }
+
+  if (atencion.trim()) {
+    await handlePrintInforme();
+  }
+
+  if (diagnostico.trim()) {
+    await handlePrintKine();
+  }
+
+  if (examenes.trim()) {
+    await handlePrintQuirurgica();
+  }
+}
   // =========================
   // BLOQUEOS
   // =========================
