@@ -329,6 +329,15 @@ async function handleGuardarTodo() {
       puedeOrdenar={!ordering}
       ordering={ordering}
       orderError={orderError}
+      onImprimir={(tipo) => {
+        if (tipo === "receta") handlePrintReceta();
+        if (tipo === "examenes") handlePrintQuirurgica();
+        if (tipo === "indicaciones") handlePrintInforme();
+        if (tipo === "kinesiologia") handlePrintKine();
+        if (tipo === "quirurgica") handlePrintQuirurgica();
+      }}
+
+      onGuardar={handleGuardarTodo}
     />
   );
 }
