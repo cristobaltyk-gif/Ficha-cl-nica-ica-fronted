@@ -175,7 +175,82 @@ export default function MedicoAtencionCerebro() {
       setOrdering(false);
     }
   }
+// =========================
+// PDF HELPERS
+// =========================
 
+async function openPdf(endpoint, payload) {
+  try {
+    const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-User": session?.usuario
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error("PDF_ERROR");
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank"); // abre en nueva pestaña
+  } catch (e) {
+    console.error("❌ ERROR PDF:", e);
+  }
+      }
+
+  // =========================
+// IMPRESIONES INDIVIDUALES
+// =========================
+
+function handlePrintReceta() {
+  openPdf("receta", {
+    nombre: admin.nombre,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    medicamentos: [], // luego podemos estructurar receta
+    indicaciones: receta
+  });
+}
+
+function handlePrintInforme() {
+  openPdf("informe", {
+    nombre: admin.nombre,
+    edad: admin.edad,
+    rut: admin.rut,
+    motivoConsulta: atencion,
+    impresionDiagnostica: diagnostico,
+    estudios: examenes,
+    plan: receta
+  });
+}
+
+function handlePrintKine() {
+  openPdf("kinesiologia", {
+    nombre: admin.nombre,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    lado: "",
+    indicaciones: receta
+  });
+}
+
+function handlePrintQuirurgica() {
+  openPdf("quirurgica", {
+    nombre: admin.nombre,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    codigoCirugia: "",
+    tipoCirugia: "",
+    modalidad: "",
+    equipoMedico: "",
+    insumos: ""
+  });
+}
   // =========================
   // BLOQUEOS
   // =========================
