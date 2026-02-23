@@ -4,14 +4,13 @@ import PublicBooking from "../pages/reservas/PublicBooking";
 const API = import.meta.env.VITE_API_URL;
 
 /*
-BookingCerebro — ICA REAL (ALINEADO A SECRETARIA)
+BookingCerebro — ICA REAL (ALINEADO EXACTO A SECRETARIA)
 
 ✔ Usa /professionals
 ✔ Usa /agenda
 ✔ Usa /agenda/create
+✔ professional = ID PURO (igual que secretaria)
 ✔ Filtra SOLO "available"
-✔ NO muestra ocupados
-✔ NO muestra nombres
 ✔ Backend decide todo
 */
 
@@ -41,9 +40,12 @@ export default function BookingCerebro() {
 
   /* ===============================
      CARGAR PROFESIONALES
+     MISMO CONTRATO QUE SECRETARIA
   =============================== */
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadProfessionals() {
       try {
         const res = await fetch(`${API}/professionals`);
@@ -51,28 +53,50 @@ export default function BookingCerebro() {
 
         const data = await res.json();
 
-        setProfessionals(data || []);
+        if (!cancelled) {
 
-        const uniqueSpecialties = [
-          ...new Set((data || []).map(p => p.specialty))
-        ];
+          // 🔑 EXACTAMENTE COMO SECRETARIA
+          const mapped = (data || []).map((p) => ({
+            id: p.id,
+            name: p.name,
+            specialty: p.specialty
+          }));
 
-        setSpecialties(uniqueSpecialties);
+          setProfessionals(mapped);
+
+          const uniqueSpecialties = [
+            ...new Set(mapped.map(p => p.specialty).filter(Boolean))
+          ];
+
+          setSpecialties(uniqueSpecialties);
+        }
 
       } catch {
-        setProfessionals([]);
+        if (!cancelled) {
+          setProfessionals([]);
+          setSpecialties([]);
+        }
       }
     }
 
     loadProfessionals();
+
+    return () => {
+      cancelled = true;
+    };
+
   }, []);
 
   /* ===============================
-     CARGAR AGENDA (SOLO AVAILABLE)
+     CARGAR AGENDA
+     MISMO ENDPOINT QUE SECRETARIA
   =============================== */
 
   useEffect(() => {
+
     if (!selectedProfessional || !selectedDate) return;
+
+    let cancelled = false;
 
     async function loadAgenda() {
       try {
@@ -84,23 +108,32 @@ export default function BookingCerebro() {
 
         const data = await res.json();
 
-        // 👇 MISMO STATUS QUE SECRETARIA
-        const disponibles = (data || []).filter(
-          slot => slot.status === "available"
-        );
+        if (!cancelled) {
 
-        setSlots(disponibles);
+          // 🔑 MISMO STATUS QUE SECRETARIA
+          const disponibles = (data || []).filter(
+            slot => slot.status === "available"
+          );
+
+          setSlots(disponibles);
+        }
 
       } catch {
-        setSlots([]);
+        if (!cancelled) setSlots([]);
       }
     }
 
     loadAgenda();
+
+    return () => {
+      cancelled = true;
+    };
+
   }, [selectedProfessional, selectedDate]);
 
   /* ===============================
-     CONFIRMAR RESERVA (MISMO ENDPOINT QUE SECRETARIA)
+     CONFIRMAR RESERVA
+     MISMO PAYLOAD QUE SECRETARIA
   =============================== */
 
   async function handleConfirm() {
@@ -119,7 +152,8 @@ export default function BookingCerebro() {
     setMessage("");
 
     try {
-      const res = await fetch(`${API}/agenda/create`, {
+
+      await fetch(`${API}/agenda/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -127,18 +161,13 @@ export default function BookingCerebro() {
         body: JSON.stringify({
           date: selectedDate,
           time: selectedTime,
-          professional: selectedProfessional,
+          professional: selectedProfessional, // 🔑 SOLO ID
           rut
         })
       });
 
-      if (!res.ok) {
-        throw new Error();
-      }
-
       setMessage("Reserva confirmada correctamente.");
 
-      // limpiar
       setSelectedTime("");
       setNombre("");
       setRut("");
@@ -197,7 +226,7 @@ export default function BookingCerebro() {
       loading={loading}
 
       onSelectSpecialty={setSelectedSpecialty}
-      onSelectProfessional={setSelectedProfessional}
+      onSelectProfessional={(id) => setSelectedProfessional(id)} // 🔑 SOLO ID
       onSelectDate={setSelectedDate}
       onSelectTime={setSelectedTime}
 
