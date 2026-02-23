@@ -3,6 +3,11 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import AtencionClinicaCerebro from "../roles/AtencionClinicaCerebro";
 
 /* ===============================
+   NUEVO — RESERVAS
+=============================== */
+import BookingCerebro from "../roles/BookingCerebro.jsx";
+
+/* ===============================
    PÚBLICO
 =============================== */
 import Login from "../pages/Login";
@@ -42,6 +47,21 @@ export default function AppRouter() {
   const { session, role } = useAuth();
   const home = resolveHome(session, role);
 
+  const host = window.location.hostname;
+
+  /* ===============================
+     RESERVAS SUBDOMINIO
+     (NO pasa por Auth ni Layout)
+  =============================== */
+  if (host.startsWith("reservas.")) {
+    return <BookingCerebro />;
+  }
+
+  /* ===============================
+     RESTO (CLÍNICA + WWW)
+     SIN CAMBIOS
+  =============================== */
+
   return (
     <BrowserRouter>
       <Routes>
@@ -65,15 +85,14 @@ export default function AppRouter() {
             </AuthGuard>
           }
         >
-<Route
-  path="/atencion"
-  element={<AtencionClinicaCerebro />}
-/>
-           
+          <Route
+            path="/atencion"
+            element={<AtencionClinicaCerebro />}
+          />
+
           {/* ===============================
               ENTREGA DE MANDO A CADA CEREBRO
           =============================== */}
-
           <Route path="/secretaria/*" element={<SecretariaCerebro />} />
           <Route path="/medico/*" element={<MedicoCerebro />} />
           <Route path="/kine/*" element={<KineCerebro />} />
