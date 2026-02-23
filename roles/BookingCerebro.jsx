@@ -1,33 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PublicBooking from "../pages/reservas/PublicBooking";
-import AgendaDayController from "../components/agenda/AgendaDayController";
 
 const API = import.meta.env.VITE_API_URL;
 
 /*
-BookingCerebro — ICA REAL
+BookingCerebro — ICA REAL (PÚBLICO)
 
 ✔ Usa /professionals
-✔ Usa AgendaDayController (NO duplica agenda)
-✔ professional = ID puro
-✔ SOLO permite seleccionar "available"
-✔ Backend decide todo
-✔ Toda la lógica está aquí (cerebro)
+✔ Usa /agenda?date=YYYY-MM-DD  (MISMO QUE AgendaDayController REAL)
+✔ Usa /agenda/create
+✔ Construye slots desde schedule (igual que AgendaDayController)
+✔ Overlay backendSlots desde calendar[professional].slots
+✔ FILTRA SOLO "available" (cerebro decide)
+✔ NO usa AuthContext (porque es público)
 */
 
 export default function BookingCerebro() {
-
-  /* ===============================
-     ESTADOS
-  =============================== */
-
+  // =========================
+  // ESTADO
+  // =========================
   const [professionals, setProfessionals] = useState([]);
+  const [professionalsMap, setProfessionalsMap] = useState({});
   const [specialties, setSpecialties] = useState([]);
 
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedProfessional, setSelectedProfessional] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
+  const [slots, setSlots] = useState([]); // SOLO available (para PublicBooking)
   const [selectedTime, setSelectedTime] = useState("");
 
   const [nombre, setNombre] = useState("");
@@ -38,11 +38,48 @@ export default function BookingCerebro() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  /* ===============================
-     LOAD PROFESSIONALS
-     MISMO ENDPOINT QUE SECRETARIA
-  =============================== */
+  // =========================
+  // HELPERS (IGUAL QUE AgendaDayController)
+  // =========================
+  function getWeekdayKey(dateStr) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  }
 
+  function buildSlotsFromSchedule(schedule, weekdayKey) {
+    const slots = {};
+    if (!schedule?.days?.[weekdayKey]) return slots;
+
+    const interval = schedule.slotMinutes;
+
+    schedule.days[weekdayKey].forEach(({ start, end }) => {
+      let minutes =
+        Number(start.split(":")[0]) * 60 + Number(start.split(":")[1]);
+
+      const endMinutes =
+        Number(end.split(":")[0]) * 60 + Number(end.split(":")[1]);
+
+      while (minutes < endMinutes) {
+        const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
+        const mm = String(minutes % 60).padStart(2, "0");
+        const time = `${hh}:${mm}`;
+
+        slots[time] = {
+          time,
+          status: "available"
+        };
+
+        minutes += interval;
+      }
+    });
+
+    return slots;
+  }
+
+  // =========================
+  // LOAD PROFESSIONALS (MISMO ENDPOINT)
+  // =========================
   useEffect(() => {
     let cancelled = false;
 
@@ -53,40 +90,94 @@ export default function BookingCerebro() {
 
         const data = await res.json();
 
-        if (!cancelled) {
-          const mapped = (data || []).map((p) => ({
-            id: p.id,
-            name: p.name,
-            specialty: p.specialty
-          }));
+        if (cancelled) return;
 
-          setProfessionals(mapped);
+        const mapped = (data || []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          specialty: p.specialty,
+          schedule: p.schedule
+        }));
 
-          const unique = [
-            ...new Set(mapped.map((p) => p.specialty).filter(Boolean))
-          ];
+        setProfessionals(mapped);
 
-          setSpecialties(unique);
-        }
+        const map = {};
+        mapped.forEach((p) => (map[p.id] = p));
+        setProfessionalsMap(map);
+
+        const unique = [...new Set(mapped.map((p) => p.specialty).filter(Boolean))];
+        setSpecialties(unique);
       } catch {
         if (!cancelled) {
           setProfessionals([]);
+          setProfessionalsMap({});
           setSpecialties([]);
         }
       }
     }
 
     loadProfessionals();
-    return () => { cancelled = true; };
-
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  /* ===============================
-     RESERVA (MISMO PAYLOAD SECRETARIA)
-  =============================== */
+  // =========================
+  // LOAD AGENDA (MISMO CONTRATO REAL: /agenda?date=)
+  // y FILTRAR SOLO available (cerebro)
+  // =========================
+  useEffect(() => {
+    let cancelled = false;
 
+    async function loadAgendaPublic() {
+      if (!selectedProfessional || !selectedDate) return;
+
+      const prof = professionalsMap[selectedProfessional];
+      if (!prof) return;
+
+      try {
+        const res = await fetch(`${API}/agenda?date=${encodeURIComponent(selectedDate)}`);
+        if (!res.ok) throw new Error();
+
+        const data = await res.json();
+
+        const weekdayKey = getWeekdayKey(selectedDate);
+
+        // base schedule = available
+        const baseSlots = buildSlotsFromSchedule(prof.schedule, weekdayKey);
+
+        // overlay backend
+        const backendSlots = data.calendar?.[selectedProfessional]?.slots || {};
+
+        Object.entries(backendSlots).forEach(([time, slot]) => {
+          baseSlots[time] = {
+            time,
+            status: slot.status,
+            rut: slot.rut || null
+          };
+        });
+
+        // ✅ SOLO AVAILABLE (para público)
+        const disponibles = Object.entries(baseSlots)
+          .filter(([, s]) => s.status === "available")
+          .map(([time, s]) => ({ time, ...s }));
+
+        if (!cancelled) setSlots(disponibles);
+      } catch {
+        if (!cancelled) setSlots([]);
+      }
+    }
+
+    loadAgendaPublic();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedProfessional, selectedDate, professionalsMap]);
+
+  // =========================
+  // CONFIRMAR RESERVA (MISMO PAYLOAD SECRETARIA)
+  // =========================
   async function handleConfirm() {
-
     if (!selectedTime) {
       setMessage("Debe seleccionar una hora.");
       return;
@@ -101,7 +192,6 @@ export default function BookingCerebro() {
     setMessage("");
 
     try {
-
       const res = await fetch(`${API}/agenda/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,11 +207,16 @@ export default function BookingCerebro() {
 
       setMessage("Reserva confirmada correctamente.");
 
+      // limpiar
       setSelectedTime("");
       setNombre("");
       setRut("");
       setTelefono("");
       setEmail("");
+
+      // refrescar agenda pública (re-usa el effect cambiando un “tick” simple)
+      // truco sin inventar estado extra: re-setea selectedDate al mismo valor
+      setSelectedDate((d) => d);
 
     } catch {
       setMessage("La hora ya no está disponible.");
@@ -130,71 +225,48 @@ export default function BookingCerebro() {
     }
   }
 
-  /* ===============================
-     FILTRO PROFESIONALES
-  =============================== */
+  // =========================
+  // FILTRO PROFESIONALES (UI)
+  // =========================
+  const filteredProfessionals = useMemo(() => {
+    return selectedSpecialty
+      ? professionals.filter((p) => p.specialty === selectedSpecialty)
+      : professionals;
+  }, [professionals, selectedSpecialty]);
 
-  const filteredProfessionals = selectedSpecialty
-    ? professionals.filter((p) => p.specialty === selectedSpecialty)
-    : professionals;
-
-  /* ===============================
-     MANEJO SLOT (LÓGICA DEL CEREBRO)
-  =============================== */
-
-  function handleSlotClick(slot) {
-    // 🔒 SOLO DISPONIBLES
-    if (slot.status !== "available") return;
-
-    setSelectedTime(slot.time);
-    setMessage("");
-  }
-
-  /* ===============================
-     RENDER
-  =============================== */
-
+  // =========================
+  // RENDER
+  // =========================
   return (
-    <>
-      <PublicBooking
-        professionals={filteredProfessionals}
-        specialties={specialties}
+    <PublicBooking
+      professionals={filteredProfessionals}
+      specialties={specialties}
+      slots={slots}
 
-        selectedSpecialty={selectedSpecialty}
-        selectedProfessional={selectedProfessional}
-        selectedDate={selectedDate}
-        selectedTime={selectedTime}
+      selectedSpecialty={selectedSpecialty}
+      selectedProfessional={selectedProfessional}
+      selectedDate={selectedDate}
+      selectedTime={selectedTime}
 
-        nombre={nombre}
-        rut={rut}
-        telefono={telefono}
-        email={email}
+      nombre={nombre}
+      rut={rut}
+      telefono={telefono}
+      email={email}
 
-        message={message}
-        loading={loading}
+      message={message}
+      loading={loading}
 
-        onSelectSpecialty={setSelectedSpecialty}
-        onSelectProfessional={setSelectedProfessional}
-        onSelectDate={setSelectedDate}
-        onSelectTime={setSelectedTime}
+      onSelectSpecialty={setSelectedSpecialty}
+      onSelectProfessional={setSelectedProfessional}
+      onSelectDate={setSelectedDate}
+      onSelectTime={setSelectedTime}
 
-        onChangeNombre={setNombre}
-        onChangeRut={setRut}
-        onChangeTelefono={setTelefono}
-        onChangeEmail={setEmail}
+      onChangeNombre={setNombre}
+      onChangeRut={setRut}
+      onChangeTelefono={setTelefono}
+      onChangeEmail={setEmail}
 
-        onConfirm={handleConfirm}
-      />
-
-      {/* AGENDA REAL */}
-      {selectedProfessional && selectedDate && (
-        <AgendaDayController
-          professional={selectedProfessional}
-          date={selectedDate}
-          role="PUBLIC"
-          onAttend={handleSlotClick}
-        />
-      )}
-    </>
+      onConfirm={handleConfirm}
+    />
   );
 }
