@@ -4,13 +4,15 @@ import PublicBooking from "../pages/reservas/PublicBooking";
 const API = import.meta.env.VITE_API_URL;
 
 /*
-BookingCerebro — ICA REAL
+BookingCerebro — ICA REAL (ALINEADO A SECRETARIA)
 
-✔ Vive en roles
-✔ Controla estado
-✔ Hace fetch
-✔ UI pura recibe props
-✔ Sin estructura inventada
+✔ Usa /professionals
+✔ Usa /agenda
+✔ Usa /agenda/create
+✔ Filtra SOLO "available"
+✔ NO muestra ocupados
+✔ NO muestra nombres
+✔ Backend decide todo
 */
 
 export default function BookingCerebro() {
@@ -45,6 +47,8 @@ export default function BookingCerebro() {
     async function loadProfessionals() {
       try {
         const res = await fetch(`${API}/professionals`);
+        if (!res.ok) throw new Error();
+
         const data = await res.json();
 
         setProfessionals(data || []);
@@ -55,8 +59,8 @@ export default function BookingCerebro() {
 
         setSpecialties(uniqueSpecialties);
 
-      } catch (err) {
-        console.error("Error cargando profesionales", err);
+      } catch {
+        setProfessionals([]);
       }
     }
 
@@ -64,7 +68,7 @@ export default function BookingCerebro() {
   }, []);
 
   /* ===============================
-     CARGAR AGENDA
+     CARGAR AGENDA (SOLO AVAILABLE)
   =============================== */
 
   useEffect(() => {
@@ -76,16 +80,19 @@ export default function BookingCerebro() {
           `${API}/agenda?professional=${selectedProfessional}&date=${selectedDate}`
         );
 
+        if (!res.ok) throw new Error();
+
         const data = await res.json();
 
+        // 👇 MISMO STATUS QUE SECRETARIA
         const disponibles = (data || []).filter(
-          slot => slot.status === "disponible"
+          slot => slot.status === "available"
         );
 
         setSlots(disponibles);
 
-      } catch (err) {
-        console.error("Error cargando agenda", err);
+      } catch {
+        setSlots([]);
       }
     }
 
@@ -93,7 +100,7 @@ export default function BookingCerebro() {
   }, [selectedProfessional, selectedDate]);
 
   /* ===============================
-     CONFIRMAR RESERVA
+     CONFIRMAR RESERVA (MISMO ENDPOINT QUE SECRETARIA)
   =============================== */
 
   async function handleConfirm() {
@@ -103,8 +110,8 @@ export default function BookingCerebro() {
       return;
     }
 
-    if (!nombre || !rut) {
-      setMessage("Nombre y RUT son obligatorios.");
+    if (!rut) {
+      setMessage("RUT obligatorio.");
       return;
     }
 
@@ -112,36 +119,33 @@ export default function BookingCerebro() {
     setMessage("");
 
     try {
-      const res = await fetch(`${API}/agenda/reservar`, {
+      const res = await fetch(`${API}/agenda/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          professional: selectedProfessional,
           date: selectedDate,
           time: selectedTime,
-          nombre,
-          rut,
-          telefono,
-          email
+          professional: selectedProfessional,
+          rut
         })
       });
 
       if (!res.ok) {
-        throw new Error("Reserva fallida");
+        throw new Error();
       }
 
       setMessage("Reserva confirmada correctamente.");
 
-      // limpiar formulario
+      // limpiar
       setSelectedTime("");
       setNombre("");
       setRut("");
       setTelefono("");
       setEmail("");
 
-      // recargar agenda
+      // refrescar agenda
       const refresh = await fetch(
         `${API}/agenda?professional=${selectedProfessional}&date=${selectedDate}`
       );
@@ -149,12 +153,12 @@ export default function BookingCerebro() {
       const updated = await refresh.json();
 
       const disponibles = (updated || []).filter(
-        slot => slot.status === "disponible"
+        slot => slot.status === "available"
       );
 
       setSlots(disponibles);
 
-    } catch (err) {
+    } catch {
       setMessage("La hora ya no está disponible.");
     } finally {
       setLoading(false);
