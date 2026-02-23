@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import PublicBooking from "../pages/reservas/PublicBooking";
+import AgendaDayController from "../components/agenda/AgendaDayController";
 
 const API = import.meta.env.VITE_API_URL;
 
 /*
-BookingCerebro — ICA REAL (ALINEADO EXACTO A SECRETARIA)
+BookingCerebro — ICA REAL
 
 ✔ Usa /professionals
-✔ Usa /agenda
-✔ Usa /agenda/create
-✔ professional = ID PURO (igual que secretaria)
-✔ Filtra SOLO "available"
+✔ Usa AgendaDayController (NO duplica agenda)
+✔ professional = ID puro
+✔ SOLO permite seleccionar "available"
 ✔ Backend decide todo
+✔ Toda la lógica está aquí (cerebro)
 */
 
 export default function BookingCerebro() {
@@ -26,7 +27,6 @@ export default function BookingCerebro() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedProfessional, setSelectedProfessional] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [slots, setSlots] = useState([]);
 
   const [selectedTime, setSelectedTime] = useState("");
 
@@ -39,8 +39,8 @@ export default function BookingCerebro() {
   const [message, setMessage] = useState("");
 
   /* ===============================
-     CARGAR PROFESIONALES
-     MISMO CONTRATO QUE SECRETARIA
+     LOAD PROFESSIONALS
+     MISMO ENDPOINT QUE SECRETARIA
   =============================== */
 
   useEffect(() => {
@@ -54,8 +54,6 @@ export default function BookingCerebro() {
         const data = await res.json();
 
         if (!cancelled) {
-
-          // 🔑 EXACTAMENTE COMO SECRETARIA
           const mapped = (data || []).map((p) => ({
             id: p.id,
             name: p.name,
@@ -64,13 +62,12 @@ export default function BookingCerebro() {
 
           setProfessionals(mapped);
 
-          const uniqueSpecialties = [
-            ...new Set(mapped.map(p => p.specialty).filter(Boolean))
+          const unique = [
+            ...new Set(mapped.map((p) => p.specialty).filter(Boolean))
           ];
 
-          setSpecialties(uniqueSpecialties);
+          setSpecialties(unique);
         }
-
       } catch {
         if (!cancelled) {
           setProfessionals([]);
@@ -80,60 +77,12 @@ export default function BookingCerebro() {
     }
 
     loadProfessionals();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
 
   }, []);
 
   /* ===============================
-     CARGAR AGENDA
-     MISMO ENDPOINT QUE SECRETARIA
-  =============================== */
-
-  useEffect(() => {
-
-    if (!selectedProfessional || !selectedDate) return;
-
-    let cancelled = false;
-
-    async function loadAgenda() {
-      try {
-        const res = await fetch(
-          `${API}/agenda?professional=${selectedProfessional}&date=${selectedDate}`
-        );
-
-        if (!res.ok) throw new Error();
-
-        const data = await res.json();
-
-        if (!cancelled) {
-
-          // 🔑 MISMO STATUS QUE SECRETARIA
-          const disponibles = (data || []).filter(
-            slot => slot.status === "available"
-          );
-
-          setSlots(disponibles);
-        }
-
-      } catch {
-        if (!cancelled) setSlots([]);
-      }
-    }
-
-    loadAgenda();
-
-    return () => {
-      cancelled = true;
-    };
-
-  }, [selectedProfessional, selectedDate]);
-
-  /* ===============================
-     CONFIRMAR RESERVA
-     MISMO PAYLOAD QUE SECRETARIA
+     RESERVA (MISMO PAYLOAD SECRETARIA)
   =============================== */
 
   async function handleConfirm() {
@@ -153,18 +102,18 @@ export default function BookingCerebro() {
 
     try {
 
-      await fetch(`${API}/agenda/create`, {
+      const res = await fetch(`${API}/agenda/create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: selectedDate,
           time: selectedTime,
-          professional: selectedProfessional, // 🔑 SOLO ID
+          professional: selectedProfessional,
           rut
         })
       });
+
+      if (!res.ok) throw new Error();
 
       setMessage("Reserva confirmada correctamente.");
 
@@ -173,19 +122,6 @@ export default function BookingCerebro() {
       setRut("");
       setTelefono("");
       setEmail("");
-
-      // refrescar agenda
-      const refresh = await fetch(
-        `${API}/agenda?professional=${selectedProfessional}&date=${selectedDate}`
-      );
-
-      const updated = await refresh.json();
-
-      const disponibles = (updated || []).filter(
-        slot => slot.status === "available"
-      );
-
-      setSlots(disponibles);
 
     } catch {
       setMessage("La hora ya no está disponible.");
@@ -199,43 +135,66 @@ export default function BookingCerebro() {
   =============================== */
 
   const filteredProfessionals = selectedSpecialty
-    ? professionals.filter(p => p.specialty === selectedSpecialty)
+    ? professionals.filter((p) => p.specialty === selectedSpecialty)
     : professionals;
+
+  /* ===============================
+     MANEJO SLOT (LÓGICA DEL CEREBRO)
+  =============================== */
+
+  function handleSlotClick(slot) {
+    // 🔒 SOLO DISPONIBLES
+    if (slot.status !== "available") return;
+
+    setSelectedTime(slot.time);
+    setMessage("");
+  }
 
   /* ===============================
      RENDER
   =============================== */
 
   return (
-    <PublicBooking
-      professionals={filteredProfessionals}
-      specialties={specialties}
-      slots={slots}
+    <>
+      <PublicBooking
+        professionals={filteredProfessionals}
+        specialties={specialties}
 
-      selectedSpecialty={selectedSpecialty}
-      selectedProfessional={selectedProfessional}
-      selectedDate={selectedDate}
-      selectedTime={selectedTime}
+        selectedSpecialty={selectedSpecialty}
+        selectedProfessional={selectedProfessional}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
 
-      nombre={nombre}
-      rut={rut}
-      telefono={telefono}
-      email={email}
+        nombre={nombre}
+        rut={rut}
+        telefono={telefono}
+        email={email}
 
-      message={message}
-      loading={loading}
+        message={message}
+        loading={loading}
 
-      onSelectSpecialty={setSelectedSpecialty}
-      onSelectProfessional={(id) => setSelectedProfessional(id)} // 🔑 SOLO ID
-      onSelectDate={setSelectedDate}
-      onSelectTime={setSelectedTime}
+        onSelectSpecialty={setSelectedSpecialty}
+        onSelectProfessional={setSelectedProfessional}
+        onSelectDate={setSelectedDate}
+        onSelectTime={setSelectedTime}
 
-      onChangeNombre={setNombre}
-      onChangeRut={setRut}
-      onChangeTelefono={setTelefono}
-      onChangeEmail={setEmail}
+        onChangeNombre={setNombre}
+        onChangeRut={setRut}
+        onChangeTelefono={setTelefono}
+        onChangeEmail={setEmail}
 
-      onConfirm={handleConfirm}
-    />
+        onConfirm={handleConfirm}
+      />
+
+      {/* AGENDA REAL */}
+      {selectedProfessional && selectedDate && (
+        <AgendaDayController
+          professional={selectedProfessional}
+          date={selectedDate}
+          role="PUBLIC"
+          onAttend={handleSlotClick}
+        />
+      )}
+    </>
   );
 }
