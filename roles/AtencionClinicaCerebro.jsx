@@ -207,10 +207,13 @@ async function openPdf(endpoint, payload) {
 function handlePrintReceta() {
   openPdf("receta", {
     nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
     edad: admin.edad,
     rut: admin.rut,
     diagnostico,
-    medicamentos: [], // luego podemos estructurar receta
+    medicamentos: [],
     indicaciones: receta
   });
 }
@@ -218,6 +221,9 @@ function handlePrintReceta() {
 function handlePrintInforme() {
   openPdf("informe", {
     nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
     edad: admin.edad,
     rut: admin.rut,
     motivoConsulta: atencion,
@@ -230,6 +236,9 @@ function handlePrintInforme() {
 function handlePrintKine() {
   openPdf("kinesiologia", {
     nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
     edad: admin.edad,
     rut: admin.rut,
     diagnostico,
