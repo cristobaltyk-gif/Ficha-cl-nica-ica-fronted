@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function PublicLayout({ children }) {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -9,35 +13,56 @@ export default function PublicLayout({ children }) {
         flexDirection: "column"
       }}
     >
-      {/* HEADER */}
+      {/* HEADER SUPERIOR */}
       <header
         style={{
           background: "#0f172a",
           color: "white",
-          padding: "32px 20px",
-          textAlign: "center",
+          padding: "20px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
         }}
       >
-        <h1
+        <button
+          onClick={() => navigate(-1)}
           style={{
-            margin: 0,
-            fontSize: "24px",
+            background: "transparent",
+            border: "none",
+            color: "white",
+            fontSize: "14px",
+            cursor: "pointer",
+            opacity: 0.9
+          }}
+        >
+          ← Volver
+        </button>
+
+        <div
+          style={{
+            textAlign: "center",
             fontWeight: 600,
-            letterSpacing: "0.5px"
+            fontSize: "16px",
+            letterSpacing: "0.4px"
           }}
         >
           Instituto de Cirugía Articular
-        </h1>
-        <p
+        </div>
+
+        <button
+          onClick={() => navigate("/")}
           style={{
-            marginTop: "8px",
+            background: "transparent",
+            border: "none",
+            color: "white",
             fontSize: "14px",
-            opacity: 0.85
+            cursor: "pointer",
+            opacity: 0.9
           }}
         >
-          Reserva tu hora médica online
-        </p>
+          Inicio
+        </button>
       </header>
 
       {/* CONTENIDO CENTRAL */}
