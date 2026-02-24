@@ -3,6 +3,7 @@ import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
+import PublicLayout from "../pages/reservas/PublicLayout";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -96,46 +97,47 @@ export default function BookingCerebro() {
 
     setPendingSlot(null);
   }
-
-  // =========================
-  // RENDER
-  // =========================
-  if (!selectedDay) {
-    return loading ? (
-      <div className="agenda-placeholder">Cargando agenda…</div>
+// =========================
+// RENDER
+// =========================
+return (
+  <PublicLayout>
+    {!selectedDay ? (
+      loading ? (
+        <div className="agenda-placeholder">Cargando agenda…</div>
+      ) : (
+        <AgendaSummarySelector
+          professionals={professionals}
+          onSelectDay={setSelectedDay}
+        />
+      )
     ) : (
-      <AgendaSummarySelector
-        professionals={professionals}
-        onSelectDay={setSelectedDay}
-      />
-    );
-  }
+      <>
+        <AgendaDayController
+          key={agendaReloadKey}
+          professional={selectedDay.professional}
+          date={selectedDay.date}
+          role="PUBLIC"
+          onAttend={handleAttend}
+        />
 
-  return (
-    <>
-      <AgendaDayController
-        key={agendaReloadKey}
-        professional={selectedDay.professional}
-        date={selectedDay.date}
-        role="PUBLIC"
-        onAttend={handleAttend}
-      />
-
-      <PatientForm
-        open={patientOpen}
-        onConfirm={(patient) => {
-          reserveSlot(patient.rut);
-          setPatientOpen(false);
-        }}
-        onCreate={(patient) => {
-          reserveSlot(patient.rut);
-          setPatientOpen(false);
-        }}
-        onCancel={() => {
-          setPendingSlot(null);
-          setPatientOpen(false);
-        }}
-      />
-    </>
-  );
-}
+        <PatientForm
+          open={patientOpen}
+          onConfirm={(patient) => {
+            reserveSlot(patient.rut);
+            setPatientOpen(false);
+          }}
+          onCreate={(patient) => {
+            reserveSlot(patient.rut);
+            setPatientOpen(false);
+          }}
+          onCancel={() => {
+            setPendingSlot(null);
+            setPatientOpen(false);
+          }}
+        />
+      </>
+    )}
+  </PublicLayout>
+);
+  
