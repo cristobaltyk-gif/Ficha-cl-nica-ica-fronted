@@ -3,7 +3,7 @@ import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
-import PublicLayout from "../pages/reservas/PublicLayout";
+import PublicLayout from "../pages/reservas/PublicBookingLayout";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
