@@ -14,7 +14,7 @@ export default function PublicLayout({ children }) {
         fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
         display: "flex",
         flexDirection: "column",
-        overflowX: "hidden" // ✅ CLAVE: mata el desborde lateral
+        overflowX: "hidden"
       }}
     >
       {/* HEADER */}
@@ -22,63 +22,86 @@ export default function PublicLayout({ children }) {
         style={{
           background: "#0f172a",
           color: "white",
-          padding: "16px 18px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          position: "sticky", // ✅ se mantiene arriba
+          position: "sticky",
           top: 0,
-          zIndex: 50
+          zIndex: 50,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
         }}
       >
-        <button
-          onClick={goBack}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "white",
-            fontSize: "14px",
-            cursor: "pointer",
-            opacity: 0.9
-          }}
-        >
-          ← Volver
-        </button>
-
         <div
           style={{
-            textAlign: "center",
-            fontWeight: 700,
-            fontSize: "14px",
-            letterSpacing: "0.3px",
-            lineHeight: 1.15
+            maxWidth: "980px",
+            margin: "0 auto",
+            padding: "12px 14px",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
+            alignItems: "center"
           }}
         >
-          Instituto de
-          <br />
-          Cirugía Articular
-        </div>
+          {/* IZQUIERDA */}
+          <div style={{ justifySelf: "start" }}>
+            <button
+              onClick={goBack}
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#ffffff",
+                fontSize: "13px",
+                fontWeight: 800,
+                padding: "7px 14px",
+                borderRadius: "999px",
+                cursor: "pointer",
+                transition: "0.15s ease"
+              }}
+            >
+              ← Volver
+            </button>
+          </div>
 
-        <a
-          href="/"
-          style={{
-            color: "white",
-            fontSize: "14px",
-            cursor: "pointer",
-            opacity: 0.9,
-            textDecoration: "none"
-          }}
-        >
-          Inicio
-        </a>
+          {/* CENTRO */}
+          <div
+            style={{
+              justifySelf: "center",
+              textAlign: "center",
+              fontWeight: 900,
+              fontSize: "14px",
+              letterSpacing: "0.2px",
+              whiteSpace: "nowrap"
+            }}
+          >
+            Instituto de Cirugía Articular
+          </div>
+
+          {/* DERECHA */}
+          <div style={{ justifySelf: "end" }}>
+            <a
+              href="/"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "32px",
+                padding: "0 14px",
+                borderRadius: "999px",
+                fontWeight: 900,
+                fontSize: "13px",
+                textDecoration: "none",
+                color: "#ffffff",
+                background: "#2563eb",
+                transition: "0.15s ease"
+              }}
+            >
+              Inicio
+            </a>
+          </div>
+        </div>
       </header>
 
       {/* CONTENIDO */}
       <main
         style={{
           flex: 1,
-          padding: "16px 12px", // ✅ móvil
+          padding: "16px 12px",
           display: "flex",
           justifyContent: "center"
         }}
@@ -86,8 +109,9 @@ export default function PublicLayout({ children }) {
         <div
           style={{
             width: "100%",
-            maxWidth: "920px", // ✅ más razonable
-            overflowX: "hidden" // ✅ si algún hijo se pasa, se recorta
+            maxWidth: "980px",
+            minWidth: 0,
+            overflowX: "hidden"
           }}
         >
           {children}
@@ -109,4 +133,4 @@ export default function PublicLayout({ children }) {
       </footer>
     </div>
   );
-}
+          }
