@@ -4,7 +4,6 @@ import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
 import PublicLayout from "../pages/reservas/PublicBookingLayout";
-import "../styles/public-booking.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -165,86 +164,100 @@ export default function BookingCerebro() {
   // =========================
   // RENDER
   // =========================
-return (
-  <PublicLayout>
-    <div className="pb-wrap">
-      <div className="pb-card">
-
-        <div className="pb-header">
-          <div className="pb-title">
-            <h1>Reservas</h1>
-            <p>
-              {selectedDay
-                ? "Selecciona un horario disponible"
-                : "Selecciona día y profesional"}
-            </p>
-          </div>
-
-          <div className="pb-actions">
-            {selectedDay ? (
-              <button className="pb-btn pb-btn-secondary" onClick={handleBack}>
-                ← Volver
-              </button>
-            ) : null}
-
-            <a href="/" className="pb-btn pb-btn-primary">
-              Inicio
-            </a>
+  return (
+    <PublicLayout>
+      {/* header simple */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Reservas</div>
+          <div style={{ fontSize: 13, color: "#475569" }}>
+            {selectedDay ? "Selecciona un horario disponible" : "Selecciona día y profesional"}
           </div>
         </div>
 
-        <div className="pb-body">
-          {loadError ? (
-            <div className="pb-alert pb-alert-warn">{loadError}</div>
-          ) : null}
-
-          {reserveError ? (
-            <div className="pb-alert pb-alert-error">{reserveError}</div>
-          ) : null}
-
-          {!selectedDay ? (
-            loading ? (
-              <div className="agenda-placeholder">Cargando agenda…</div>
-            ) : professionals.length === 0 ? (
-              <div className="agenda-placeholder">Sin profesionales disponibles.</div>
-            ) : (
-              <div className="pb-panel">
-                <div className="pb-panel-scroll">
-                  <AgendaSummarySelector
-                    professionals={professionals}
-                    onSelectDay={setSelectedDay}
-                  />
-                </div>
-              </div>
-            )
-          ) : (
-            <div className="pb-section">
-              <AgendaDayController
-                key={agendaReloadKey}
-                professional={selectedDay.professional}
-                date={selectedDay.date}
-                role="PUBLIC"
-                onAttend={handleAttend}
-              />
-
-              <PatientForm
-                open={patientOpen}
-                loading={reserving}
-                onConfirm={(patient) => reserveSlot(patient?.rut)}
-                onCreate={(patient) => reserveSlot(patient?.rut)}
-                onCancel={() => {
-                  if (reserving) return;
-                  setPendingSlot(null);
-                  setPatientOpen(false);
-                  setReserveError("");
-                }}
-              />
-            </div>
-          )}
-        </div>
-
+        {selectedDay ? (
+          <button
+            onClick={handleBack}
+            style={{
+              border: "1px solid #e2e8f0",
+              background: "#fff",
+              borderRadius: 12,
+              padding: "10px 12px",
+              cursor: "pointer",
+              fontWeight: 700,
+              color: "#0f172a"
+            }}
+          >
+            ← Volver
+          </button>
+        ) : null}
       </div>
-    </div>
-  </PublicLayout>
-);
+
+      {/* errores */}
+      {loadError ? (
+        <div
+          style={{
+            background: "#fff7ed",
+            border: "1px solid #fed7aa",
+            color: "#9a3412",
+            padding: 12,
+            borderRadius: 12,
+            marginBottom: 12,
+            fontWeight: 700
+          }}
+        >
+          {loadError}
+        </div>
+      ) : null}
+
+      {reserveError ? (
+        <div
+          style={{
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#991b1b",
+            padding: 12,
+            borderRadius: 12,
+            marginBottom: 12,
+            fontWeight: 700
+          }}
+        >
+          {reserveError}
+        </div>
+      ) : null}
+
+      {!selectedDay ? (
+        loading ? (
+          <div className="agenda-placeholder">Cargando agenda…</div>
+        ) : professionals.length === 0 ? (
+          <div className="agenda-placeholder">Sin profesionales disponibles.</div>
+        ) : (
+          <AgendaSummarySelector professionals={professionals} onSelectDay={setSelectedDay} />
+        )
+      ) : (
+        <>
+          <AgendaDayController
+            key={agendaReloadKey}
+            professional={selectedDay.professional}
+            date={selectedDay.date}
+            role="PUBLIC"
+            onAttend={handleAttend}
+          />
+
+          <PatientForm
+            open={patientOpen}
+            loading={reserving} // si tu PatientForm no usa esto, no rompe; si lo usa, mejor.
+            onConfirm={(patient) => reserveSlot(patient?.rut)}
+            onCreate={(patient) => reserveSlot(patient?.rut)}
+            onCancel={() => {
+              if (reserving) return;
+              setPendingSlot(null);
+              setPatientOpen(false);
+              setReserveError("");
+            }}
+          />
+        </>
+      )}
+    </PublicLayout>
+  );
 }
