@@ -133,4 +133,4 @@ export default function PublicLayout({ children }) {
       </footer>
     </div>
   );
-          }
+}
