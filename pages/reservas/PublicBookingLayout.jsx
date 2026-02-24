@@ -1,7 +1,9 @@
-import { useNavigate } from "react-router-dom";
-
 export default function PublicLayout({ children }) {
-  const navigate = useNavigate();
+  const goBack = () => {
+    // vuelve si hay historial, si no, manda a home
+    if (window.history.length > 1) window.history.back();
+    else window.location.href = "/";
+  };
 
   return (
     <div
@@ -26,7 +28,7 @@ export default function PublicLayout({ children }) {
         }}
       >
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           style={{
             background: "transparent",
             border: "none",
@@ -50,19 +52,18 @@ export default function PublicLayout({ children }) {
           Instituto de Cirugía Articular
         </div>
 
-        <button
-          onClick={() => navigate("/")}
+        <a
+          href="/"
           style={{
-            background: "transparent",
-            border: "none",
             color: "white",
             fontSize: "14px",
             cursor: "pointer",
-            opacity: 0.9
+            opacity: 0.9,
+            textDecoration: "none"
           }}
         >
           Inicio
-        </button>
+        </a>
       </header>
 
       {/* CONTENIDO CENTRAL */}
