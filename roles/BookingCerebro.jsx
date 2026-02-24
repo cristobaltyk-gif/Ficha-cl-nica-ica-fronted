@@ -247,3 +247,4 @@ return (
     </div>
   </PublicLayout>
 );
+}
