@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
-
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
@@ -8,25 +6,16 @@ import PatientForm from "../components/patient/PatientForm";
 const API_URL = import.meta.env.VITE_API_URL;
 
 /*
-BookingCerebro — PRODUCCIÓN REAL (ALINEADO A SECRETARIA)
+BookingCerebro — SUBDOMINIO RESERVAS (SIN ROUTER)
 
-✔ Usa AgendaSummarySelector (calendario real con colores)
-✔ Usa AgendaDayController (agenda real)
-✔ Usa /agenda/create (mismo payload)
-✔ NO reconstruye schedule
-✔ NO inventa agenda paralela
-✔ Solo permite reservar "available"
-✔ No muestra reservados ni confirmados
-✔ Pide RUT y usa PatientForm
+✔ No usa BrowserRouter
+✔ No usa Routes
+✔ No usa navigate
+✔ Mismo flujo que Secretaria
+✔ Solo oculta reservados/confirmados
 */
 
 export default function BookingCerebro() {
-
-  const navigate = useNavigate();
-
-  // =========================
-  // ESTADO
-  // =========================
 
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +28,7 @@ export default function BookingCerebro() {
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
   // =========================
-  // LOAD PROFESSIONALS (IGUAL SECRETARIA)
+  // LOAD PROFESSIONALS
   // =========================
 
   useEffect(() => {
@@ -66,42 +55,24 @@ export default function BookingCerebro() {
     }
 
     loadProfessionals();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   // =========================
-  // SELECT DAY (MISMO FLUJO)
-  // =========================
-
-  function handleSelectDay(payload) {
-    setSelectedDay(payload);
-    navigate("dia");
-  }
-
-  // =========================
-  // SLOT CLICK (PÚBLICO)
+  // SLOT CLICK (PUBLIC)
   // =========================
 
   function handleAttend(slot) {
-
-    // 🔒 Público solo puede tomar available
-    if (slot.status !== "available") {
-      return;
-    }
-
+    if (slot.status !== "available") return;
     setPendingSlot(slot);
     setPatientOpen(true);
   }
 
   // =========================
-  // RESERVA REAL (MISMO PAYLOAD SECRETARIA)
+  // RESERVA
   // =========================
 
   async function reserveSlot(rut) {
-
     if (!pendingSlot) return;
 
     const { date, time, professional } = pendingSlot;
@@ -109,9 +80,7 @@ export default function BookingCerebro() {
     try {
       await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date,
           time,
@@ -120,62 +89,38 @@ export default function BookingCerebro() {
         })
       });
 
-      // 🔄 recargar agenda
       setAgendaReloadKey(k => k + 1);
 
-    } catch {
-      // backend decide errores
-    } finally {
-      setPendingSlot(null);
-    }
+    } catch {}
+
+    setPendingSlot(null);
   }
 
   // =========================
-  // RENDER
+  // RENDER SIMPLE
   // =========================
+
+  if (!selectedDay) {
+    return loading ? (
+      <div className="agenda-placeholder">Cargando agenda…</div>
+    ) : (
+      <AgendaSummarySelector
+        professionals={professionals}
+        onSelectDay={setSelectedDay}
+      />
+    );
+  }
 
   return (
     <>
-      <Routes>
+      <AgendaDayController
+        key={agendaReloadKey}
+        professional={selectedDay.professional}
+        date={selectedDay.date}
+        role="PUBLIC"
+        onAttend={handleAttend}
+      />
 
-        {/* CALENDARIO (MISMO COMPONENTE QUE SECRETARIA) */}
-        <Route
-          index
-          element={
-            loading ? (
-              <div className="agenda-placeholder">Cargando agenda…</div>
-            ) : (
-              <AgendaSummarySelector
-                professionals={professionals}
-                onSelectDay={handleSelectDay}
-              />
-            )
-          }
-        />
-
-        {/* AGENDA DIARIA */}
-        <Route
-          path="dia"
-          element={
-            selectedDay ? (
-              <AgendaDayController
-                key={agendaReloadKey}
-                professional={selectedDay.professional}
-                date={selectedDay.date}
-                role="PUBLIC"
-                onAttend={handleAttend}
-              />
-            ) : (
-              <div className="agenda-placeholder">
-                Selecciona un día
-              </div>
-            )
-          }
-        />
-
-      </Routes>
-
-      {/* FORMULARIO PACIENTE */}
       <PatientForm
         open={patientOpen}
         onConfirm={(patient) => {
