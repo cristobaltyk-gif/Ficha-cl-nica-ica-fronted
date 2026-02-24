@@ -1,71 +1,77 @@
-export default function PublicBookingLayout({ children }) {
+export default function PublicLayout({ children }) {
   return (
     <div
       style={{
         minHeight: "100vh",
+        background: "#f1f5f9",
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
         display: "flex",
-        flexDirection: "column",
-        background: "#f4f6f9",
-        fontFamily: "system-ui, -apple-system, sans-serif"
+        flexDirection: "column"
       }}
     >
       {/* HEADER */}
       <header
         style={{
-          background: "#ffffff",
-          padding: "24px",
-          borderBottom: "1px solid #e5e7eb",
-          textAlign: "center"
+          background: "#0f172a",
+          color: "white",
+          padding: "32px 20px",
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
         }}
       >
-        <h1 style={{ margin: 0, fontSize: "22px" }}>
+        <h1
+          style={{
+            margin: 0,
+            fontSize: "24px",
+            fontWeight: 600,
+            letterSpacing: "0.5px"
+          }}
+        >
           Instituto de Cirugía Articular
         </h1>
-        <p style={{ margin: "6px 0 0", color: "#6b7280" }}>
+        <p
+          style={{
+            marginTop: "8px",
+            fontSize: "14px",
+            opacity: 0.85
+          }}
+        >
           Reserva tu hora médica online
         </p>
       </header>
 
-      {/* HERO */}
-      <div
-        style={{
-          width: "100%",
-          height: "240px",
-          background:
-            "linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "white",
-          fontSize: "20px",
-          fontWeight: "600"
-        }}
-      >
-        Atención Traumatológica Especializada
-      </div>
-
-      {/* CONTENIDO */}
+      {/* CONTENIDO CENTRAL */}
       <main
         style={{
           flex: 1,
-          padding: "40px 24px",
-          maxWidth: "1100px",
-          width: "100%",
-          margin: "0 auto"
+          padding: "40px 20px",
+          display: "flex",
+          justifyContent: "center"
         }}
       >
-        {children}
+        <div
+          style={{
+            width: "100%",
+            maxWidth: "1000px",
+            background: "white",
+            borderRadius: "18px",
+            padding: "40px",
+            boxShadow: "0 25px 60px rgba(15,23,42,0.08)"
+          }}
+        >
+          {children}
+        </div>
       </main>
 
       {/* FOOTER */}
       <footer
         style={{
           background: "#ffffff",
-          padding: "20px",
-          borderTop: "1px solid #e5e7eb",
+          padding: "18px",
           textAlign: "center",
-          fontSize: "14px",
-          color: "#6b7280"
+          fontSize: "13px",
+          color: "#64748b",
+          borderTop: "1px solid #e2e8f0"
         }}
       >
         © {new Date().getFullYear()} Instituto de Cirugía Articular · Curicó
