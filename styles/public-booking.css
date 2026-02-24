@@ -1,0 +1,116 @@
+/* ===============================
+   PUBLIC BOOKING CONTAINER
+   =============================== */
+
+.pb-wrap {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.pb-card {
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  overflow: hidden; /* 🔥 evita desbordes */
+}
+
+/* ===============================
+   HEADER
+   =============================== */
+
+.pb-header {
+  padding: 18px;
+  border-bottom: 1px solid #eef2f7;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.pb-title h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.pb-title p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pb-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pb-btn {
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.pb-btn-secondary {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+}
+
+.pb-btn-primary {
+  border: none;
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+}
+
+.pb-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* ===============================
+   BODY
+   =============================== */
+
+.pb-body {
+  padding: 16px;
+}
+
+.pb-panel {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.pb-panel-scroll {
+  max-height: 280px;
+  overflow: auto;
+}
+
+/* calendario */
+.pb-section {
+  margin-top: 16px;
+  border-top: 1px solid #eef2f7;
+  padding-top: 12px;
+}
+
+/* seguridad universal */
+.pb-card * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* responsive */
+@media (max-width: 380px) {
+  .pb-title h1 {
+    font-size: 20px;
+  }
+}
