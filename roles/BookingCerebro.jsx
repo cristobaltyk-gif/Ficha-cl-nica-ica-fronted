@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
+import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -14,7 +15,24 @@ BookingCerebro — SUBDOMINIO RESERVAS (SIN ROUTER)
 ✔ Mismo flujo que Secretaria
 ✔ Solo oculta reservados/confirmados
 */
+export default function BookingCerebro() {
 
+  const { session, login } = useAuth();
+
+  useEffect(() => {
+    if (!session) {
+      login({
+        usuario: "public_web",
+        role: {
+          name: "public",
+          entry: "/reservas",
+          allow: ["agenda_public"]
+        },
+        professional: "system"
+      });
+    }
+  }, [session, login]);
+  
 export default function BookingCerebro() {
 
   const [professionals, setProfessionals] = useState([]);
