@@ -1,6 +1,7 @@
+// pages/reservas/PublicBookingLayout.jsx
+
 export default function PublicLayout({ children }) {
   const goBack = () => {
-    // vuelve si hay historial, si no, manda a home
     if (window.history.length > 1) window.history.back();
     else window.location.href = "/";
   };
@@ -15,12 +16,12 @@ export default function PublicLayout({ children }) {
         flexDirection: "column"
       }}
     >
-      {/* HEADER SUPERIOR */}
+      {/* HEADER */}
       <header
         style={{
           background: "#0f172a",
           color: "white",
-          padding: "20px 24px",
+          padding: "18px 20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -44,8 +45,8 @@ export default function PublicLayout({ children }) {
         <div
           style={{
             textAlign: "center",
-            fontWeight: 600,
-            fontSize: "16px",
+            fontWeight: 700,
+            fontSize: "15px",
             letterSpacing: "0.4px"
           }}
         >
@@ -66,27 +67,16 @@ export default function PublicLayout({ children }) {
         </a>
       </header>
 
-      {/* CONTENIDO CENTRAL */}
+      {/* CONTENIDO (SIN CARD: la card vive en BookingCerebro) */}
       <main
         style={{
           flex: 1,
-          padding: "40px 20px",
+          padding: "32px 16px",
           display: "flex",
           justifyContent: "center"
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1000px",
-            background: "white",
-            borderRadius: "18px",
-            padding: "40px",
-            boxShadow: "0 25px 60px rgba(15,23,42,0.08)"
-          }}
-        >
-          {children}
-        </div>
+        <div style={{ width: "100%", maxWidth: "1100px" }}>{children}</div>
       </main>
 
       {/* FOOTER */}
