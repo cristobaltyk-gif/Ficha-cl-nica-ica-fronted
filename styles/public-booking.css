@@ -1,24 +1,45 @@
-/* ===============================
-   PUBLIC BOOKING CONTAINER
-   =============================== */
+/* ==========================================
+   PUBLIC BOOKING – ICA (FINAL ESTABLE)
+========================================== */
+
+/* ==========================================
+   BASE FIX GLOBAL
+========================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* ==========================================
+   WRAPPER
+========================================== */
 
 .pb-wrap {
   width: 100%;
-  max-width: 520px;
+  max-width: 100%;
   margin: 0 auto;
+  padding: 0 10px;
 }
 
 .pb-card {
+  width: 100%;
   background: #ffffff;
   border-radius: 18px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-  overflow: hidden; /* 🔥 evita desbordes */
+  overflow: hidden;
 }
 
-/* ===============================
-   HEADER
-   =============================== */
+/* ==========================================
+   HEADER INTERNO (Reservas)
+========================================== */
 
 .pb-header {
   padding: 18px;
@@ -48,6 +69,10 @@
   gap: 8px;
 }
 
+/* ==========================================
+   BOTONES INTERNOS
+========================================== */
+
 .pb-btn {
   border-radius: 12px;
   font-weight: 800;
@@ -55,6 +80,10 @@
   padding: 10px 14px;
   cursor: pointer;
   transition: 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .pb-btn-secondary {
@@ -74,9 +103,9 @@
   transform: translateY(-1px);
 }
 
-/* ===============================
+/* ==========================================
    BODY
-   =============================== */
+========================================== */
 
 .pb-body {
   padding: 16px;
@@ -88,6 +117,7 @@
   border-radius: 16px;
   padding: 12px;
   overflow: hidden;
+  width: 100%;
 }
 
 .pb-panel-scroll {
@@ -95,22 +125,94 @@
   overflow: auto;
 }
 
-/* calendario */
+/* ==========================================
+   CALENDARIO SECTION
+========================================== */
+
 .pb-section {
   margin-top: 16px;
   border-top: 1px solid #eef2f7;
   padding-top: 12px;
+  width: 100%;
+  min-width: 0;
 }
 
-/* seguridad universal */
-.pb-card * {
+/* 🔥 FORZAR CUALQUIER GRID A RESPETAR ANCHO */
+
+.pb-section *,
+.pb-panel *,
+.pb-panel-scroll * {
   max-width: 100%;
-  box-sizing: border-box;
+  min-width: 0;
 }
 
-/* responsive */
-@media (max-width: 380px) {
+/* ==========================================
+   ALERTAS
+========================================== */
+
+.pb-alert {
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.pb-alert-warn {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.pb-alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 480px) {
   .pb-title h1 {
     font-size: 20px;
   }
+
+  .pb-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pb-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================
+   LAYOUT HEADER BUTTONS (arriba)
+========================================== */
+
+header button,
+header a {
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 999px;
+  padding: 8px 14px;
+  transition: 0.15s ease;
+}
+
+header button {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+header a {
+  background: #2563eb;
+  text-decoration: none;
+}
+
+header button:hover,
+header a:hover {
+  transform: translateY(-1px);
 }
