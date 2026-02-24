@@ -139,5 +139,5 @@ return (
       </>
     )}
   </PublicLayout>
-);
-  
+  );
+}
