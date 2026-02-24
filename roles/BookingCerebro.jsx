@@ -6,19 +6,11 @@ import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/*
-BookingCerebro — SUBDOMINIO RESERVAS (SIN ROUTER)
-
-✔ No usa BrowserRouter
-✔ No usa Routes
-✔ No usa navigate
-✔ Mismo flujo que Secretaria
-✔ Solo oculta reservados/confirmados
-*/
 export default function BookingCerebro() {
 
   const { session, login } = useAuth();
 
+  // 🔐 AUTO LOGIN PUBLICO
   useEffect(() => {
     if (!session) {
       login({
@@ -32,23 +24,17 @@ export default function BookingCerebro() {
       });
     }
   }, [session, login]);
-  
-export default function BookingCerebro() {
 
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [selectedDay, setSelectedDay] = useState(null);
-
   const [patientOpen, setPatientOpen] = useState(false);
   const [pendingSlot, setPendingSlot] = useState(null);
-
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
   // =========================
   // LOAD PROFESSIONALS
   // =========================
-
   useEffect(() => {
     let cancelled = false;
 
@@ -77,9 +63,8 @@ export default function BookingCerebro() {
   }, []);
 
   // =========================
-  // SLOT CLICK (PUBLIC)
+  // SLOT CLICK
   // =========================
-
   function handleAttend(slot) {
     if (slot.status !== "available") return;
     setPendingSlot(slot);
@@ -89,7 +74,6 @@ export default function BookingCerebro() {
   // =========================
   // RESERVA
   // =========================
-
   async function reserveSlot(rut) {
     if (!pendingSlot) return;
 
@@ -108,16 +92,14 @@ export default function BookingCerebro() {
       });
 
       setAgendaReloadKey(k => k + 1);
-
     } catch {}
 
     setPendingSlot(null);
   }
 
   // =========================
-  // RENDER SIMPLE
+  // RENDER
   // =========================
-
   if (!selectedDay) {
     return loading ? (
       <div className="agenda-placeholder">Cargando agenda…</div>
