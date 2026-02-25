@@ -247,6 +247,19 @@ function handlePrintKine() {
   });
 }
 
+  function handlePrintExamenes() {
+  openPdf("examenes", {
+    nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    examenes
+  });
+  }
+  
 function handlePrintQuirurgica() {
   openPdf("quirurgica", {
     nombre: admin.nombre,
