@@ -339,11 +339,13 @@ async function handleGuardarTodo() {
       ordering={ordering}
       orderError={orderError}
       onImprimir={(tipo) => {
-        if (tipo === "receta") handlePrintReceta();
-        if (tipo === "examenes") handlePrintQuirurgica();
-        if (tipo === "indicaciones") handlePrintInforme();
-        if (tipo === "kinesiologia") handlePrintKine();
-        if (tipo === "quirurgica") handlePrintQuirurgica();
+   
+      
+      if (tipo === "receta") handlePrintReceta();
+      if (tipo === "examenes") handlePrintExamenes();   // ✅ ahora correcto
+      if (tipo === "indicaciones") handlePrintInforme();
+      if (tipo === "kinesiologia") handlePrintKine();
+      if (tipo === "quirurgica") handlePrintQuirurgica();
       }}
 
       onGuardar={handleGuardarTodo}
