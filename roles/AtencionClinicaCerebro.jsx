@@ -109,9 +109,6 @@ export default function MedicoAtencionCerebro() {
   const [atencion, setAtencion] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
-  const [indicaciones, setIndicaciones] = useState("");
-  const [ordenKinesiologia, setOrdenKinesiologia] = useState("");
-  const [indicacionQuirurgica, setIndicacionQuirurgica] = useState("");
   const [examenes, setExamenes] = useState("");
 
   const [ordering, setOrdering] = useState(false);
@@ -123,16 +120,18 @@ export default function MedicoAtencionCerebro() {
   const speech = useWebSpeech({
     lang: "es-CL",
     onChunk: (text) => {
+      // 🔒 Cada chunk confirmado se guarda inmediatamente
       setRawText(prev => (prev ? prev + "\n" + text : text));
       setAtencion(prev => (prev ? prev + "\n" + text : text));
     }
   });
 
+  // ▶️ / ⏹️ Control TOTAL por el médico
   function handleDictado() {
     if (!speech.recording) {
-      speech.start();
+      speech.start();   // inicia auto-ciclo
     } else {
-      speech.stop();
+      speech.stop();    // detiene todo (flush final incluido)
     }
   }
 
@@ -176,145 +175,143 @@ export default function MedicoAtencionCerebro() {
       setOrdering(false);
     }
   }
+// =========================
+// PDF HELPERS
+// =========================
 
-  // =========================
-  // PDF HELPERS
-  // =========================
-  async function openPdf(endpoint, payload) {
-    try {
-      const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-User": session?.usuario
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) throw new Error("PDF_ERROR");
-
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      window.open(url, "_blank");
-    } catch (e) {
-      console.error("❌ ERROR PDF:", e);
-    }
-  }
-
-  // =========================
-  // IMPRESIONES INDIVIDUALES
-  // =========================
-
-  function handlePrintReceta() {
-    openPdf("receta", {
-      nombre: admin.nombre,
-      apellido_paterno: admin.apellido_paterno,
-      apellido_materno: admin.apellido_materno,
-      fecha_nacimiento: admin.fecha_nacimiento,
-      edad: admin.edad,
-      rut: admin.rut,
-      diagnostico,
-      medicamentos: [],
-      indicaciones: receta
+async function openPdf(endpoint, payload) {
+  try {
+    const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-User": session?.usuario
+      },
+      body: JSON.stringify(payload)
     });
-  }
 
-  function handlePrintInforme() {
-    openPdf("informe", {
-      nombre: admin.nombre,
-      apellido_paterno: admin.apellido_paterno,
-      apellido_materno: admin.apellido_materno,
-      fecha_nacimiento: admin.fecha_nacimiento,
-      edad: admin.edad,
-      rut: admin.rut,
-      motivoConsulta: atencion,
-      impresionDiagnostica: diagnostico,
-      estudios: examenes,
-      plan: indicaciones
-    });
-  }
+    if (!res.ok) throw new Error("PDF_ERROR");
 
-  function handlePrintKine() {
-    openPdf("kinesiologia", {
-      nombre: admin.nombre,
-      apellido_paterno: admin.apellido_paterno,
-      apellido_materno: admin.apellido_materno,
-      fecha_nacimiento: admin.fecha_nacimiento,
-      edad: admin.edad,
-      rut: admin.rut,
-      diagnostico,
-      lado: "",
-      indicaciones: ordenKinesiologia
-    });
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    window.open(url, "_blank"); // abre en nueva pestaña
+  } catch (e) {
+    console.error("❌ ERROR PDF:", e);
   }
+      }
+
+  // =========================
+// IMPRESIONES INDIVIDUALES
+// =========================
+
+function handlePrintReceta() {
+  openPdf("receta", {
+    nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    medicamentos: [],
+    indicaciones: receta
+  });
+}
+
+function handlePrintInforme() {
+  openPdf("informe", {
+    nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
+    edad: admin.edad,
+    rut: admin.rut,
+    motivoConsulta: atencion,
+    impresionDiagnostica: diagnostico,
+    estudios: examenes,
+    plan: receta
+  });
+}
+
+function handlePrintKine() {
+  openPdf("kinesiologia", {
+    nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    lado: "",
+    indicaciones: receta
+  });
+}
 
   function handlePrintExamenes() {
-    openPdf("examenes", {
-      nombre: admin.nombre,
-      apellido_paterno: admin.apellido_paterno,
-      apellido_materno: admin.apellido_materno,
-      fecha_nacimiento: admin.fecha_nacimiento,
-      edad: admin.edad,
-      rut: admin.rut,
-      diagnostico,
-      examenes
-    });
+  openPdf("examenes", {
+    nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    examenes
+  });
   }
-
-  function handlePrintQuirurgica() {
-    openPdf("quirurgica", {
-      nombre: admin.nombre,
-      edad: admin.edad,
-      rut: admin.rut,
-      diagnostico,
-      indicacion: indicacionQuirurgica,
-      codigoCirugia: "",
-      tipoCirugia: "",
-      modalidad: "",
-      equipoMedico: "",
-      insumos: ""
-    });
-  }
+  
+function handlePrintQuirurgica() {
+  openPdf("quirurgica", {
+    nombre: admin.nombre,
+    edad: admin.edad,
+    rut: admin.rut,
+    diagnostico,
+    codigoCirugia: "",
+    tipoCirugia: "",
+    modalidad: "",
+    equipoMedico: "",
+    insumos: ""
+  });
+}
 
   // =========================
-  // GUARDAR TODO
-  // =========================
+// GUARDAR TODO
+// =========================
 
-  async function handleGuardarTodo() {
+async function handleGuardarTodo() {
 
-    if (receta.trim()) {
-      await handlePrintReceta();
-    }
-
-    if (indicaciones.trim()) {
-      await handlePrintInforme();
-    }
-
-    if (ordenKinesiologia.trim()) {
-      await handlePrintKine();
-    }
-
-    if (examenes.trim()) {
-      await handlePrintExamenes();
-    }
-
-    if (indicacionQuirurgica.trim()) {
-      await handlePrintQuirurgica();
-    }
+  if (receta.trim()) {
+    await handlePrintReceta();
   }
 
+  if (atencion.trim()) {
+    await handlePrintInforme();
+  }
+
+  if (diagnostico.trim()) {
+    await handlePrintKine();
+  }
+
+ if (examenes.trim()) {
+    await handlePrintExamenes(); 
+  }
+}
   // =========================
   // BLOQUEOS
   // =========================
   if (adminError) return <div>{adminError}</div>;
   if (professionalError) return <div>{professionalError}</div>;
-  if (!admin || !professionalName) return <div>Cargando información…</div>;
+  if (!admin || !professionalName)
+    return <div>Cargando información…</div>;
 
   // =========================
-  // UI
+  // UI — DASHBOARD SOLO PINTA
   // =========================
   return (
     <DashboardAtencion
+      /* =========================
+         FICHA ADMINISTRATIVA
+      ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
       edad={admin.edad}
@@ -323,38 +320,48 @@ export default function MedicoAtencionCerebro() {
       telefono={admin.telefono}
       email={admin.email}
       prevision={admin.prevision}
+
       date={state.date}
       time={state.time}
+
+      /* ✅ PROFESIONAL CORRECTO */
       professional={professionalName}
+
+      /* =========================
+         CONTENIDO CLÍNICO
+      ========================= */
       atencion={atencion}
       diagnostico={diagnostico}
       receta={receta}
-      indicaciones={indicaciones}
-      ordenKinesiologia={ordenKinesiologia}
-      indicacionQuirurgica={indicacionQuirurgica}
       examenes={examenes}
+
       onChangeAtencion={setAtencion}
       onChangeDiagnostico={setDiagnostico}
       onChangeReceta={setReceta}
-      onChangeIndicaciones={setIndicaciones}
-      onChangeOrdenKinesiologia={setOrdenKinesiologia}
-      onChangeIndicacionQuirurgica={setIndicacionQuirurgica}
       onChangeExamenes={setExamenes}
+
+      /* =========================
+         ACCIONES
+      ========================= */
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
+
       onOrdenarClinicamente={handleOrdenarClinicamente}
       puedeOrdenar={!ordering}
       ordering={ordering}
       orderError={orderError}
       onImprimir={(tipo) => {
-        if (tipo === "receta") handlePrintReceta();
-        if (tipo === "examenes") handlePrintExamenes();
-        if (tipo === "indicaciones") handlePrintInforme();
-        if (tipo === "kinesiologia") handlePrintKine();
-        if (tipo === "quirurgica") handlePrintQuirurgica();
+   
+      
+      if (tipo === "receta") handlePrintReceta();
+      if (tipo === "examenes") handlePrintExamenes();   // ✅ ahora correcto
+      if (tipo === "indicaciones") handlePrintInforme();
+      if (tipo === "kinesiologia") handlePrintKine();
+      if (tipo === "quirurgica") handlePrintQuirurgica();
       }}
+
       onGuardar={handleGuardarTodo}
     />
   );
-}
+    }
