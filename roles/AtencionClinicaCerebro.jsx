@@ -292,8 +292,8 @@ async function handleGuardarTodo() {
     await handlePrintKine();
   }
 
-  if (examenes.trim()) {
-    await handlePrintQuirurgica();
+ if (examenes.trim()) {
+    await handlePrintExamenes(); 
   }
 }
   // =========================
