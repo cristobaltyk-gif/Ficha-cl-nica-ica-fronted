@@ -111,6 +111,24 @@ export default function MedicoAtencionCerebro() {
   const [receta, setReceta] = useState("");
   const [examenes, setExamenes] = useState("");
 
+  // =========================
+// CALCULAR EDAD DESDE FECHA NACIMIENTO
+// =========================
+function calcularEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return "";
+
+  const nacimiento = new Date(fechaNacimiento);
+  const hoy = new Date();
+
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const m = hoy.getMonth() - nacimiento.getMonth();
+
+  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad--;
+  }
+
+  return edad;
+}
   const [ordering, setOrdering] = useState(false);
   const [orderError, setOrderError] = useState(null);
 
@@ -210,7 +228,7 @@ function handlePrintReceta() {
     apellido_paterno: admin.apellido_paterno,
     apellido_materno: admin.apellido_materno,
     fecha_nacimiento: admin.fecha_nacimiento,
-    edad: admin.edad,
+    edad: edadCalculada,,
     rut: admin.rut,
     diagnostico,
     medicamentos: [],
@@ -224,7 +242,7 @@ function handlePrintInforme() {
     apellido_paterno: admin.apellido_paterno,
     apellido_materno: admin.apellido_materno,
     fecha_nacimiento: admin.fecha_nacimiento,
-    edad: admin.edad,
+    edad: edadCalculada,
     rut: admin.rut,
     motivoConsulta: atencion,
     impresionDiagnostica: diagnostico,
@@ -239,7 +257,7 @@ function handlePrintKine() {
     apellido_paterno: admin.apellido_paterno,
     apellido_materno: admin.apellido_materno,
     fecha_nacimiento: admin.fecha_nacimiento,
-    edad: admin.edad,
+    edad: edadCalculada,
     rut: admin.rut,
     diagnostico,
     lado: "",
@@ -253,7 +271,7 @@ function handlePrintKine() {
     apellido_paterno: admin.apellido_paterno,
     apellido_materno: admin.apellido_materno,
     fecha_nacimiento: admin.fecha_nacimiento,
-    edad: admin.edad,
+    edad: edadCalculada,
     rut: admin.rut,
     diagnostico,
     examenes
@@ -263,7 +281,7 @@ function handlePrintKine() {
 function handlePrintQuirurgica() {
   openPdf("quirurgica", {
     nombre: admin.nombre,
-    edad: admin.edad,
+    edad: edadCalculada,
     rut: admin.rut,
     diagnostico,
     codigoCirugia: "",
@@ -303,6 +321,8 @@ async function handleGuardarTodo() {
   if (professionalError) return <div>{professionalError}</div>;
   if (!admin || !professionalName)
     return <div>Cargando información…</div>;
+  // Edad calculada real desde fecha_nacimiento
+const edadCalculada = calcularEdad(admin.fecha_nacimiento);
 
   // =========================
   // UI — DASHBOARD SOLO PINTA
@@ -314,7 +334,7 @@ async function handleGuardarTodo() {
       ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
-      edad={admin.edad}
+      edad: edadCalculada,
       sexo={admin.sexo}
       direccion={admin.direccion}
       telefono={admin.telefono}
