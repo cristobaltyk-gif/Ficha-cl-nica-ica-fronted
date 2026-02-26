@@ -228,7 +228,7 @@ function handlePrintReceta() {
     apellido_paterno: admin.apellido_paterno,
     apellido_materno: admin.apellido_materno,
     fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,,
+    edad: edadCalculada,
     rut: admin.rut,
     diagnostico,
     medicamentos: [],
@@ -334,7 +334,7 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
-      edad: edadCalculada,
+      edad={edadCalculada}
       sexo={admin.sexo}
       direccion={admin.direccion}
       telefono={admin.telefono}
