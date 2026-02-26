@@ -244,10 +244,10 @@ function handlePrintInforme() {
     fecha_nacimiento: admin.fecha_nacimiento,
     edad: edadCalculada,
     rut: admin.rut,
-    motivoConsulta: atencion,
-    impresionDiagnostica: diagnostico,
-    estudios: examenes,
-    plan: receta
+
+    diagnostico: diagnostico,
+    indicaciones: receta,
+    professional: state.professional
   });
 }
 
@@ -281,14 +281,15 @@ function handlePrintKine() {
 function handlePrintQuirurgica() {
   openPdf("quirurgica", {
     nombre: admin.nombre,
+    apellido_paterno: admin.apellido_paterno,
+    apellido_materno: admin.apellido_materno,
+    fecha_nacimiento: admin.fecha_nacimiento,
     edad: edadCalculada,
     rut: admin.rut,
-    diagnostico,
-    codigoCirugia: "",
-    tipoCirugia: "",
-    modalidad: "",
-    equipoMedico: "",
-    insumos: ""
+
+    diagnostico: diagnostico,
+    indicaciones: receta, // o tu campo quirúrgico real si existe
+    professional: state.professional
   });
 }
 
