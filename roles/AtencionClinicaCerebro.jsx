@@ -354,7 +354,44 @@ async function handleGuardarTodo() {
     alert(e.message);
   }
 }
-  
+// ========================================
+// MODIFICAR EVENTO CLÍNICO
+// ========================================
+async function handleModificarEvento() {
+
+  try {
+    const res = await fetch(`${API_URL}/api/fichas/evento`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-User": session?.usuario
+      },
+      body: JSON.stringify({
+        rut: admin.rut,
+        fecha: state.date,
+        hora: state.time,
+        atencion,
+        diagnostico,
+        receta,
+        examenes,
+        indicaciones: "",
+        orden_kinesiologia: "",
+        indicacion_quirurgica: ""
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error al modificar evento");
+    }
+
+    alert("✅ Evento clínico modificado correctamente");
+
+  } catch (e) {
+    console.error("❌ ERROR MODIFICAR:", e);
+    alert(e.message);
+  }
+}  
   // =========================
   // BLOQUEOS
   // =========================
