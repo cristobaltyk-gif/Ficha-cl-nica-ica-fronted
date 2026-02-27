@@ -8,16 +8,27 @@ const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 export default function AgendaSummarySelector({
   professionals = [],
   mode = "monthly",
-  startDate,
+  startDate, // 🔒 no se elimina (no rompemos contrato)
   onSelectDay
 }) {
   const [loading, setLoading] = useState(false);
   const [daysByProfessional, setDaysByProfessional] = useState({});
 
-  const baseDate = startDate || new Date().toISOString().slice(0, 10);
+  /* =====================================================
+     ✅ BASE DATE = HOY LOCAL (SIN BUG UTC)
+  ===================================================== */
+  function getLocalISODate() {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  const baseDate = getLocalISODate();
+
   const isSingle = professionals.length === 1;
 
-  /* ========= SELECTOR (CAMBIO REAL) ========= */
+  /* ========= SELECTOR (SIN CAMBIOS) ========= */
   const [selectedIds, setSelectedIds] = useState(
     isSingle ? [professionals[0]?.id] : []
   );
@@ -37,7 +48,7 @@ export default function AgendaSummarySelector({
       if (prev.includes(id)) {
         return prev.filter((x) => x !== id);
       }
-      if (prev.length >= 4) return prev; // 🔒 máximo 4
+      if (prev.length >= 4) return prev;
       return [...prev, id];
     });
   }
@@ -46,31 +57,39 @@ export default function AgendaSummarySelector({
     setAppliedIds(selectedIds);
   }
 
-  /* ========= GRILLA MENSUAL (IGUAL) ========= */
-  const month = useMemo(() => {
-    const y = Number(baseDate.slice(0, 4));
-    const m = Number(baseDate.slice(5, 7));
+  /* =====================================================
+     ✅ GRILLA RANGO MÓVIL (30 DÍAS DESDE HOY)
+     ALINEADO CON BACKEND
+  ===================================================== */
+  const rangeCells = useMemo(() => {
+    const start = new Date(baseDate);
+    const days = [];
 
-    const first = new Date(Date.UTC(y, m - 1, 1));
-    const last = new Date(Date.UTC(y, m, 0));
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      days.push(d);
+    }
 
-    const offset = (first.getUTCDay() + 6) % 7;
+    const firstDay = days[0];
+    const offset = (firstDay.getDay() + 6) % 7;
 
     const cells = [];
-    for (let i = 0; i < offset; i++) cells.push(null);
-    for (let d = 1; d <= last.getUTCDate(); d++) cells.push(d);
-    while (cells.length % 7 !== 0) cells.push(null);
 
-    return { y, m, cells };
+    for (let i = 0; i < offset; i++) {
+      cells.push(null);
+    }
+
+    days.forEach((d) => cells.push(d));
+
+    while (cells.length % 7 !== 0) {
+      cells.push(null);
+    }
+
+    return cells;
   }, [baseDate]);
 
-  function isoForDay(d) {
-    const mm = String(month.m).padStart(2, "0");
-    const dd = String(d).padStart(2, "0");
-    return `${month.y}-${mm}-${dd}`;
-  }
-
-  /* ========= BACKEND (IGUAL) ========= */
+  /* ========= BACKEND (SIN CAMBIOS) ========= */
   useEffect(() => {
     let cancelled = false;
 
@@ -123,11 +142,12 @@ export default function AgendaSummarySelector({
     ? professionals
     : professionals.filter((p) => appliedIds.includes(p.id));
 
-  /* ========= RENDER ========= */
+  /* =====================================================
+     RENDER
+  ===================================================== */
   return (
     <div className="agenda-summary-selector">
 
-      {/* ===== SELECTOR CORREGIDO ===== */}
       {!isSingle && (
         <>
           <div className="summary-professionals">
@@ -183,10 +203,15 @@ export default function AgendaSummarySelector({
             </div>
 
             <div className="month-grid">
-              {month.cells.map((day, i) => {
-                if (!day) return <div key={i} className="day-cell empty" />;
+              {rangeCells.map((dateObj, i) => {
+                if (!dateObj)
+                  return <div key={i} className="day-cell empty" />;
 
-                const dateISO = isoForDay(day);
+                const yyyy = dateObj.getFullYear();
+                const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+                const dd = String(dateObj.getDate()).padStart(2, "0");
+
+                const dateISO = `${yyyy}-${mm}-${dd}`;
                 const status = backendDays[dateISO] || "empty";
 
                 return (
@@ -198,7 +223,7 @@ export default function AgendaSummarySelector({
                       onSelectDay({ professional: p.id, date: dateISO })
                     }
                   >
-                    {String(day).padStart(2, "0")}
+                    {dd}
                   </button>
                 );
               })}
@@ -208,4 +233,4 @@ export default function AgendaSummarySelector({
       })}
     </div>
   );
-                    }
+}
