@@ -299,22 +299,62 @@ function handlePrintQuirurgica() {
 
 async function handleGuardarTodo() {
 
-  if (receta.trim()) {
-    await handlePrintReceta();
-  }
+  try {
+    // ========================================
+    // 1️⃣ GUARDAR EVENTO JSON EN BACKEND
+    // ========================================
+    const res = await fetch(`${API_URL}/api/fichas/evento`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-User": session?.usuario
+      },
+      body: JSON.stringify({
+        rut: admin.rut,
+        fecha: state.date,
+        hora: state.time,
+        atencion,
+        diagnostico,
+        receta,
+        examenes,
+        indicaciones: "",
+        orden_kinesiologia: "",
+        indicacion_quirurgica: ""
+      })
+    });
 
-  if (atencion.trim()) {
-    await handlePrintInforme();
-  }
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Error al guardar evento clínico");
+    }
 
-  if (diagnostico.trim()) {
-    await handlePrintKine();
-  }
+    // ========================================
+    // 2️⃣ IMPRIMIR PDFs (tu lógica original)
+    // ========================================
+    if (receta.trim()) {
+      await handlePrintReceta();
+    }
 
- if (examenes.trim()) {
-    await handlePrintExamenes(); 
+    if (atencion.trim()) {
+      await handlePrintInforme();
+    }
+
+    if (diagnostico.trim()) {
+      await handlePrintKine();
+    }
+
+    if (examenes.trim()) {
+      await handlePrintExamenes(); 
+    }
+
+    alert("✅ Evento clínico guardado correctamente");
+
+  } catch (e) {
+    console.error("❌ ERROR GUARDAR EVENTO:", e);
+    alert(e.message);
   }
 }
+  
   // =========================
   // BLOQUEOS
   // =========================
