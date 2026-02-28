@@ -37,6 +37,22 @@
 }
 
 /* ========================= */
+/* EVALUADO (ATENDIDO) */
+/* ========================= */
+
+.slot-evaluated {
+  background: #dcfce7;        /* verde suave */
+  border-color: #22c55e;
+}
+
+.slot-evaluated .slot-time {
+  color: #14532d;
+}
+
+.slot-evaluated .slot-patient-name {
+  color: #14532d;
+}
+/* ========================= */
 /* CONTENIDO SLOT */
 /* ========================= */
 
