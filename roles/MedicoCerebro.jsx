@@ -34,7 +34,10 @@ export default function MedicoCerebro() {
   // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(() => {
+  const saved = sessionStorage.getItem("medico_selected_day");
+  return saved ? JSON.parse(saved) : null;
+});
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
  
   // MODAL MÉDICO (IGUAL A SECRETARÍA)
@@ -87,8 +90,9 @@ export default function MedicoCerebro() {
   // AGENDA SUMMARY
   // =========================
   function handleSelectDay(payload) {
-    setSelectedDay(payload);
-    navigate("agenda/dia");
+  setSelectedDay(payload);
+  sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
+  navigate("agenda/dia");
   }
 
   // =========================
