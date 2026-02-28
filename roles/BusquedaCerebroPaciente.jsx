@@ -109,12 +109,13 @@ export default function BusquedaCerebroPaciente() {
           <div style={{ marginBottom: "15px" }}>
             <button
               onClick={() =>
-                navigate("/atencion", {
+                navigate("/medico/agenda/dia/atencion", {
                   state: {
                     rut: rutSeleccionado,
                     date: new Date().toISOString().slice(0, 10),
                     time: "09:00",
-                    professional: professional
+                    professional: professional,
+                    origin: "informes" // 🔥 clave para volver correctamente
                   }
                 })
               }
@@ -198,4 +199,4 @@ export default function BusquedaCerebroPaciente() {
 
     </div>
   );
-  }
+}
