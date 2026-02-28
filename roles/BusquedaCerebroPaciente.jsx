@@ -9,7 +9,7 @@ import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
-  const { session } = useAuth();
+  const { session, professional } = useAuth();
   const navigate = useNavigate();
 
   // =========================
@@ -148,18 +148,16 @@ export default function BusquedaCerebroPaciente() {
         <div style={{ marginTop: "20px" }}>
           <h3>Historial Clínico</h3>
 <div style={{ marginBottom: "15px" }}>
-  <button
-    onClick={() =>
-      navigate("/atencion", {
-        state: {
-          rut: rutSeleccionado,
-          date: new Date().toISOString().slice(0, 10),
-          time: "09:00",
-          professional: session?.professional
-        }
-      })
+  onClick={() =>
+  navigate("/atencion", {
+    state: {
+      rut: rutSeleccionado,
+      date: new Date().toISOString().slice(0, 10),
+      time: "09:00",
+      professional: professional   // 🔥 ESTE ES EL CORRECTO
     }
-  >
+  })
+  }
     ➕ Nueva Atención
   </button>
 </div>
