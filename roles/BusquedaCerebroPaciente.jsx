@@ -74,7 +74,9 @@ export default function BusquedaCerebroPaciente() {
   // =========================
   // VER DETALLE
   // =========================
-  async function handleVerDetalle(ev) {
+  function handleVerDetalle(ev) {
+  setDetalle(ev);
+  }
     try {
       const res = await fetch(
         `${API_URL}/api/fichas/evento/${rutSeleccionado}/${encodeURIComponent(ev.fecha)}/${encodeURIComponent(ev.hora)}`,
