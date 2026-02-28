@@ -144,3 +144,17 @@
   background-color: #fca5a5;
   cursor: not-allowed;
 }
+.buscar-otro-btn {
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  cursor: pointer;
+  background-color: #0f172a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.buscar-otro-btn:hover {
+  opacity: 0.9;
+}
