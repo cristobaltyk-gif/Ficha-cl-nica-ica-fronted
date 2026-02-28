@@ -110,6 +110,9 @@ export default function MedicoAtencionCerebro() {
   const [diagnostico, setDiagnostico] = useState("");
   const [receta, setReceta] = useState("");
   const [examenes, setExamenes] = useState("");
+  const [indicaciones, setIndicaciones] = useState("");
+  const [ordenKinesiologia, setOrdenKinesiologia] = useState("");
+  const [indicacionQuirurgica, setIndicacionQuirurgica] = useState("");
 
   // =========================
 // CALCULAR EDAD DESDE FECHA NACIMIENTO
@@ -246,7 +249,7 @@ function handlePrintInforme() {
     rut: admin.rut,
 
     diagnostico: diagnostico,
-    indicaciones: receta,
+    indicaciones: indicaciones
     professional: state.professional
   });
 }
@@ -261,7 +264,7 @@ function handlePrintKine() {
     rut: admin.rut,
     diagnostico,
     lado: "",
-    indicaciones: receta
+    indicaciones: ordenKinesiologia
   });
 }
 
@@ -288,7 +291,7 @@ function handlePrintQuirurgica() {
     rut: admin.rut,
 
     diagnostico: diagnostico,
-    indicaciones: receta, // o tu campo quirúrgico real si existe
+    indicaciones: indicacionQuirurgica
     professional: state.professional
   });
 }
