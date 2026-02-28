@@ -40,6 +40,7 @@ export default function DashboardAtencion({
   onGuardar,
   onModificar,
   onCancelar
+  editable
 }) {
 
   const autoResize = (e) => {
