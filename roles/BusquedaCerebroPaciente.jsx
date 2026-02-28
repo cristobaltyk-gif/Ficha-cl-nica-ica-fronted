@@ -97,6 +97,25 @@ export default function BusquedaCerebroPaciente() {
     <div style={{ padding: "20px" }}>
 
       <h2>Búsqueda de Pacientes</h2>
+      {!showForm && (
+          <button
+              onClick={() => {
+                  setShowForm(true);
+                  setAdmin(null);
+                  setEventos([]);
+                  setDetalle(null);
+                  setRutSeleccionado(null);
+                  setError(null);
+              }}
+              style={{
+                  marginBottom: "15px",
+                  padding: "8px 12px",
+                  cursor: "pointer"
+              }}
+          >
+              Buscar otro paciente
+              </button>
+        )}
 
       {/* 🔵 USAMOS TU FORMULARIO EXISTENTE */}
       {showForm && (
