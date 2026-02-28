@@ -5,7 +5,6 @@ import "../styles/pacientes/patient-form.css";
 import { useNavigate } from "react-router-dom";
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
@@ -72,29 +71,10 @@ export default function BusquedaCerebroPaciente() {
   }
 
   // =========================
-  // VER DETALLE
+  // VER DETALLE (SIN FETCH)
   // =========================
   function handleVerDetalle(ev) {
-  setDetalle(ev);
-  }
-    try {
-      const res = await fetch(
-        `${API_URL}/api/fichas/evento/${rutSeleccionado}/${encodeURIComponent(ev.fecha)}/${encodeURIComponent(ev.hora)}`,
-        {
-          headers: {
-            "X-Internal-User": session?.usuario
-          }
-        }
-      );
-
-      if (!res.ok) throw new Error("No se pudo cargar detalle");
-
-      const data = await res.json();
-      setDetalle(data);
-
-    } catch (e) {
-      setError(e.message);
-    }
+    setDetalle(ev);
   }
 
   // =========================
@@ -104,29 +84,29 @@ export default function BusquedaCerebroPaciente() {
     <div style={{ padding: "20px" }}>
 
       <h2>Búsqueda de Pacientes</h2>
-      {!showForm && (
-          <button
-              className="buscar-otro-btn"
-              onClick={() => {
-                  setShowForm(true);
-                  setAdmin(null);
-                  setEventos([]);
-                  setDetalle(null);
-                  setRutSeleccionado(null);
-                  setError(null);
-              }}
-            
-          >
-              Buscar otro paciente
-              </button>
-        )}
 
-      {/* 🔵 USAMOS TU FORMULARIO EXISTENTE */}
+      {!showForm && (
+        <button
+          className="buscar-otro-btn"
+          onClick={() => {
+            setShowForm(true);
+            setAdmin(null);
+            setEventos([]);
+            setDetalle(null);
+            setRutSeleccionado(null);
+            setError(null);
+          }}
+        >
+          Buscar otro paciente
+        </button>
+      )}
+
+      {/* 🔵 FORMULARIO EXISTENTE */}
       {showForm && (
-         <PatientForm
-             onConfirm={handlePacienteSeleccionado}
-             onCancel={() => setShowForm(false)}
-          />
+        <PatientForm
+          onConfirm={handlePacienteSeleccionado}
+          onCancel={() => setShowForm(false)}
+        />
       )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
@@ -149,21 +129,24 @@ export default function BusquedaCerebroPaciente() {
       {eventos.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>Historial Clínico</h3>
-<div style={{ marginBottom: "15px" }}>
-  onClick={() =>
-  navigate("/atencion", {
-    state: {
-      rut: rutSeleccionado,
-      date: new Date().toISOString().slice(0, 10),
-      time: "09:00",
-      professional: professional   // 🔥 ESTE ES EL CORRECTO
-    }
-  })
-  }
-    ➕ Nueva Atención
-  </button>
-</div>
-          
+
+          <div style={{ marginBottom: "15px" }}>
+            <button
+              onClick={() =>
+                navigate("/atencion", {
+                  state: {
+                    rut: rutSeleccionado,
+                    date: new Date().toISOString().slice(0, 10),
+                    time: "09:00",
+                    professional: professional
+                  }
+                })
+              }
+            >
+              ➕ Nueva Atención
+            </button>
+          </div>
+
           {eventos.map((ev, index) => (
             <div
               key={index}
@@ -187,52 +170,52 @@ export default function BusquedaCerebroPaciente() {
           DETALLE EVENTO
       ========================= */}
       {detalle && admin && (
-  <div style={{ marginTop: "30px" }}>
-    <DashboardAtencion
-      rut={admin.rut}
-      nombre={`${admin.nombre} ${admin.apellido_paterno}`}
-      edad=""
-      sexo={admin.sexo}
-      direccion={admin.direccion}
-      telefono={admin.telefono}
-      email={admin.email}
-      prevision={admin.prevision}
-      date={detalle.fecha}
-      time={detalle.hora}
-      professional={detalle.professional_name}
+        <div style={{ marginTop: "30px" }}>
+          <DashboardAtencion
+            rut={admin.rut}
+            nombre={`${admin.nombre} ${admin.apellido_paterno}`}
+            edad=""
+            sexo={admin.sexo}
+            direccion={admin.direccion}
+            telefono={admin.telefono}
+            email={admin.email}
+            prevision={admin.prevision}
+            date={detalle.fecha}
+            time={detalle.hora}
+            professional={detalle.professional_name}
 
-      atencion={detalle.atencion}
-      diagnostico={detalle.diagnostico}
-      receta={detalle.receta}
-      examenes={detalle.examenes}
-      indicaciones={detalle.indicaciones}
-      ordenKinesiologia={detalle.orden_kinesiologia}
-      indicacionQuirurgica={detalle.indicacion_quirurgica}
+            atencion={detalle.atencion}
+            diagnostico={detalle.diagnostico}
+            receta={detalle.receta}
+            examenes={detalle.examenes}
+            indicaciones={detalle.indicaciones}
+            ordenKinesiologia={detalle.orden_kinesiologia}
+            indicacionQuirurgica={detalle.indicacion_quirurgica}
 
-      onChangeAtencion={() => {}}
-      onChangeDiagnostico={() => {}}
-      onChangeReceta={() => {}}
-      onChangeExamenes={() => {}}
-      onChangeIndicaciones={() => {}}
-      onChangeOrdenKinesiologia={() => {}}
-      onChangeIndicacionQuirurgica={() => {}}
+            onChangeAtencion={() => {}}
+            onChangeDiagnostico={() => {}}
+            onChangeReceta={() => {}}
+            onChangeExamenes={() => {}}
+            onChangeIndicaciones={() => {}}
+            onChangeOrdenKinesiologia={() => {}}
+            onChangeIndicacionQuirurgica={() => {}}
 
-      onDictado={() => {}}
-      dictando={false}
-      puedeDictar={false}
+            onDictado={() => {}}
+            dictando={false}
+            puedeDictar={false}
 
-      onOrdenarClinicamente={() => {}}
-      puedeOrdenar={false}
+            onOrdenarClinicamente={() => {}}
+            puedeOrdenar={false}
 
-      onImprimir={() => {}}
-      onGuardar={() => {}}
-      onModificar={() => {}}
-      onCancelar={() => setDetalle(null)}
+            onImprimir={() => {}}
+            onGuardar={() => {}}
+            onModificar={() => {}}
+            onCancelar={() => setDetalle(null)}
 
-      editable={false}
-    />
-  </div>
-)}
+            editable={false}
+          />
+        </div>
+      )}
 
     </div>
   );
