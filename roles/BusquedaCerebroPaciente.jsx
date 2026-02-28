@@ -2,10 +2,15 @@ import { useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
 import "../styles/pacientes/patient-form.css";
+import { useNavigate } from "react-router-dom";
+import DashboardAtencion from "../pages/dashboard-atencion.jsx";
+
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
   const { session } = useAuth();
+  const navigate = useNavigate();
 
   // =========================
   // ESTADOS
@@ -142,7 +147,23 @@ export default function BusquedaCerebroPaciente() {
       {eventos.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>Historial Clínico</h3>
-
+<div style={{ marginBottom: "15px" }}>
+  <button
+    onClick={() =>
+      navigate("/atencion", {
+        state: {
+          rut: rutSeleccionado,
+          date: new Date().toISOString().slice(0, 10),
+          time: "09:00",
+          professional: session?.professional
+        }
+      })
+    }
+  >
+    ➕ Nueva Atención
+  </button>
+</div>
+          
           {eventos.map((ev, index) => (
             <div
               key={index}
