@@ -203,13 +203,14 @@ async function cancelSlot(slot) {
           setModalSlot(null);
 
           navigate("agenda/dia/atencion", {
-            state: {
-              rut: slot.patient?.rut || slot.rut,
-              date: selectedDay.date,
-              time: slot.time,
-              professional: selectedDay.professional
-            }
-          });
+              state: {
+                  rut: slot.patient?.rut || slot.rut,
+                  date: selectedDay.date,
+                  time: slot.time,
+                  professional: selectedDay.professional,
+                  origin: "agenda"   // 🔥 ESTE ES EL ÚNICO CAMBIO
+              }
+            });
         }}
 
         onNoShow={() => {
