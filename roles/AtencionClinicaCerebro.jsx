@@ -316,7 +316,6 @@ async function handleGuardarTodo() {
   }
 
   try {
-  try {
     // ========================================
     // 1️⃣ GUARDAR EVENTO JSON EN BACKEND
     // ========================================
@@ -381,8 +380,6 @@ async function handleModificarEvento() {
     alert("Solo se puede modificar atención del día actual");
     return;
   }
-
-  try {
 
   try {
     const res = await fetch(`${API_URL}/api/fichas/evento`, {
