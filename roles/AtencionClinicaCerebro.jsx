@@ -467,6 +467,8 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       }}
 
       onGuardar={handleGuardarTodo}
+      onModificar={handleModificarEvento}
+      onCancelar={() => navigate(-1)}
     />
   );
     }
