@@ -186,15 +186,53 @@ export default function BusquedaCerebroPaciente() {
       {/* =========================
           DETALLE EVENTO
       ========================= */}
-      {detalle && (
-        <div style={{ marginTop: "20px", border: "2px solid #000", padding: "15px" }}>
-          <h3>Detalle Atención</h3>
-          <p><strong>Motivo:</strong> {detalle.atencion}</p>
-          <p><strong>Diagnóstico:</strong> {detalle.diagnostico}</p>
-          <p><strong>Plan:</strong> {detalle.receta}</p>
-          <p><strong>Exámenes:</strong> {detalle.examenes}</p>
-        </div>
-      )}
+      {detalle && admin && (
+  <div style={{ marginTop: "30px" }}>
+    <DashboardAtencion
+      rut={admin.rut}
+      nombre={`${admin.nombre} ${admin.apellido_paterno}`}
+      edad=""
+      sexo={admin.sexo}
+      direccion={admin.direccion}
+      telefono={admin.telefono}
+      email={admin.email}
+      prevision={admin.prevision}
+      date={detalle.fecha}
+      time={detalle.hora}
+      professional={detalle.professional_name}
+
+      atencion={detalle.atencion}
+      diagnostico={detalle.diagnostico}
+      receta={detalle.receta}
+      examenes={detalle.examenes}
+      indicaciones={detalle.indicaciones}
+      ordenKinesiologia={detalle.orden_kinesiologia}
+      indicacionQuirurgica={detalle.indicacion_quirurgica}
+
+      onChangeAtencion={() => {}}
+      onChangeDiagnostico={() => {}}
+      onChangeReceta={() => {}}
+      onChangeExamenes={() => {}}
+      onChangeIndicaciones={() => {}}
+      onChangeOrdenKinesiologia={() => {}}
+      onChangeIndicacionQuirurgica={() => {}}
+
+      onDictado={() => {}}
+      dictando={false}
+      puedeDictar={false}
+
+      onOrdenarClinicamente={() => {}}
+      puedeOrdenar={false}
+
+      onImprimir={() => {}}
+      onGuardar={() => {}}
+      onModificar={() => {}}
+      onCancelar={() => setDetalle(null)}
+
+      editable={false}
+    />
+  </div>
+)}
 
     </div>
   );
