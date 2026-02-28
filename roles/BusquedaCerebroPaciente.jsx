@@ -70,7 +70,7 @@ export default function BusquedaCerebroPaciente() {
   async function handleVerDetalle(ev) {
     try {
       const res = await fetch(
-        `${API_URL}/api/fichas/evento/${rutSeleccionado}/${ev.fecha}/${ev.hora}`,
+        `${API_URL}/api/fichas/evento/${rutSeleccionado}/${encodeURIComponent(ev.fecha)}/${encodeURIComponent(ev.hora)}`,
         {
           headers: {
             "X-Internal-User": session?.usuario
