@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import DashboardAtencion from "../pages/dashboard-atencion.jsx";
 import { useWebSpeech } from "../modules/webspeech/useWebSpeech";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
   const { session } = useAuth();
+  const navigate = useNavigate();
 
   // =========================
   // VALIDACIÓN DE CONTEXTO
@@ -249,7 +251,7 @@ function handlePrintInforme() {
     rut: admin.rut,
 
     diagnostico: diagnostico,
-    indicaciones: indicaciones
+    indicaciones: indicaciones,
     professional: state.professional
   });
 }
@@ -291,7 +293,7 @@ function handlePrintQuirurgica() {
     rut: admin.rut,
 
     diagnostico: diagnostico,
-    indicaciones: indicacionQuirurgica
+    indicaciones: indicacionQuirurgica,
     professional: state.professional
   });
 }
@@ -320,9 +322,9 @@ async function handleGuardarTodo() {
         diagnostico,
         receta,
         examenes,
-        indicaciones: "",
-        orden_kinesiologia: "",
-        indicacion_quirurgica: ""
+        indicaciones,
+        orden_kinesiologia: ordenKinesiologia,
+        indicacion_quirurgica: indicacionQuirurgica
       })
     });
 
@@ -351,6 +353,7 @@ async function handleGuardarTodo() {
     }
 
     alert("✅ Evento clínico guardado correctamente");
+    navigate(-1);
 
   } catch (e) {
     console.error("❌ ERROR GUARDAR EVENTO:", e);
@@ -377,9 +380,9 @@ async function handleModificarEvento() {
         diagnostico,
         receta,
         examenes,
-        indicaciones: "",
-        orden_kinesiologia: "",
-        indicacion_quirurgica: ""
+        indicaciones,
+        orden_kinesiologia: ordenKinesiologia,
+        indicacion_quirurgica: indicacionQuirurgica
       })
     });
 
@@ -389,6 +392,7 @@ async function handleModificarEvento() {
     }
 
     alert("✅ Evento clínico modificado correctamente");
+    navigate(-1);
 
   } catch (e) {
     console.error("❌ ERROR MODIFICAR:", e);
