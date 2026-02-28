@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
 import "../styles/pacientes/patient-form.css";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
-  const { session } = useAuth();
+  const { session, professional } = useAuth();
+  const navigate = useNavigate();
 
   const [rutSeleccionado, setRutSeleccionado] = useState(null);
   const [admin, setAdmin] = useState(null);
@@ -28,7 +30,6 @@ export default function BusquedaCerebroPaciente() {
     setError(null);
 
     try {
-      // Ficha administrativa
       const resAdmin = await fetch(`${API_URL}/api/fichas/admin/${rut}`, {
         headers: { "X-Internal-User": session?.usuario }
       });
@@ -37,7 +38,6 @@ export default function BusquedaCerebroPaciente() {
       const adminData = await resAdmin.json();
       setAdmin(adminData);
 
-      // Eventos
       const resEventos = await fetch(`${API_URL}/api/fichas/evento/${rut}`, {
         headers: { "X-Internal-User": session?.usuario }
       });
@@ -53,16 +53,10 @@ export default function BusquedaCerebroPaciente() {
     }
   }
 
-  // =========================
-  // MOSTRAR DETALLE
-  // =========================
   function handleVerDetalle(ev) {
     setDetalle(ev);
   }
 
-  // =========================
-  // UI
-  // =========================
   return (
     <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
 
@@ -107,9 +101,31 @@ export default function BusquedaCerebroPaciente() {
       {/* =========================
           LISTA EVENTOS
       ========================= */}
-      {eventos.length > 0 && (
+      {admin && (
         <div style={{ marginTop: "30px" }}>
           <h3>Historial Clínico</h3>
+
+          {/* 🔵 BOTÓN ÚNICO POR PACIENTE */}
+          <div style={{ marginBottom: "15px" }}>
+            <button
+              onClick={() =>
+                navigate("/atencion", {
+                  state: {
+                    rut: rutSeleccionado,
+                    date: new Date().toISOString().slice(0, 10),
+                    time: "09:00",
+                    professional: professional
+                  }
+                })
+              }
+            >
+              ➕ Nueva Atención
+            </button>
+          </div>
+
+          {eventos.length === 0 && (
+            <p style={{ color: "#666" }}>Sin atenciones registradas</p>
+          )}
 
           {eventos.map((ev, index) => (
             <div
@@ -182,4 +198,4 @@ export default function BusquedaCerebroPaciente() {
 
     </div>
   );
-}
+  }
