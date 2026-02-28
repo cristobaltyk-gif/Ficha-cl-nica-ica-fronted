@@ -40,7 +40,6 @@ export default function DashboardAtencion({
   onGuardar,
   onModificar,
   onCancelar
-  editable
 }) {
 
   const autoResize = (e) => {
@@ -136,19 +135,11 @@ export default function DashboardAtencion({
           Cancelar
         </button>
 
-        <button
-        className="btn-secondary"
-        onClick={onModificar}
-        disabled={!editable}
-        >
+        <button className="btn-secondary" onClick={onModificar}>
           Modificar
         </button>
 
-        <button
-        className="btn-primary"
-        onClick={onGuardar}
-        disabled={!editable}
-        >
+        <button className="btn-primary" onClick={onGuardar}>
           Guardar
         </button>
 
