@@ -170,18 +170,25 @@ export default function AgendaDayController({
       await resolvePatients(backendSlots);
 
       Object.entries(backendSlots).forEach(([time, slot]) => {
-        baseSlots[time] = {
-          time,
-          status: slot.status,
-          rut: slot.rut || null,
-          patient: slot.rut ? patientsCache[slot.rut] || null : null,
 
-          // info UI
-          professional,
-          professionalName:
-            professionalsMap[professional]?.name || professional
-        };
-      });
+  // 🔒 VISTA PUBLICA: ocultar todo lo que no sea available
+  if (role === "PUBLIC" && slot.status !== "available") {
+    delete baseSlots[time];
+    return;
+  }
+
+  baseSlots[time] = {
+    time,
+    status: slot.status,
+    rut: slot.rut || null,
+    patient: slot.rut ? patientsCache[slot.rut] || null : null,
+
+    // info UI
+    professional,
+    professionalName:
+      professionalsMap[professional]?.name || professional
+  };
+});
 
       setAgendaData({
         calendar: {
