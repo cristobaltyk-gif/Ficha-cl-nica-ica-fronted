@@ -184,13 +184,13 @@ export default function BusquedaCerebroPaciente() {
             time={detalle.hora}
             professional={detalle.professional_name}
 
-            atencion={detalle.atencion}
-            diagnostico={detalle.diagnostico}
-            receta={detalle.receta}
-            examenes={detalle.examenes}
-            indicaciones={detalle.indicaciones}
-            ordenKinesiologia={detalle.orden_kinesiologia}
-            indicacionQuirurgica={detalle.indicacion_quirurgica}
+            atencion={detalle.atencion || ""}
+            diagnostico={detalle.diagnostico || ""}
+            receta={detalle.receta || ""}
+            examenes={detalle.examenes || ""}
+            indicaciones={detalle.indicaciones || ""}
+            ordenKinesiologia={detalle.orden_kinesiologia || ""}
+            indicacionQuirurgica={detalle.indicacion_quirurgica || ""}
 
             onChangeAtencion={() => {}}
             onChangeDiagnostico={() => {}}
