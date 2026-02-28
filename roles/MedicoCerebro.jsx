@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 import HomeMedico from "../pages/home/HomeMedico";
