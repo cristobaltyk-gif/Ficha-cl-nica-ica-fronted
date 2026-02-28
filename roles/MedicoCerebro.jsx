@@ -168,6 +168,10 @@ async function cancelSlot(slot) {
             )
           }
         />
+        <Route
+  path="agenda/dia/atencion"
+  element={<MedicoAtencionCerebro />}
+/>
 
         {/* 📝 INFORMES */}
         <Route
@@ -194,7 +198,7 @@ async function cancelSlot(slot) {
           setModalOpen(false);
           setModalSlot(null);
 
-          navigate("/atencion", {
+          navigate("agenda/dia/atencion", {
             state: {
               rut: slot.patient?.rut || slot.rut,
               date: selectedDay.date,
