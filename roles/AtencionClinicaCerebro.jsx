@@ -310,6 +310,12 @@ function handlePrintQuirurgica() {
 
 async function handleGuardarTodo() {
 
+  if (!esHoy) {
+    alert("Solo se puede guardar atención del día actual");
+    return;
+  }
+
+  try {
   try {
     // ========================================
     // 1️⃣ GUARDAR EVENTO JSON EN BACKEND
@@ -370,6 +376,13 @@ async function handleGuardarTodo() {
 // MODIFICAR EVENTO CLÍNICO
 // ========================================
 async function handleModificarEvento() {
+
+  if (!esHoy) {
+    alert("Solo se puede modificar atención del día actual");
+    return;
+  }
+
+  try {
 
   try {
     const res = await fetch(`${API_URL}/api/fichas/evento`, {
