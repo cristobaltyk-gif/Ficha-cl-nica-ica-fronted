@@ -364,7 +364,7 @@ async function handleGuardarTodo() {
     }
 
     alert("✅ Evento clínico guardado correctamente");
-    navigate(-1);
+    navigate("/agenda", { replace: true, state: { professional: state.professional, date: state.date } });
 
   } catch (e) {
     console.error("❌ ERROR GUARDAR EVENTO:", e);
@@ -408,7 +408,7 @@ async function handleModificarEvento() {
     }
 
     alert("✅ Evento clínico modificado correctamente");
-    navigate(-1);
+    navigate("/agenda", { replace: true, state: { professional: state.professional, date: state.date } });
 
   } catch (e) {
     console.error("❌ ERROR MODIFICAR:", e);
@@ -484,9 +484,16 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
 
       onGuardar={handleGuardarTodo}
       onModificar={handleModificarEvento}
-      onCancelar={() => navigate(-1)}
+      onCancelar={() =>
+  navigate("/agenda", {
+    replace: true,
+    state: {
+      professional: state.professional,
+      date: state.date
+    }
+  })
+      }
 
-      editable={esHoy}
     />
   );
 }
