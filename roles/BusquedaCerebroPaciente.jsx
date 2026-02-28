@@ -59,6 +59,7 @@ export default function BusquedaCerebroPaciente() {
 
       const eventosData = await resEventos.json();
       setEventos(eventosData);
+      setShowForm(false);
 
     } catch (e) {
       setError(e.message);
@@ -98,9 +99,12 @@ export default function BusquedaCerebroPaciente() {
       <h2>Búsqueda de Pacientes</h2>
 
       {/* 🔵 USAMOS TU FORMULARIO EXISTENTE */}
-      <PatientForm
-        onConfirm={handlePacienteSeleccionado}
-      />
+      {showForm && (
+         <PatientForm
+             onConfirm={handlePacienteSeleccionado}
+             onCancel={() => setShowForm(false)}
+          />
+      )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
