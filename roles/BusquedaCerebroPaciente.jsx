@@ -15,6 +15,7 @@ export default function BusquedaCerebroPaciente() {
   const [eventos, setEventos] = useState([]);
   const [detalle, setDetalle] = useState(null);
   const [error, setError] = useState(null);
+  const [showForm, setShowForm] = useState(true);
 
   // =========================
   // CUANDO EL FORMULARIO CONFIRMA PACIENTE
