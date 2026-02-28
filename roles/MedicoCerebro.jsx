@@ -7,6 +7,7 @@ import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
 import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
+import BusquedaCerebroPaciente from "./BusquedaCerebroPaciente.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -167,6 +168,13 @@ async function cancelSlot(slot) {
             )
           }
         />
+
+        {/* 📝 INFORMES */}
+        <Route
+          path="informes"
+          element={<BusquedaCerebroPaciente />}
+        />
+
       </Routes>
 
       
