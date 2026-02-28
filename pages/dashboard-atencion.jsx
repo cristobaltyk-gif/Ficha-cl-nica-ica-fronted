@@ -136,11 +136,19 @@ export default function DashboardAtencion({
           Cancelar
         </button>
 
-        <button className="btn-secondary" onClick={onModificar}>
+        <button
+        className="btn-secondary"
+        onClick={onModificar}
+        disabled={!editable}
+        >
           Modificar
         </button>
 
-        <button className="btn-primary" onClick={onGuardar}>
+        <button
+        className="btn-primary"
+        onClick={onGuardar}
+        disabled={!editable}
+        >
           Guardar
         </button>
 
