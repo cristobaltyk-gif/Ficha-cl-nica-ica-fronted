@@ -174,7 +174,10 @@ async function cancelSlot(slot) {
           path="informes"
           element={<BusquedaCerebroPaciente />}
         />
-
+        <Route
+          path="pacientes"
+          element={<BusquedaCerebroPaciente />}
+        />
       </Routes>
 
       
