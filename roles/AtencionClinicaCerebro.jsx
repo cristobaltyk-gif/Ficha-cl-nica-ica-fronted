@@ -16,8 +16,8 @@ export default function MedicoAtencionCerebro() {
  // =========================
 // ORIGEN DE NAVEGACIÓN
 // =========================
-const origin = state.origin || "agenda";
 
+const origin = state?.origin || "agenda";
 function handleBackNavigation() {
   if (origin === "informes") {
     navigate("/medico/informes", { replace: true });
@@ -499,7 +499,7 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       onModificar={handleModificarEvento}
       onCancelar={handleBackNavigation}
       
-      }
+    
 
     />
   );
