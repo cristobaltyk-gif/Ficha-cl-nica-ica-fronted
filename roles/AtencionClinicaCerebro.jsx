@@ -31,6 +31,14 @@ export default function MedicoAtencionCerebro() {
   }
 
   // =========================
+// VALIDAR SI ES HOY
+// =========================
+const hoy = new Date();
+const hoyISO = hoy.toISOString().slice(0, 10); // YYYY-MM-DD
+
+const esHoy = state.date === hoyISO;
+  
+  // =========================
   // FICHA ADMINISTRATIVA (PACIENTE)
   // =========================
   const [admin, setAdmin] = useState(null);
@@ -353,7 +361,7 @@ async function handleGuardarTodo() {
     }
 
     alert("✅ Evento clínico guardado correctamente");
-    navigate(-1);
+    navigate(-1);a
 
   } catch (e) {
     console.error("❌ ERROR GUARDAR EVENTO:", e);
@@ -469,6 +477,14 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       onGuardar={handleGuardarTodo}
       onModificar={handleModificarEvento}
       onCancelar={() => navigate(-1)}
+      <DashboardAtencion
+   ...
+   onGuardar={handleGuardarTodo}
+   onModificar={handleModificarEvento}
+   onCancelar={() => navigate(-1)}
+
+   editable={esHoy}
+/>
     />
   );
     }
