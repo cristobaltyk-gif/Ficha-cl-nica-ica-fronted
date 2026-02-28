@@ -107,11 +107,7 @@ export default function BusquedaCerebroPaciente() {
                   setRutSeleccionado(null);
                   setError(null);
               }}
-              style={{
-                  marginBottom: "15px",
-                  padding: "8px 12px",
-                  cursor: "pointer"
-              }}
+            
           >
               Buscar otro paciente
               </button>
