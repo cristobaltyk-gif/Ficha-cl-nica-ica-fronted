@@ -92,7 +92,9 @@ export default function BusquedaCerebroPaciente() {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* FICHA ADMIN */}
+      {/* =========================
+          FICHA ADMIN
+      ========================= */}
       {admin && (
         <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "15px" }}>
           <h3>Ficha Administrativa</h3>
@@ -102,7 +104,9 @@ export default function BusquedaCerebroPaciente() {
         </div>
       )}
 
-      {/* LISTA EVENTOS */}
+      {/* =========================
+          LISTA EVENTOS
+      ========================= */}
       {eventos.length > 0 && (
         <div style={{ marginTop: "30px" }}>
           <h3>Historial Clínico</h3>
@@ -121,24 +125,28 @@ export default function BusquedaCerebroPaciente() {
             >
               <strong>{ev.fecha} {ev.hora}</strong>
               <div>{ev.diagnostico || "Sin diagnóstico"}</div>
-              <small>{ev.professional || ""}</small>
+              <small>{ev.professional_name || ""}</small>
             </div>
           ))}
         </div>
       )}
 
-      {/* DETALLE EVENTO */}
+      {/* =========================
+          DETALLE EVENTO
+      ========================= */}
       {detalle && (
-        <div style={{
-          marginTop: "30px",
-          border: "2px solid #000",
-          padding: "20px",
-          background: "#fff"
-        }}>
+        <div
+          style={{
+            marginTop: "30px",
+            border: "2px solid #000",
+            padding: "20px",
+            background: "#fff"
+          }}
+        >
           <h3>Detalle Atención</h3>
 
           <p><strong>Fecha:</strong> {detalle.fecha} {detalle.hora}</p>
-          <p><strong>Profesional:</strong> {detalle.professional}</p>
+          <p><strong>Profesional:</strong> {detalle.professional_name}</p>
 
           <hr />
 
