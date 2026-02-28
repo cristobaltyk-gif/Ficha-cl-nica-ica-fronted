@@ -13,6 +13,19 @@ export default function MedicoAtencionCerebro() {
   const { session } = useAuth();
   const navigate = useNavigate();
 
+ // =========================
+// ORIGEN DE NAVEGACIÓN
+// =========================
+const origin = state.origin || "agenda";
+
+function handleBackNavigation() {
+  if (origin === "informes") {
+    navigate("/medico/informes", { replace: true });
+  } else {
+    navigate("/medico/agenda/dia", { replace: true });
+  }
+} 
+
   // =========================
   // VALIDACIÓN DE CONTEXTO
   // =========================
@@ -364,7 +377,7 @@ async function handleGuardarTodo() {
     }
 
     alert("✅ Evento clínico guardado correctamente");
-    navigate("/medico/agenda/dia", { replace: true })
+    handleBackNavigation();
 
   } catch (e) {
     console.error("❌ ERROR GUARDAR EVENTO:", e);
@@ -408,7 +421,7 @@ async function handleModificarEvento() {
     }
 
     alert("✅ Evento clínico modificado correctamente");
-    navigate("/medico/agenda/dia", { replace: true })
+    handleBackNavigation(); 
 
   } catch (e) {
     console.error("❌ ERROR MODIFICAR:", e);
@@ -484,8 +497,8 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
 
       onGuardar={handleGuardarTodo}
       onModificar={handleModificarEvento}
-      onCancelar={() =>
-      navigate("/medico/agenda/dia", { replace: true })
+      onCancelar={handleBackNavigation}
+      
       }
 
     />
