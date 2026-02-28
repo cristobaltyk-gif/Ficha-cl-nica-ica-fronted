@@ -99,6 +99,7 @@ export default function BusquedaCerebroPaciente() {
       <h2>Búsqueda de Pacientes</h2>
       {!showForm && (
           <button
+              className="buscar-otro-btn
               onClick={() => {
                   setShowForm(true);
                   setAdmin(null);
