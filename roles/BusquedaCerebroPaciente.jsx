@@ -21,12 +21,14 @@ export default function BusquedaCerebroPaciente() {
   // 🔥 REHIDRATAR AL VOLVER DESDE ATENCIÓN
   useEffect(() => {
   if (location.state?.rut) {
-    handlePacienteSeleccionado({ rut: location.state.rut });
+    const rut = location.state.rut;
 
-    // 🔥 LIMPIAR STATE PARA QUE NO VUELVA A DISPARARSE
-    navigate(location.pathname, { replace: true });
-    } 
-  }, [location.state?.rut]);
+    handlePacienteSeleccionado({ rut });
+
+    // 🔥 SOLO limpiar history.state SIN volver a navegar
+    window.history.replaceState({}, document.title);
+  }
+}, []);
 
   // =========================
   // BUSCAR PACIENTE
