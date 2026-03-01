@@ -5,6 +5,7 @@ import "../styles/pacientes/patient-form.css";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import MedicoAtencionCerebro from "../RUTA_CORRECTA/MedicoAtencionCerebro";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -68,6 +69,14 @@ export default function BusquedaCerebroPaciente() {
     setDetalle(ev);
   }
 
+  if (modoAtencion && contextoAtencion) {
+  return (
+    <MedicoAtencionCerebro
+      state={contextoAtencion}
+      onClose={() => setModoAtencion(false)}
+    />
+  );
+  }
   return (
     <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
 
