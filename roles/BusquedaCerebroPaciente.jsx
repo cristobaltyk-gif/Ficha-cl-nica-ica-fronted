@@ -111,13 +111,13 @@ export default function BusquedaCerebroPaciente() {
               onClick={() =>
                 navigate("/medico/agenda/dia/atencion", {
                   state: {
-                    rut: rutSeleccionado,
-                    date: new Date().toISOString().slice(0, 10),
-                    time: "09:00",
-                    professional: professional,
-                    origin: "informes" // 🔥 clave para volver correctamente
+                      rut: rutSeleccionado,
+                      date: new Date().toISOString().slice(0, 10),
+                      time: horaActual,
+                      professional: professional,
+                      origin: "informes"
                   }
-                })
+               })
               }
             >
               ➕ Nueva Atención
