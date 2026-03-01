@@ -21,7 +21,7 @@ const origin = state?.origin || "agenda";
 function handleBackNavigation() {
   if (origin === "informes") {
     navigate("/medico/informes", { replace: true });
-    state: { rut: state.rut }
+        state: { rut: state.rut }
   } else {
     navigate("/medico/agenda/dia", { replace: true });
   }
