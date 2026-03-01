@@ -1,11 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
 import "../styles/pacientes/patient-form.css";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -13,6 +10,7 @@ export default function BusquedaCerebroPaciente() {
   const { session, professional } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [rutSeleccionado, setRutSeleccionado] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [eventos, setEventos] = useState([]);
@@ -20,15 +18,13 @@ export default function BusquedaCerebroPaciente() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(true);
 
-  const [modoAtencion, setModoAtencion] = useState(false);
-  const [contextoAtencion, setContextoAtencion] = useState(null);
-
+  // 🔥 REHIDRATAR AL VOLVER DESDE ATENCIÓN
   useEffect(() => {
     if (location.state?.rut) {
       handlePacienteSeleccionado({ rut: location.state.rut });
     }
   }, [location.state?.rut]);
-  
+
   // =========================
   // BUSCAR PACIENTE
   // =========================
@@ -71,7 +67,6 @@ export default function BusquedaCerebroPaciente() {
 
   return (
     <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-
       <h2>Búsqueda de Pacientes</h2>
 
       {!showForm && (
@@ -117,23 +112,22 @@ export default function BusquedaCerebroPaciente() {
         <div style={{ marginTop: "30px" }}>
           <h3>Historial Clínico</h3>
 
-          {/* 🔵 BOTÓN ÚNICO POR PACIENTE */}
           <div style={{ marginBottom: "15px" }}>
             <button
               onClick={() => {
-                  const now = new Date();
-                  const horaActual = now.toTimeString().slice(0, 5);
+                const now = new Date();
+                const horaActual = now.toTimeString().slice(0, 5);
 
-                  setContextoAtencion({
-                  rut: rutSeleccionado,
-                  date: new Date().toISOString().slice(0, 10),
-                  time: horaActual,
-                  professional: professional,
-                  origin: "informes"
-              });
-
-                  setModoAtencion(true);
-            }}
+                navigate("/medico/agenda/dia/atencion", {
+                  state: {
+                    rut: rutSeleccionado,
+                    date: new Date().toISOString().slice(0, 10),
+                    time: horaActual,
+                    professional: professional,
+                    origin: "informes"
+                  }
+                });
+              }}
             >
               ➕ Nueva Atención
             </button>
@@ -211,23 +205,6 @@ export default function BusquedaCerebroPaciente() {
           </button>
         </div>
       )}
-
-{modoAtencion && contextoAtencion && (
-  <div
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "#fff",
-      zIndex: 1000,
-      overflow: "auto"
-    }}
-  >
-    <MedicoAtencionCerebro
-      state={contextoAtencion}
-    />
-  </div>
-)}
-      
     </div>
   );
-            }
+}
