@@ -3,13 +3,15 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
 import "../styles/pacientes/patient-form.css";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
   const { session, professional } = useAuth();
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [rutSeleccionado, setRutSeleccionado] = useState(null);
   const [admin, setAdmin] = useState(null);
   const [eventos, setEventos] = useState([]);
@@ -17,6 +19,15 @@ export default function BusquedaCerebroPaciente() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(true);
 
+  const [modoAtencion, setModoAtencion] = useState(false);
+  const [contextoAtencion, setContextoAtencion] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.rut) {
+      handlePacienteSeleccionado({ rut: location.state.rut });
+    }
+  }, [location.state?.rut]);
+  
   // =========================
   // BUSCAR PACIENTE
   // =========================
@@ -108,17 +119,20 @@ export default function BusquedaCerebroPaciente() {
           {/* 🔵 BOTÓN ÚNICO POR PACIENTE */}
           <div style={{ marginBottom: "15px" }}>
             <button
-              onClick={() =>
-                navigate("/medico/agenda/dia/atencion", {
-                  state: {
-                      rut: rutSeleccionado,
-                      date: new Date().toISOString().slice(0, 10),
-                      time: horaActual,
-                      professional: professional,
-                      origin: "informes"
-                  }
-               })
-              }
+              onClick={() => {
+                  const now = new Date();
+                  const horaActual = now.toTimeString().slice(0, 5);
+
+                  setContextoAtencion({
+                  rut: rutSeleccionado,
+                  date: new Date().toISOString().slice(0, 10),
+                  time: horaActual,
+                  professional: professional,
+                  origin: "informes"
+              });
+
+                  setModoAtencion(true);
+            }}
             >
               ➕ Nueva Atención
             </button>
