@@ -5,7 +5,7 @@ import "../styles/pacientes/patient-form.css";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import MedicoAtencionCerebro from "../RUTA_CORRECTA/MedicoAtencionCerebro";
+import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
