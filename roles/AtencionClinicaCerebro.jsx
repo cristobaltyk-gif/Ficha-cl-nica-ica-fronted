@@ -469,7 +469,6 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       receta={receta}
       examenes={examenes}
       indicaciones={indicaciones}
-      indicaciones={indicaciones}
       ordenKinesiologia={ordenKinesiologia}
       indicacionQuirurgica={indicacionQuirurgica}
         
