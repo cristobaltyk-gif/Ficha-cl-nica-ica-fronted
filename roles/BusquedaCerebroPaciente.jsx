@@ -9,7 +9,7 @@ import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function MedicoAtencionCerebro({ state: propState }) {
+export default function BusquedaCerebroPaciente() {
   const { session, professional } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -230,4 +230,4 @@ export default function MedicoAtencionCerebro({ state: propState }) {
       
     </div>
   );
-}
+            }
