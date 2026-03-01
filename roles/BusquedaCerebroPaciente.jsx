@@ -69,14 +69,6 @@ export default function BusquedaCerebroPaciente() {
     setDetalle(ev);
   }
 
-  if (modoAtencion && contextoAtencion) {
-  return (
-    <MedicoAtencionCerebro
-      state={contextoAtencion}
-      onClose={() => setModoAtencion(false)}
-    />
-  );
-  }
   return (
     <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
 
@@ -220,6 +212,22 @@ export default function BusquedaCerebroPaciente() {
         </div>
       )}
 
+{modoAtencion && contextoAtencion && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "#fff",
+      zIndex: 1000,
+      overflow: "auto"
+    }}
+  >
+    <MedicoAtencionCerebro
+      state={contextoAtencion}
+    />
+  </div>
+)}
+      
     </div>
   );
 }
