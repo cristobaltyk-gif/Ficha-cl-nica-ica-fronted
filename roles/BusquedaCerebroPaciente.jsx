@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
-import DashboardPacientes from "../components/pacientes/DashboardPacientes";
+import DashboardPacientes from "../pages/dashboard-pacientes";
 import "../styles/pacientes/patient-form.css";
 import "../styles/pacientes/dashboard-pacientes.css";
 import { useNavigate, useLocation } from "react-router-dom";
