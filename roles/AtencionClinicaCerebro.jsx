@@ -17,15 +17,22 @@ export default function MedicoAtencionCerebro() {
 // ORIGEN DE NAVEGACIÓN
 // =========================
 
-const origin = state?.origin || "agenda";
 function handleBackNavigation() {
   if (origin === "informes") {
-    navigate("/medico/informes", { replace: true });
-        state: { rut: state.rut }
-  } else {
-    navigate("/medico/agenda/dia", { replace: true });
+    navigate("/medico/informes", {
+      replace: true,
+      state: { rut: state.rut }
+    });
+    return;
   }
-} 
+
+  if (origin === "agenda") {
+    navigate(-1); // 🔥 volver exactamente a donde estabas
+    return;
+  }
+
+  navigate("/medico", { replace: true });
+}
 
   // =========================
   // VALIDACIÓN DE CONTEXTO
