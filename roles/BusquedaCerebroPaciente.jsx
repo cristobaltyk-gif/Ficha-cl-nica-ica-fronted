@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import PatientForm from "../components/patient/PatientForm";
+import DashboardPacientes from "../components/pacientes/DashboardPacientes";
 import "../styles/pacientes/patient-form.css";
+import "../styles/pacientes/dashboard-pacientes.css";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function BusquedaCerebroPaciente() {
+
   const { session, professional } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,22 +21,20 @@ export default function BusquedaCerebroPaciente() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(true);
 
-  // 🔥 REHIDRATAR AL VOLVER DESDE ATENCIÓN
+  // 🔥 REHIDRATAR (MISMA LÓGICA)
   useEffect(() => {
-  if (location.state?.rut) {
-    const rut = location.state.rut;
-
-    handlePacienteSeleccionado({ rut });
-
-    // 🔥 SOLO limpiar history.state SIN volver a navegar
-    window.history.replaceState({}, document.title);
-  }
-}, []);
+    if (location.state?.rut) {
+      const rut = location.state.rut;
+      handlePacienteSeleccionado({ rut });
+      window.history.replaceState({}, document.title);
+    }
+  }, []);
 
   // =========================
-  // BUSCAR PACIENTE
+  // BUSCAR PACIENTE (MISMA LÓGICA)
   // =========================
   async function handlePacienteSeleccionado(dataPaciente) {
+
     const rut = dataPaciente.rut;
 
     setRutSeleccionado(rut);
@@ -43,17 +44,20 @@ export default function BusquedaCerebroPaciente() {
     setError(null);
 
     try {
-      const resAdmin = await fetch(`${API_URL}/api/fichas/admin/${rut}`, {
-        headers: { "X-Internal-User": session?.usuario }
-      });
+
+      const resAdmin = await fetch(
+        `${API_URL}/api/fichas/admin/${rut}`,
+        { headers: { "X-Internal-User": session?.usuario } }
+      );
 
       if (!resAdmin.ok) throw new Error("No se pudo cargar ficha administrativa");
       const adminData = await resAdmin.json();
       setAdmin(adminData);
 
-      const resEventos = await fetch(`${API_URL}/api/fichas/evento/${rut}`, {
-        headers: { "X-Internal-User": session?.usuario }
-      });
+      const resEventos = await fetch(
+        `${API_URL}/api/fichas/evento/${rut}`,
+        { headers: { "X-Internal-User": session?.usuario } }
+      );
 
       if (!resEventos.ok) throw new Error("No se pudo cargar historial clínico");
       const eventosData = await resEventos.json();
@@ -70,146 +74,181 @@ export default function BusquedaCerebroPaciente() {
     setDetalle(ev);
   }
 
+  // =========================
+  // UI NUEVA (SOLO PRESENTACIÓN)
+  // =========================
   return (
-    <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-      <h2>Búsqueda de Pacientes</h2>
+    <div className="dashboard-pacientes-wrapper">
+      <div className="dashboard-pacientes-container">
 
-      {!showForm && (
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setAdmin(null);
-            setEventos([]);
-            setDetalle(null);
-            setRutSeleccionado(null);
-            setError(null);
-          }}
+        <DashboardPacientes
+          title="Pacientes"
+          subtitle="Búsqueda y revisión de historial clínico"
+          actions={
+            !showForm && (
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setShowForm(true);
+                  setAdmin(null);
+                  setEventos([]);
+                  setDetalle(null);
+                  setRutSeleccionado(null);
+                  setError(null);
+                }}
+              >
+                Buscar otro paciente
+              </button>
+            )
+          }
         >
-          Buscar otro paciente
-        </button>
-      )}
 
-      {showForm && (
-        <PatientForm
-          onConfirm={handlePacienteSeleccionado}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {/* =========================
-          FICHA ADMIN
-      ========================= */}
-      {admin && (
-        <div style={{ marginTop: "20px", border: "1px solid #ccc", padding: "15px" }}>
-          <h3>Ficha Administrativa</h3>
-          <p><strong>Nombre:</strong> {admin.nombre} {admin.apellido_paterno}</p>
-          <p><strong>RUT:</strong> {admin.rut}</p>
-          <p><strong>Previsión:</strong> {admin.prevision}</p>
-        </div>
-      )}
-
-      {/* =========================
-          LISTA EVENTOS
-      ========================= */}
-      {admin && (
-        <div style={{ marginTop: "30px" }}>
-          <h3>Historial Clínico</h3>
-
-          <div style={{ marginBottom: "15px" }}>
-            <button
-              onClick={() => {
-                const now = new Date();
-                const horaActual = now.toTimeString().slice(0, 5);
-
-                navigate("/medico/agenda/dia/atencion", {
-                  state: {
-                    rut: rutSeleccionado,
-                    date: new Date().toISOString().slice(0, 10),
-                    time: horaActual,
-                    professional: professional,
-                    origin: "informes"
-                  }
-                });
-              }}
-            >
-              ➕ Nueva Atención
-            </button>
-          </div>
-
-          {eventos.length === 0 && (
-            <p style={{ color: "#666" }}>Sin atenciones registradas</p>
+          {/* BUSCADOR */}
+          {showForm && (
+            <div className="ica-card">
+              <PatientForm
+                onConfirm={handlePacienteSeleccionado}
+                onCancel={() => setShowForm(false)}
+              />
+            </div>
           )}
 
-          {eventos.map((ev, index) => (
-            <div
-              key={index}
-              onClick={() => handleVerDetalle(ev)}
-              style={{
-                border: "1px solid #ddd",
-                padding: "10px",
-                marginBottom: "10px",
-                cursor: "pointer",
-                background: "#f9f9f9"
-              }}
-            >
-              <strong>{ev.fecha} {ev.hora}</strong>
-              <div>{ev.diagnostico || "Sin diagnóstico"}</div>
-              <small>{ev.professional_name || ""}</small>
+          {/* ERROR */}
+          {error && (
+            <div className="ica-card">
+              <p style={{ color: "red" }}>{error}</p>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {/* =========================
-          DETALLE EVENTO
-      ========================= */}
-      {detalle && (
-        <div
-          style={{
-            marginTop: "30px",
-            border: "2px solid #000",
-            padding: "20px",
-            background: "#fff"
-          }}
-        >
-          <h3>Detalle Atención</h3>
+          {/* FICHA ADMIN */}
+          {admin && (
+            <div className="ica-card">
+              <h3>Ficha Administrativa</h3>
+              <p><strong>Nombre:</strong> {admin.nombre} {admin.apellido_paterno}</p>
+              <p><strong>RUT:</strong> {admin.rut}</p>
+              <p><strong>Previsión:</strong> {admin.prevision}</p>
+            </div>
+          )}
 
-          <p><strong>Fecha:</strong> {detalle.fecha} {detalle.hora}</p>
-          <p><strong>Profesional:</strong> {detalle.professional_name}</p>
+          {/* HISTORIAL */}
+          {admin && (
+            <div className="ica-card">
+              <h3>Historial Clínico</h3>
 
-          <hr />
+              <div style={{ marginBottom: "20px" }}>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    const now = new Date();
+                    const horaActual = now.toTimeString().slice(0, 5);
 
-          <p><strong>Motivo:</strong></p>
-          <div>{detalle.atencion || "-"}</div>
+                    navigate("/medico/agenda/dia/atencion", {
+                      state: {
+                        rut: rutSeleccionado,
+                        date: new Date().toISOString().slice(0, 10),
+                        time: horaActual,
+                        professional: professional,
+                        origin: "informes"
+                      }
+                    });
+                  }}
+                >
+                  ➕ Nueva Atención
+                </button>
+              </div>
 
-          <p><strong>Diagnóstico:</strong></p>
-          <div>{detalle.diagnostico || "-"}</div>
+              {eventos.length === 0 && (
+                <p style={{ color: "#64748b" }}>
+                  Sin atenciones registradas
+                </p>
+              )}
 
-          <p><strong>Receta:</strong></p>
-          <div>{detalle.receta || "-"}</div>
+              {eventos.map((ev, index) => (
+                <div
+                  key={index}
+                  className="ica-event-card"
+                  onClick={() => handleVerDetalle(ev)}
+                >
+                  <div className="ica-event-header">
+                    {ev.fecha} {ev.hora}
+                  </div>
 
-          <p><strong>Exámenes:</strong></p>
-          <div>{detalle.examenes || "-"}</div>
+                  <div className="ica-event-diagnostico">
+                    {ev.diagnostico || "Sin diagnóstico"}
+                  </div>
 
-          <p><strong>Indicaciones:</strong></p>
-          <div>{detalle.indicaciones || "-"}</div>
+                  <div className="ica-event-professional">
+                    {ev.professional_name || ""}
+                  </div>
+                </div>
+              ))}
 
-          <p><strong>Orden kinésica:</strong></p>
-          <div>{detalle.orden_kinesiologia || "-"}</div>
+            </div>
+          )}
 
-          <p><strong>Indicación quirúrgica:</strong></p>
-          <div>{detalle.indicacion_quirurgica || "-"}</div>
+          {/* DETALLE */}
+          {detalle && (
+            <div className="ica-detalle">
+              <h3>Detalle Atención</h3>
 
-          <button
-            style={{ marginTop: "20px" }}
-            onClick={() => setDetalle(null)}
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
+              <div className="ica-detalle-section">
+                <strong>Fecha</strong>
+                {detalle.fecha} {detalle.hora}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Profesional</strong>
+                {detalle.professional_name}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Motivo</strong>
+                {detalle.atencion || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Diagnóstico</strong>
+                {detalle.diagnostico || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Receta</strong>
+                {detalle.receta || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Exámenes</strong>
+                {detalle.examenes || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Indicaciones</strong>
+                {detalle.indicaciones || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Orden kinésica</strong>
+                {detalle.orden_kinesiologia || "-"}
+              </div>
+
+              <div className="ica-detalle-section">
+                <strong>Indicación quirúrgica</strong>
+                {detalle.indicacion_quirurgica || "-"}
+              </div>
+
+              <button
+                className="btn-secondary"
+                onClick={() => setDetalle(null)}
+              >
+                Cerrar
+              </button>
+
+            </div>
+          )}
+
+        </DashboardPacientes>
+
+      </div>
     </div>
   );
 }
