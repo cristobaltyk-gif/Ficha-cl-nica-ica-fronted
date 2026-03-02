@@ -12,7 +12,8 @@ export default function MedicoAtencionCerebro() {
   const { state } = useLocation();
   const { session } = useAuth();
   const navigate = useNavigate();
-
+  const origin = state?.origin;
+  
  // =========================
 // ORIGEN DE NAVEGACIÓN
 // =========================
