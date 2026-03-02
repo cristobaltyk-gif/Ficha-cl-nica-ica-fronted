@@ -1,15 +1,33 @@
 import "../styles/pacientes/dashboard-pacientes.css";
 
-export default function DashboardPacientes() {
+export default function DashboardPacientes({
+  title = "Pacientes",
+  subtitle,
+  actions,
+  children
+}) {
   return (
-    <div className="dashboard dashboard-pacientes">
-      <header className="dashboard-header">
-        <h1>Pacientes</h1>
-      </header>
+    <div className="dashboard-pacientes-wrapper">
+      <div className="dashboard-pacientes-container">
 
-      <main className="dashboard-body">
-        {/* Registro / búsqueda / listado */}
-      </main>
+        <header className="dashboard-pacientes-header">
+          <div className="dashboard-pacientes-title">
+            <h1>{title}</h1>
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+
+          {actions && (
+            <div className="dashboard-pacientes-actions">
+              {actions}
+            </div>
+          )}
+        </header>
+
+        <div className="dashboard-pacientes-content">
+          {children}
+        </div>
+
+      </div>
     </div>
   );
 }
