@@ -13,27 +13,27 @@ export default function MedicoAtencionCerebro() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const origin = state?.origin;
-  
- // =========================
-// ORIGEN DE NAVEGACIÓN
-// =========================
 
-function handleBackNavigation() {
-  if (origin === "informes") {
-    navigate("/medico/informes", {
-      replace: true,
-      state: { rut: state.rut }
-    });
-    return;
+  // =========================
+  // ORIGEN DE NAVEGACIÓN
+  // =========================
+
+  function handleBackNavigation() {
+    if (origin === "informes") {
+      navigate("/medico/informes", {
+        replace: true,
+        state: { rut: state.rut }
+      });
+      return;
+    }
+
+    if (origin === "agenda") {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/medico", { replace: true });
   }
-
-  if (origin === "agenda") {
-    navigate(-1); // 🔥 volver exactamente a donde estabas
-    return;
-  }
-
-  navigate("/medico", { replace: true });
-}
 
   // =========================
   // VALIDACIÓN DE CONTEXTO
@@ -51,13 +51,14 @@ function handleBackNavigation() {
       </div>
     );
   }
-// =========================
-// VALIDAR SI ES HOY
-// =========================
-const hoy = new Date();
-const hoyISO = hoy.toISOString().slice(0, 10); // YYYY-MM-DD
 
-const esHoy = state.date === hoyISO;
+  // =========================
+  // VALIDAR SI ES HOY
+  // =========================
+  const hoy = new Date();
+  const hoyISO = hoy.toISOString().slice(0, 10);
+  const esHoy = state.date === hoyISO;
+
   // =========================
   // FICHA ADMINISTRATIVA (PACIENTE)
   // =========================
@@ -145,23 +146,24 @@ const esHoy = state.date === hoyISO;
   const [indicacionQuirurgica, setIndicacionQuirurgica] = useState("");
 
   // =========================
-// CALCULAR EDAD DESDE FECHA NACIMIENTO
-// =========================
-function calcularEdad(fechaNacimiento) {
-  if (!fechaNacimiento) return "";
+  // CALCULAR EDAD DESDE FECHA NACIMIENTO
+  // =========================
+  function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return "";
 
-  const nacimiento = new Date(fechaNacimiento);
-  const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    const hoy = new Date();
 
-  let edad = hoy.getFullYear() - nacimiento.getFullYear();
-  const m = hoy.getMonth() - nacimiento.getMonth();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const m = hoy.getMonth() - nacimiento.getMonth();
 
-  if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
-    edad--;
+    if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+
+    return edad;
   }
 
-  return edad;
-}
   const [ordering, setOrdering] = useState(false);
   const [orderError, setOrderError] = useState(null);
 
@@ -171,23 +173,21 @@ function calcularEdad(fechaNacimiento) {
   const speech = useWebSpeech({
     lang: "es-CL",
     onChunk: (text) => {
-      // 🔒 Cada chunk confirmado se guarda inmediatamente
       setRawText(prev => (prev ? prev + "\n" + text : text));
       setAtencion(prev => (prev ? prev + "\n" + text : text));
     }
   });
 
-  // ▶️ / ⏹️ Control TOTAL por el médico
   function handleDictado() {
     if (!speech.recording) {
-      speech.start();   // inicia auto-ciclo
+      speech.start();
     } else {
-      speech.stop();    // detiene todo (flush final incluido)
+      speech.stop();
     }
   }
 
   // =========================
-  // ORDENAR CLÍNICAMENTE (GPT)
+  // ORDENAR CLÍNICAMENTE (CLAUDE)
   // =========================
   async function handleOrdenarClinicamente() {
     const inputText = atencion.trim() || rawText.trim();
@@ -202,7 +202,7 @@ function calcularEdad(fechaNacimiento) {
 
     try {
       const res = await fetch(
-        `${API_URL}/api/gpt/clinical-order`,
+        `${API_URL}/api/claude/clinical-order`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -210,7 +210,7 @@ function calcularEdad(fechaNacimiento) {
         }
       );
 
-      if (!res.ok) throw new Error("GPT_ERROR");
+      if (!res.ok) throw new Error("CLAUDE_ERROR");
 
       const data = await res.json();
 
@@ -220,241 +220,216 @@ function calcularEdad(fechaNacimiento) {
       setExamenes(data.examenes || "");
 
     } catch (e) {
-      console.error("❌ ERROR GPT:", e);
+      console.error("❌ ERROR CLAUDE:", e);
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
       setOrdering(false);
     }
   }
-// =========================
-// PDF HELPERS
-// =========================
-
-async function openPdf(endpoint, payload) {
-  try {
-    const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-User": session?.usuario
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) throw new Error("PDF_ERROR");
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, "_blank"); // abre en nueva pestaña
-  } catch (e) {
-    console.error("❌ ERROR PDF:", e);
-  }
-      }
 
   // =========================
-// IMPRESIONES INDIVIDUALES
-// =========================
+  // PDF HELPERS
+  // =========================
+  async function openPdf(endpoint, payload) {
+    try {
+      const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": session?.usuario
+        },
+        body: JSON.stringify(payload)
+      });
 
-function handlePrintReceta() {
-  openPdf("receta", {
-    nombre: admin.nombre,
-    apellido_paterno: admin.apellido_paterno,
-    apellido_materno: admin.apellido_materno,
-    fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,
-    rut: admin.rut,
-    diagnostico,
-    medicamentos: [],
-    indicaciones: receta
-  });
-}
+      if (!res.ok) throw new Error("PDF_ERROR");
 
-function handlePrintInforme() {
-  openPdf("informe", {
-    nombre: admin.nombre,
-    apellido_paterno: admin.apellido_paterno,
-    apellido_materno: admin.apellido_materno,
-    fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,
-    rut: admin.rut,
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (e) {
+      console.error("❌ ERROR PDF:", e);
+    }
+  }
 
-    diagnostico: diagnostico,
-    indicaciones: indicaciones,
-    professional: state.professional
-  });
-}
+  // =========================
+  // IMPRESIONES INDIVIDUALES
+  // =========================
+  function handlePrintReceta() {
+    openPdf("receta", {
+      nombre: admin.nombre,
+      apellido_paterno: admin.apellido_paterno,
+      apellido_materno: admin.apellido_materno,
+      fecha_nacimiento: admin.fecha_nacimiento,
+      edad: edadCalculada,
+      rut: admin.rut,
+      diagnostico,
+      medicamentos: [],
+      indicaciones: receta
+    });
+  }
 
-function handlePrintKine() {
-  openPdf("kinesiologia", {
-    nombre: admin.nombre,
-    apellido_paterno: admin.apellido_paterno,
-    apellido_materno: admin.apellido_materno,
-    fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,
-    rut: admin.rut,
-    diagnostico,
-    lado: "",
-    indicaciones: ordenKinesiologia
-  });
-}
+  function handlePrintInforme() {
+    openPdf("informe", {
+      nombre: admin.nombre,
+      apellido_paterno: admin.apellido_paterno,
+      apellido_materno: admin.apellido_materno,
+      fecha_nacimiento: admin.fecha_nacimiento,
+      edad: edadCalculada,
+      rut: admin.rut,
+      diagnostico,
+      indicaciones,
+      professional: state.professional
+    });
+  }
+
+  function handlePrintKine() {
+    openPdf("kinesiologia", {
+      nombre: admin.nombre,
+      apellido_paterno: admin.apellido_paterno,
+      apellido_materno: admin.apellido_materno,
+      fecha_nacimiento: admin.fecha_nacimiento,
+      edad: edadCalculada,
+      rut: admin.rut,
+      diagnostico,
+      lado: "",
+      indicaciones: ordenKinesiologia
+    });
+  }
 
   function handlePrintExamenes() {
-  openPdf("examenes", {
-    nombre: admin.nombre,
-    apellido_paterno: admin.apellido_paterno,
-    apellido_materno: admin.apellido_materno,
-    fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,
-    rut: admin.rut,
-    diagnostico,
-    examenes
-  });
+    openPdf("examenes", {
+      nombre: admin.nombre,
+      apellido_paterno: admin.apellido_paterno,
+      apellido_materno: admin.apellido_materno,
+      fecha_nacimiento: admin.fecha_nacimiento,
+      edad: edadCalculada,
+      rut: admin.rut,
+      diagnostico,
+      examenes
+    });
   }
-  
-function handlePrintQuirurgica() {
-  openPdf("quirurgica", {
-    nombre: admin.nombre,
-    apellido_paterno: admin.apellido_paterno,
-    apellido_materno: admin.apellido_materno,
-    fecha_nacimiento: admin.fecha_nacimiento,
-    edad: edadCalculada,
-    rut: admin.rut,
 
-    diagnostico: diagnostico,
-    indicaciones: indicacionQuirurgica,
-    professional: state.professional
-  });
-}
+  function handlePrintQuirurgica() {
+    openPdf("quirurgica", {
+      nombre: admin.nombre,
+      apellido_paterno: admin.apellido_paterno,
+      apellido_materno: admin.apellido_materno,
+      fecha_nacimiento: admin.fecha_nacimiento,
+      edad: edadCalculada,
+      rut: admin.rut,
+      diagnostico,
+      indicaciones: indicacionQuirurgica,
+      professional: state.professional
+    });
+  }
 
   // =========================
-// GUARDAR TODO
-// =========================
+  // GUARDAR TODO
+  // =========================
+  async function handleGuardarTodo() {
+    if (!esHoy) {
+      alert("Solo se puede guardar atención del día actual");
+      return;
+    }
 
-async function handleGuardarTodo() {
+    try {
+      const res = await fetch(`${API_URL}/api/fichas/evento`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": session?.usuario
+        },
+        body: JSON.stringify({
+          rut: admin.rut,
+          fecha: state.date,
+          hora: state.time,
+          atencion,
+          diagnostico,
+          receta,
+          examenes,
+          indicaciones,
+          orden_kinesiologia: ordenKinesiologia,
+          indicacion_quirurgica: indicacionQuirurgica
+        })
+      });
 
-  if (!esHoy) {
-    alert("Solo se puede guardar atención del día actual");
-    return;
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error al guardar evento clínico");
+      }
+
+      if (receta.trim()) await handlePrintReceta();
+      if (atencion.trim()) await handlePrintInforme();
+      if (diagnostico.trim()) await handlePrintKine();
+      if (examenes.trim()) await handlePrintExamenes();
+
+      alert("✅ Evento clínico guardado correctamente");
+      handleBackNavigation();
+
+    } catch (e) {
+      console.error("❌ ERROR GUARDAR EVENTO:", e);
+      alert(e.message);
+    }
   }
 
-  try {
-    // ========================================
-    // 1️⃣ GUARDAR EVENTO JSON EN BACKEND
-    // ========================================
-    const res = await fetch(`${API_URL}/api/fichas/evento`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-User": session?.usuario
-      },
-      body: JSON.stringify({
-        rut: admin.rut,
-        fecha: state.date,
-        hora: state.time,
-        atencion,
-        diagnostico,
-        receta,
-        examenes,
-        indicaciones,
-        orden_kinesiologia: ordenKinesiologia,
-        indicacion_quirurgica: indicacionQuirurgica
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || "Error al guardar evento clínico");
+  // =========================
+  // MODIFICAR EVENTO CLÍNICO
+  // =========================
+  async function handleModificarEvento() {
+    if (!esHoy) {
+      alert("Solo se puede modificar atención del día actual");
+      return;
     }
 
-    // ========================================
-    // 2️⃣ IMPRIMIR PDFs (tu lógica original)
-    // ========================================
-    if (receta.trim()) {
-      await handlePrintReceta();
+    try {
+      const res = await fetch(`${API_URL}/api/fichas/evento`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": session?.usuario
+        },
+        body: JSON.stringify({
+          rut: admin.rut,
+          fecha: state.date,
+          hora: state.time,
+          atencion,
+          diagnostico,
+          receta,
+          examenes,
+          indicaciones,
+          orden_kinesiologia: ordenKinesiologia,
+          indicacion_quirurgica: indicacionQuirurgica
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error al modificar evento");
+      }
+
+      alert("✅ Evento clínico modificado correctamente");
+      handleBackNavigation();
+
+    } catch (e) {
+      console.error("❌ ERROR MODIFICAR:", e);
+      alert(e.message);
     }
-
-    if (atencion.trim()) {
-      await handlePrintInforme();
-    }
-
-    if (diagnostico.trim()) {
-      await handlePrintKine();
-    }
-
-    if (examenes.trim()) {
-      await handlePrintExamenes(); 
-    }
-
-    alert("✅ Evento clínico guardado correctamente");
-    handleBackNavigation();
-
-  } catch (e) {
-    console.error("❌ ERROR GUARDAR EVENTO:", e);
-    alert(e.message);
-  }
-}
-// ========================================
-// MODIFICAR EVENTO CLÍNICO
-// ========================================
-async function handleModificarEvento() {
-
-  if (!esHoy) {
-    alert("Solo se puede modificar atención del día actual");
-    return;
   }
 
-  try {
-    const res = await fetch(`${API_URL}/api/fichas/evento`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Internal-User": session?.usuario
-      },
-      body: JSON.stringify({
-        rut: admin.rut,
-        fecha: state.date,
-        hora: state.time,
-        atencion,
-        diagnostico,
-        receta,
-        examenes,
-        indicaciones,
-        orden_kinesiologia: ordenKinesiologia,
-        indicacion_quirurgica: indicacionQuirurgica
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || "Error al modificar evento");
-    }
-
-    alert("✅ Evento clínico modificado correctamente");
-    handleBackNavigation(); 
-
-  } catch (e) {
-    console.error("❌ ERROR MODIFICAR:", e);
-    alert(e.message);
-  }
-}  
   // =========================
   // BLOQUEOS
   // =========================
   if (adminError) return <div>{adminError}</div>;
   if (professionalError) return <div>{professionalError}</div>;
-  if (!admin || !professionalName)
-    return <div>Cargando información…</div>;
-  // Edad calculada real desde fecha_nacimiento
-const edadCalculada = calcularEdad(admin.fecha_nacimiento);
+  if (!admin || !professionalName) return <div>Cargando información…</div>;
+
+  const edadCalculada = calcularEdad(admin.fecha_nacimiento);
 
   // =========================
   // UI — DASHBOARD SOLO PINTA
   // =========================
   return (
     <DashboardAtencion
-      /* =========================
-         FICHA ADMINISTRATIVA
-      ========================= */
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
       edad={edadCalculada}
@@ -467,12 +442,8 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       date={state.date}
       time={state.time}
 
-      /* ✅ PROFESIONAL CORRECTO */
       professional={professionalName}
 
-      /* =========================
-         CONTENIDO CLÍNICO
-      ========================= */
       atencion={atencion}
       diagnostico={diagnostico}
       receta={receta}
@@ -480,7 +451,7 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       indicaciones={indicaciones}
       ordenKinesiologia={ordenKinesiologia}
       indicacionQuirurgica={indicacionQuirurgica}
-        
+
       onChangeAtencion={setAtencion}
       onChangeDiagnostico={setDiagnostico}
       onChangeReceta={setReceta}
@@ -488,10 +459,7 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       onChangeIndicaciones={setIndicaciones}
       onChangeOrdenKinesiologia={setOrdenKinesiologia}
       onChangeIndicacionQuirurgica={setIndicacionQuirurgica}
-  
-      /* =========================
-         ACCIONES
-      ========================= */
+
       onDictado={handleDictado}
       dictando={speech.recording}
       puedeDictar={speech.supported && !speech.loading}
@@ -500,22 +468,18 @@ const edadCalculada = calcularEdad(admin.fecha_nacimiento);
       puedeOrdenar={!ordering}
       ordering={ordering}
       orderError={orderError}
+
       onImprimir={(tipo) => {
-   
-      
-      if (tipo === "receta") handlePrintReceta();
-      if (tipo === "examenes") handlePrintExamenes();   // ✅ ahora correcto
-      if (tipo === "indicaciones") handlePrintInforme();
-      if (tipo === "kinesiologia") handlePrintKine();
-      if (tipo === "quirurgica") handlePrintQuirurgica();
+        if (tipo === "receta") handlePrintReceta();
+        if (tipo === "examenes") handlePrintExamenes();
+        if (tipo === "indicaciones") handlePrintInforme();
+        if (tipo === "kinesiologia") handlePrintKine();
+        if (tipo === "quirurgica") handlePrintQuirurgica();
       }}
 
       onGuardar={handleGuardarTodo}
       onModificar={handleModificarEvento}
       onCancelar={handleBackNavigation}
-      
-    
-
     />
   );
-}
+                                     }
