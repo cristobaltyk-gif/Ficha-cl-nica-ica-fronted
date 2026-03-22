@@ -9,10 +9,10 @@ export default function AgendaColumn({
 
   if (times.length === 0) return null;
 
-  const total      = times.length;
-  const available  = times.filter(t => slots[t].status === "available").length;
-  const reserved   = times.filter(t => slots[t].status === "reserved").length;
-  const confirmed  = times.filter(t => slots[t].status === "confirmed").length;
+  const total     = times.length;
+  const available = times.filter(t => slots[t].status === "available").length;
+  const reserved  = times.filter(t => slots[t].status === "reserved").length;
+  const confirmed = times.filter(t => slots[t].status === "confirmed").length;
 
   return (
     <article className="agenda-column">
@@ -30,7 +30,7 @@ export default function AgendaColumn({
 
         <div className="agenda-col-stats">
           <span className="agenda-stat agenda-stat--available">{available} libre{available !== 1 ? "s" : ""}</span>
-          {reserved > 0  && <span className="agenda-stat agenda-stat--reserved">{reserved}  res.</span>}
+          {reserved > 0  && <span className="agenda-stat agenda-stat--reserved">{reserved} res.</span>}
           {confirmed > 0 && <span className="agenda-stat agenda-stat--confirmed">{confirmed} conf.</span>}
         </div>
       </header>
@@ -45,6 +45,7 @@ export default function AgendaColumn({
               status={slot.status}
               rut={slot.rut}
               patient={slot.patient}
+              cajaStatus={slot.cajaStatus}
               onSelect={() => onSelectSlot?.(slot, time)}
             />
           );
