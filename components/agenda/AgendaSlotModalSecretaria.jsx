@@ -2,14 +2,14 @@ import "../../styles/agenda/agenda-slot-modal.css";
 import { useState, useEffect } from "react";
 import PatientForm from "../patient/PatientForm";
 
-/*
-AgendaSlotModalSecretaria — PRODUCCIÓN REAL
+const API_URL = import.meta.env.VITE_API_URL;
 
-✔ SOLO secretaría
-✔ Reserva / confirma / anula
-✔ SOLO slots reservados o confirmados
-✔ NO navegación
-*/
+const TIPOS = [
+  { value: "particular", label: "Particular" },
+  { value: "control",    label: "Control"    },
+  { value: "cortesia",   label: "Cortesía"   },
+  { value: "sobrecupo",  label: "Sobrecupo"  },
+];
 
 export default function AgendaSlotModalSecretaria({
   open,
@@ -20,29 +20,66 @@ export default function AgendaSlotModalSecretaria({
   onReserve,
   onConfirm,
   onCancel,
-  onReschedule
+  onReschedule,
+  onCajaUpdate   // ← nuevo: avisa al cerebro que caja cambió
 }) {
-  const [mode, setMode] = useState("actions"); // actions | form
-  const [formAction, setFormAction] = useState(null); // reserve | confirm
+  const [mode,       setMode]       = useState("actions");
+  const [formAction, setFormAction] = useState(null);
+
+  // caja local
+  const [cajaLoading, setCajaLoading] = useState(false);
+  const [tipo, setTipo]               = useState("particular");
 
   useEffect(() => {
     if (open) {
       setMode("actions");
       setFormAction(null);
+      setTipo(slot?.tipoCaja || "particular");
     }
-  }, [open]);
+  }, [open, slot]);
 
   if (!open || !slot) return null;
 
-  const { professional, time, status, patient } = slot;
+  const { professional, date, time, status, patient, cajaStatus, pagado } = slot;
 
+  const tieneReserva = status === "reserved" || status === "confirmed";
+
+  // =========================
+  // ACCIONES CAJA
+  // =========================
+  async function patchCaja(fields) {
+    setCajaLoading(true);
+    try {
+      await fetch(`${API_URL}/api/caja/slot`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, professional, time, ...fields })
+      });
+      onCajaUpdate?.();
+    } catch {
+    } finally {
+      setCajaLoading(false);
+    }
+  }
+
+  function handleLlego() {
+    patchCaja({ arrival_status: "waiting", tipo_atencion: tipo });
+  }
+
+  function handlePagado() {
+    patchCaja({ pagado: true });
+  }
+
+  function handleTipo(e) {
+    setTipo(e.target.value);
+  }
+
+  // =========================
+  // ACCIONES AGENDA (intactas)
+  // =========================
   function handlePatientSubmit(patient) {
-    if (formAction === "reserve") {
-      onReserve?.({ slot, patient });
-    }
-    if (formAction === "confirm") {
-      onConfirm?.({ slot, patient });
-    }
+    if (formAction === "reserve") onReserve?.({ slot, patient });
+    if (formAction === "confirm") onConfirm?.({ slot, patient });
     setMode("actions");
     setFormAction(null);
   }
@@ -50,16 +87,65 @@ export default function AgendaSlotModalSecretaria({
   return (
     <div className="modal-backdrop">
       <div className="modal">
+
         <h3>🕒 Hora {time}</h3>
-
         <p><strong>Profesional:</strong> {slot.professionalName}</p>
-
         {patient && (
           <p><strong>Paciente:</strong> {patient.nombre || patient.rut}</p>
         )}
-
         <p><strong>Estado:</strong> {status}</p>
 
+        {/* ── SECCIÓN CAJA ── */}
+        {tieneReserva && (
+          <div className="modal-caja">
+            <p className="modal-caja-title">Caja</p>
+
+            {/* Tipo atención */}
+            {!pagado && (
+              <div className="modal-caja-row">
+                <label>Tipo</label>
+                <select
+                  value={tipo}
+                  onChange={handleTipo}
+                  disabled={cajaLoading || cajaStatus === "waiting" || pagado}
+                >
+                  {TIPOS.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Acciones caja */}
+            <div className="modal-caja-actions">
+              {!cajaStatus && (
+                <button
+                  className="caja-btn caja-btn--llego"
+                  disabled={cajaLoading}
+                  onClick={handleLlego}
+                >
+                  {cajaLoading ? "…" : "✓ Llegó"}
+                </button>
+              )}
+
+              {cajaStatus === "waiting" && !pagado && (
+                <button
+                  className="caja-btn caja-btn--pagado"
+                  disabled={cajaLoading}
+                  onClick={handlePagado}
+                >
+                  {cajaLoading ? "…" : "$ Pagado"}
+                </button>
+              )}
+
+              {pagado && (
+                <span className="caja-done">✓ Registrado en caja</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── FORMULARIO PACIENTE ── */}
         {mode === "form" && (
           <PatientForm
             onSubmit={handlePatientSubmit}
@@ -72,6 +158,7 @@ export default function AgendaSlotModalSecretaria({
           />
         )}
 
+        {/* ── ACCIONES AGENDA (intactas) ── */}
         {mode === "actions" && (
           <div className="modal-actions">
 
@@ -79,19 +166,11 @@ export default function AgendaSlotModalSecretaria({
               <>
                 <button
                   disabled={loading}
-                  onClick={() => {
-                    setMode("form");
-                    setFormAction("confirm");
-                  }}
+                  onClick={() => { setMode("form"); setFormAction("confirm"); }}
                 >
                   Confirmar paciente
                 </button>
-
-                <button
-                  className="danger"
-                  disabled={loading}
-                  onClick={onCancel}
-                >
+                <button className="danger" disabled={loading} onClick={onCancel}>
                   Anular reserva
                 </button>
               </>
@@ -102,25 +181,20 @@ export default function AgendaSlotModalSecretaria({
                 <button disabled={loading} onClick={onReschedule}>
                   Cambiar hora
                 </button>
-
-                <button
-                  className="danger"
-                  disabled={loading}
-                  onClick={onCancel}
-                >
+                <button className="danger" disabled={loading} onClick={onCancel}>
                   Anular cita
                 </button>
               </>
             )}
+
           </div>
         )}
 
         <div className="modal-footer">
-          <button disabled={loading} onClick={onClose}>
-            Cerrar
-          </button>
+          <button disabled={loading} onClick={onClose}>Cerrar</button>
         </div>
+
       </div>
     </div>
   );
-}
+            }
