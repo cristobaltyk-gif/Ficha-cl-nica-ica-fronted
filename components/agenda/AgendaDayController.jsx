@@ -105,7 +105,6 @@ export default function AgendaDayController({
     setLoading(true);
 
     try {
-      // ── fetch paralelo: agenda + caja ──
       const [agendaRes, cajaRes] = await Promise.all([
         fetch(`${API_URL}/agenda?date=${encodeURIComponent(date)}`),
         fetch(`${API_URL}/api/caja/day?date=${encodeURIComponent(date)}&professional=${encodeURIComponent(professional)}`)
@@ -116,7 +115,6 @@ export default function AgendaDayController({
 
       const agendaJson = await agendaRes.json();
 
-      // caja puede no existir aún — no es crítico
       let cajaMap = {};
       if (cajaRes?.ok) {
         const cajaJson = await cajaRes.json();
@@ -125,8 +123,8 @@ export default function AgendaDayController({
         });
       }
 
-      const weekdayKey  = getWeekdayKey(date);
-      const baseSlots   = buildSlotsFromSchedule(prof.schedule, weekdayKey);
+      const weekdayKey   = getWeekdayKey(date);
+      const baseSlots    = buildSlotsFromSchedule(prof.schedule, weekdayKey);
       const backendSlots = agendaJson.calendar?.[professional]?.slots || {};
 
       await resolvePatients(backendSlots);
@@ -146,7 +144,6 @@ export default function AgendaDayController({
           patient:          slot.rut ? patientsCache[slot.rut] || null : null,
           professional,
           professionalName: professionalsMap[professional]?.name || professional,
-          // ── caja ──
           cajaStatus:       cajaSlot?.arrival_status ?? null,
           tipoCaja:         cajaSlot?.tipo_atencion  ?? null,
           pagado:           cajaSlot?.pagado         ?? false,
@@ -214,7 +211,10 @@ export default function AgendaDayController({
     <Agenda
       loading={loading}
       date={date}
-      professionals={[{ id: professional }]}
+      professionals={[{
+        id:   professional,
+        name: professionalsMap[professional]?.name || professional
+      }]}
       agendaData={agendaData}
       onSelectSlot={handleSelectSlot}
     />
