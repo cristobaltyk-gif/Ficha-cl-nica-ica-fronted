@@ -9,7 +9,7 @@ export default function Slot({
 }) {
   const isClickable =
     status === "available" ||
-    status === "reserved" ||
+    status === "reserved"  ||
     status === "confirmed";
 
   const showPatient =
@@ -21,6 +21,14 @@ export default function Slot({
     onSelect?.(time);
   };
 
+  const statusLabel = {
+    available:  "Disponible",
+    reserved:   "Reservada",
+    confirmed:  "Confirmada",
+    blocked:    "Bloqueada",
+    cancelled:  "Cancelada",
+  }[status] ?? status;
+
   return (
     <div
       className={`slot slot-${status}`}
@@ -29,28 +37,32 @@ export default function Slot({
       tabIndex={isClickable ? 0 : -1}
       aria-disabled={!isClickable}
     >
-      {/* CONTENIDO PRINCIPAL */}
-      <div className="slot-main">
-        {/* Hora */}
+      <div className="slot-left">
         <span className="slot-time">{time}</span>
-
-        {/* Nombre + Rut */}
-        {showPatient && (
-          <div className="slot-info">
-            {patient?.nombre && (
-              <span className="slot-patient-name">
-                {patient.nombre} {patient?.apellido_paterno}
-              </span>
-            )}
-
-            {(patient?.rut || rut) && (
-              <span className="slot-patient-rut">
-                {patient?.rut || rut}
-              </span>
-            )}
-          </div>
-        )}
+        <span className="slot-label">{statusLabel}</span>
       </div>
+
+      {showPatient ? (
+        <div className="slot-patient">
+          {patient?.nombre && (
+            <span className="slot-patient-name">
+              {patient.nombre} {patient?.apellido_paterno ?? ""}
+            </span>
+          )}
+          {(patient?.rut || rut) && (
+            <span className="slot-patient-rut">{patient?.rut || rut}</span>
+          )}
+        </div>
+      ) : (
+        isClickable && status === "available" && (
+          <span className="slot-cta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        )
+      )}
     </div>
   );
 }
