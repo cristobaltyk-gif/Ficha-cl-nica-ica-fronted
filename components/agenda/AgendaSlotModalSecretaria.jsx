@@ -3,15 +3,6 @@ import { useState, useEffect } from "react";
 import PatientForm from "../patient/PatientForm";
 import PagoModal from "../caja/PagoModal";
 
-const TIPOS = [
-  { value: "particular",       label: "Particular",        monto: 35000 },
-  { value: "control_costo",    label: "Control con costo", monto: 15000 },
-  { value: "control_gratuito", label: "Control gratuito",  monto: 0     },
-  { value: "sobrecupo",        label: "Sobrecupo",         monto: 20000 },
-  { value: "cortesia",         label: "Cortesía",          monto: 0     },
-  { value: "kinesiologia",     label: "Kinesiología",      monto: 25000 },
-];
-
 export default function AgendaSlotModalSecretaria({
   open,
   slot,
@@ -24,17 +15,15 @@ export default function AgendaSlotModalSecretaria({
   onReschedule,
   onCajaUpdate
 }) {
-  const [mode,       setMode]       = useState("actions");
+  const [mode,      setMode]      = useState("actions");
   const [formAction, setFormAction] = useState(null);
-  const [tipo,       setTipo]       = useState("particular");
-  const [pagoOpen,   setPagoOpen]   = useState(false);
+  const [pagoOpen,  setPagoOpen]  = useState(false);
 
   useEffect(() => {
     if (open) {
       setMode("actions");
       setFormAction(null);
       setPagoOpen(false);
-      setTipo(slot?.tipoCaja || "particular");
     }
   }, [open]);
 
@@ -43,11 +32,7 @@ export default function AgendaSlotModalSecretaria({
   const { time, status, patient, pagado } = slot;
 
   const tieneReserva = status === "reserved" || status === "confirmed";
-  const tipoActual   = TIPOS.find(t => t.value === tipo) || TIPOS[0];
 
-  // =========================
-  // ACCIONES AGENDA — INTACTAS
-  // =========================
   function handlePatientSubmit(p) {
     if (formAction === "reserve") onReserve?.({ slot, patient: p });
     if (formAction === "confirm") onConfirm?.({ slot, patient: p });
@@ -67,37 +52,18 @@ export default function AgendaSlotModalSecretaria({
           )}
           <p><strong>Estado:</strong> {status}</p>
 
-          {/* ── SECCIÓN CAJA ── */}
+          {/* ── BOTÓN CONFIRMAR LLEGADA ── */}
           {tieneReserva && !pagado && (
             <div className="modal-caja">
-              <p className="modal-caja-title">Llegada</p>
-
-              {/* Selector tipo atención */}
-              <div className="modal-caja-row">
-                <label>Tipo de atención</label>
-                <select
-                  value={tipo}
-                  onChange={(e) => setTipo(e.target.value)}
-                >
-                  {TIPOS.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Botón confirmar llegada → abre PagoModal */}
-              <div className="modal-caja-actions">
-                <button
-                  className="caja-btn caja-btn--llego"
-                  onClick={() => setPagoOpen(true)}
-                >
-                  ✓ Confirmar llegada
-                </button>
-              </div>
+              <button
+                className="caja-btn caja-btn--llego"
+                onClick={() => setPagoOpen(true)}
+              >
+                ✓ Confirmar llegada
+              </button>
             </div>
           )}
 
-          {/* Pagado */}
           {tieneReserva && pagado && (
             <div className="modal-caja">
               <span className="caja-done">✓ Registrado en caja</span>
@@ -175,8 +141,6 @@ export default function AgendaSlotModalSecretaria({
       <PagoModal
         open={pagoOpen}
         slot={slot}
-        tipo={tipo}
-        monto={tipoActual.monto}
         onClose={() => setPagoOpen(false)}
         onSuccess={() => {
           setPagoOpen(false);
