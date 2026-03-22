@@ -1,215 +1,204 @@
-/* =====================================================
-   AGENDA – ICA BOUTIQUE (RESET ESTRUCTURAL)
-   SOLO CSS – NO ROMPE JSX
-   ===================================================== */
+/* ============================================================
+   agenda.css — ICA · Agenda clínica
+   ============================================================ */
 
-/* =====================================================
-   CONTENEDOR PRINCIPAL
-   ===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
+:root {
+  --ag-bg:          #eef1f6;
+  --ag-card:        #ffffff;
+  --ag-border:      #e2e8f0;
+  --ag-text:        #0f172a;
+  --ag-muted:       #64748b;
+  --ag-light:       #94a3b8;
+  --ag-radius:      16px;
+  --ag-radius-sm:   10px;
+  --ag-shadow:      0 1px 3px rgba(0,0,0,0.06), 0 6px 18px rgba(0,0,0,0.05);
+  --ag-font:        'DM Sans', sans-serif;
+  --ag-mono:        'DM Mono', monospace;
+
+  /* status colors */
+  --ag-available-bg:   #f0fdf4;
+  --ag-available-bd:   #bbf7d0;
+  --ag-available-tx:   #166534;
+
+  --ag-reserved-bg:    #fff7ed;
+  --ag-reserved-bd:    #fed7aa;
+  --ag-reserved-tx:    #9a3412;
+
+  --ag-confirmed-bg:   #eff6ff;
+  --ag-confirmed-bd:   #bfdbfe;
+  --ag-confirmed-tx:   #1e40af;
+
+  --ag-blocked-bg:     #f8fafc;
+  --ag-blocked-bd:     #e2e8f0;
+  --ag-blocked-tx:     #94a3b8;
+
+  --ag-cancelled-bg:   #f8fafc;
+  --ag-cancelled-bd:   #e2e8f0;
+  --ag-cancelled-tx:   #cbd5e1;
+}
+
+.agenda-page * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── PAGE ── */
 .agenda-page {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-
   min-height: 100%;
   padding: 24px;
-
-  background: #f9fafb;
+  background: var(--ag-bg);
+  font-family: var(--ag-font);
 }
 
-/* =====================================================
-   ESTADOS (loading / vacío)
-   ===================================================== */
+.agenda-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
 
+/* ── STATES ── */
 .agenda-state {
-  padding: 48px 24px;
-  text-align: center;
-
-  font-size: 15px;
-  font-weight: 600;
-  color: rgba(15, 23, 42, 0.55);
-
-  background: #ffffff;
-  border-radius: 18px;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 64px 24px;
+  background: var(--ag-card);
+  border-radius: var(--ag-radius);
+  border: 1px solid var(--ag-border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ag-muted);
 }
 
-/* =====================================================
-   GRID PRINCIPAL — CAMBIO REAL
-   Antes: columnas rígidas
-   Ahora: cards clínicas fluidas
-   ===================================================== */
+.agenda-loading-spinner {
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid var(--ag-border);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: ag-spin 0.7s linear infinite;
+}
 
+@keyframes ag-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── GRID ── */
 .agenda-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  align-items: start;
 }
 
-/* =====================================================
-   COLUMNA PROFESIONAL → CARD
-   ===================================================== */
-
+/* ── COLUMN CARD ── */
 .agenda-column {
+  background: var(--ag-card);
+  border-radius: var(--ag-radius);
+  border: 1px solid var(--ag-border);
+  box-shadow: var(--ag-shadow);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-
-  padding: 20px;
-  border-radius: 22px;
-
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 
-/* =====================================================
-   HEADER PROFESIONAL
-   ===================================================== */
-
-.agenda-title {
+/* Column header */
+.agenda-col-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--ag-border);
+  background: #fafbfc;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  gap: 12px;
 }
 
-.agenda-title strong {
-  font-size: 16px;
-  font-weight: 800;
-  color: #0f172a;
+.agenda-col-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
 
-.agenda-subtitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(100, 116, 139, 0.75);
-}
-
-/* =====================================================
-   LISTA DE SLOTS — ESTRUCTURA NUEVA
-   ===================================================== */
-
-.agenda-column > .slot {
-  margin-bottom: 0;
-}
-
-/* =====================================================
-   SLOT — NUEVO DISEÑO REAL
-   ===================================================== */
-
-.slot {
+.agenda-col-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--ag-font);
+}
 
-  height: 52px;
-  border-radius: 16px;
-
-  font-size: 15px;
+.agenda-col-name {
+  font-size: 14px;
   font-weight: 700;
-
-  background: #ffffff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  color: var(--ag-text);
+  line-height: 1.2;
 }
 
-.slot-time {
-  font-weight: 800;
-  color: rgba(15, 23, 42, 0.85);
+.agenda-col-meta {
+  font-size: 11.5px;
+  color: var(--ag-light);
+  margin-top: 2px;
 }
 
-/* Hover real */
-.slot:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+/* Stats row */
+.agenda-col-stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-/* Focus accesible */
-.slot:focus {
-  outline: none;
-  border-color: #ff7a18;
-  box-shadow: 0 0 0 3px rgba(255, 122, 24, 0.25);
+.agenda-stat {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
 }
 
-/* =====================================================
-   ESTADOS SLOT — ICA (SIN TURQUESA)
-   ===================================================== */
-
-/* Disponible */
-.slot-available {
-  background: linear-gradient(
-    180deg,
-    #ffffff,
-    #f8fafc
-  );
-  color: #0f172a;
+.agenda-stat--available {
+  background: var(--ag-available-bg);
+  border-color: var(--ag-available-bd);
+  color: var(--ag-available-tx);
 }
 
-/* Reservada — naranjo tecnológico */
-.slot-reserved {
-  background: linear-gradient(
-    180deg,
-    #fff1e6,
-    #fff7ed
-  );
-  border-color: rgba(255, 122, 24, 0.45);
-  color: #9a3412;
+.agenda-stat--reserved {
+  background: var(--ag-reserved-bg);
+  border-color: var(--ag-reserved-bd);
+  color: var(--ag-reserved-tx);
 }
 
-/* Confirmada — azul clínico */
-.slot-confirmed {
-  background: linear-gradient(
-    180deg,
-    #e0edff,
-    #f0f6ff
-  );
-  border-color: rgba(37, 99, 235, 0.4);
-  color: #1e3a8a;
+.agenda-stat--confirmed {
+  background: var(--ag-confirmed-bg);
+  border-color: var(--ag-confirmed-bd);
+  color: var(--ag-confirmed-tx);
 }
 
-/* Bloqueada */
-.slot-blocked {
-  background: #f1f5f9;
-  color: rgba(100, 116, 139, 0.6);
-
-  cursor: not-allowed;
-  opacity: 0.55;
-  box-shadow: none;
+/* Slots container */
+.agenda-slots {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 6px;
 }
 
-/* Cancelada */
-.slot-cancelled {
-  background: #f8fafc;
-  color: rgba(148, 163, 184, 0.7);
-
-  cursor: not-allowed;
-  opacity: 0.5;
-  box-shadow: none;
-}
-
-/* =====================================================
-   MOBILE — CAMBIO REAL
-   ===================================================== */
-
-@media (max-width: 720px) {
-  .agenda-page {
-    padding: 16px;
-  }
-
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
   .agenda-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .slot {
-    height: 56px;
-    font-size: 16px;
-  }
+@media (max-width: 600px) {
+  .agenda-page { padding: 14px; }
+  .agenda-grid { grid-template-columns: 1fr; gap: 14px; }
 }
