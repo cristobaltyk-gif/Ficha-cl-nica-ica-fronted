@@ -1,204 +1,179 @@
 /* ============================================================
-   agenda.css — ICA · Agenda clínica
+   slot.css — ICA · Slot clínico + estados caja
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-
-:root {
-  --ag-bg:          #eef1f6;
-  --ag-card:        #ffffff;
-  --ag-border:      #e2e8f0;
-  --ag-text:        #0f172a;
-  --ag-muted:       #64748b;
-  --ag-light:       #94a3b8;
-  --ag-radius:      16px;
-  --ag-radius-sm:   10px;
-  --ag-shadow:      0 1px 3px rgba(0,0,0,0.06), 0 6px 18px rgba(0,0,0,0.05);
-  --ag-font:        'DM Sans', sans-serif;
-  --ag-mono:        'DM Mono', monospace;
-
-  /* status colors */
-  --ag-available-bg:   #f0fdf4;
-  --ag-available-bd:   #bbf7d0;
-  --ag-available-tx:   #166534;
-
-  --ag-reserved-bg:    #fff7ed;
-  --ag-reserved-bd:    #fed7aa;
-  --ag-reserved-tx:    #9a3412;
-
-  --ag-confirmed-bg:   #eff6ff;
-  --ag-confirmed-bd:   #bfdbfe;
-  --ag-confirmed-tx:   #1e40af;
-
-  --ag-blocked-bg:     #f8fafc;
-  --ag-blocked-bd:     #e2e8f0;
-  --ag-blocked-tx:     #94a3b8;
-
-  --ag-cancelled-bg:   #f8fafc;
-  --ag-cancelled-bd:   #e2e8f0;
-  --ag-cancelled-tx:   #cbd5e1;
-}
-
-.agenda-page * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* ── PAGE ── */
-.agenda-page {
-  min-height: 100%;
-  padding: 24px;
-  background: var(--ag-bg);
-  font-family: var(--ag-font);
-}
-
-.agenda-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-/* ── STATES ── */
-.agenda-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 64px 24px;
-  background: var(--ag-card);
-  border-radius: var(--ag-radius);
-  border: 1px solid var(--ag-border);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ag-muted);
-}
-
-.agenda-loading-spinner {
-  width: 22px;
-  height: 22px;
-  border: 2.5px solid var(--ag-border);
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: ag-spin 0.7s linear infinite;
-}
-
-@keyframes ag-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ── GRID ── */
-.agenda-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  align-items: start;
-}
-
-/* ── COLUMN CARD ── */
-.agenda-column {
-  background: var(--ag-card);
-  border-radius: var(--ag-radius);
-  border: 1px solid var(--ag-border);
-  box-shadow: var(--ag-shadow);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Column header */
-.agenda-col-header {
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--ag-border);
-  background: #fafbfc;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.agenda-col-identity {
+.slot {
   display: flex;
   align-items: center;
-  gap: 11px;
-}
-
-.agenda-col-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #0f172a;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-family: var(--ag-font);
-}
-
-.agenda-col-name {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ag-text);
-  line-height: 1.2;
-}
-
-.agenda-col-meta {
-  font-size: 11.5px;
-  color: var(--ag-light);
-  margin-top: 2px;
-}
-
-/* Stats row */
-.agenda-col-stats {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.agenda-stat {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 999px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 13px;
+  border-radius: 10px;
   border: 1px solid transparent;
+  cursor: default;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  min-height: 52px;
+  font-family: 'DM Sans', sans-serif;
 }
 
-.agenda-stat--available {
-  background: var(--ag-available-bg);
-  border-color: var(--ag-available-bd);
-  color: var(--ag-available-tx);
-}
-
-.agenda-stat--reserved {
-  background: var(--ag-reserved-bg);
-  border-color: var(--ag-reserved-bd);
-  color: var(--ag-reserved-tx);
-}
-
-.agenda-stat--confirmed {
-  background: var(--ag-confirmed-bg);
-  border-color: var(--ag-confirmed-bd);
-  color: var(--ag-confirmed-tx);
-}
-
-/* Slots container */
-.agenda-slots {
+/* ── LEFT ── */
+.slot-left {
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  gap: 6px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
-/* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .agenda-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.slot-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1;
 }
 
+.slot-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+
+/* ── PATIENT ── */
+.slot-patient {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+
+.slot-patient-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.slot-patient-rut {
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  opacity: 0.6;
+}
+
+/* ── CTA ── */
+.slot-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.slot:hover .slot-cta { opacity: 1; }
+
+/* ============================================================
+   ESTADOS CLÍNICOS (sin caja)
+   ============================================================ */
+
+.slot-available {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+  cursor: pointer;
+}
+.slot-available:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22,101,52,0.12);
+  background: #dcfce7;
+}
+
+.slot-reserved {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+  cursor: pointer;
+}
+.slot-reserved:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(154,52,18,0.1);
+}
+
+.slot-confirmed {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+  cursor: pointer;
+}
+.slot-confirmed:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30,64,175,0.1);
+}
+
+.slot-blocked {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.slot-cancelled {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #cbd5e1;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   ESTADOS CAJA — reemplazan el color del slot completo
+   ============================================================ */
+
+/* Paciente llegó, en sala de espera */
+.slot-caja-waiting {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  border-width: 2px;
+  color: #78350f;
+  cursor: pointer;
+}
+.slot-caja-waiting .slot-label { opacity: 1; }
+.slot-caja-waiting:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245,158,11,0.2);
+}
+
+/* Paciente pagado / registrado — listo para llamar */
+.slot-caja-paid {
+  background: #f0fdf4;
+  border-color: #4ade80;
+  border-width: 2px;
+  color: #14532d;
+  cursor: pointer;
+}
+.slot-caja-paid .slot-label { opacity: 1; }
+.slot-caja-paid:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34,197,94,0.2);
+}
+
+/* ── FOCUS ── */
+.slot:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* ── MOBILE ── */
 @media (max-width: 600px) {
-  .agenda-page { padding: 14px; }
-  .agenda-grid { grid-template-columns: 1fr; gap: 14px; }
+  .slot { min-height: 56px; }
+  .slot-patient-name { max-width: 110px; }
 }
