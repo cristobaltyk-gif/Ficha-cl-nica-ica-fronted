@@ -211,7 +211,7 @@ export default function PagoModal({
 }
 
 const s = {
-  backdrop:     { position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:500, padding:16 },
+  backdrop:     { position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2000, padding:16 },
   modal:        { background:"#fff", borderRadius:16, width:"100%", maxWidth:400, maxHeight:"90vh", overflowY:"auto", boxShadow:"0 24px 64px rgba(0,0,0,0.25)", fontFamily:"'DM Sans',system-ui,sans-serif" },
   header:       { background:"#0f172a", padding:"18px 24px", position:"sticky", top:0 },
   headerTitle:  { fontSize:15, fontWeight:700, color:"#fff", margin:0 },
