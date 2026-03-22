@@ -2,10 +2,11 @@ import "../../styles/agenda/slot.css";
 
 export default function Slot({
   time,
-  status = "available",
+  status     = "available",
   patient,
   rut,
-  onSelect
+  onSelect,
+  cajaStatus  // "pending" | "waiting" | "paid"
 }) {
   const isClickable =
     status === "available" ||
@@ -21,17 +22,12 @@ export default function Slot({
     onSelect?.(time);
   };
 
-  const statusLabel = {
-    available:  "Disponible",
-    reserved:   "Reservada",
-    confirmed:  "Confirmada",
-    blocked:    "Bloqueada",
-    cancelled:  "Cancelada",
-  }[status] ?? status;
+  const slotClass  = resolveSlotClass(status, cajaStatus);
+  const statusLabel = resolveLabel(status, cajaStatus);
 
   return (
     <div
-      className={`slot slot-${status}`}
+      className={`slot ${slotClass}`}
       onClick={handleClick}
       role={isClickable ? "button" : undefined}
       tabIndex={isClickable ? 0 : -1}
@@ -65,4 +61,32 @@ export default function Slot({
       )}
     </div>
   );
+}
+
+function resolveSlotClass(status, cajaStatus) {
+  if (status === "available") return "slot-available";
+  if (status === "blocked")   return "slot-blocked";
+  if (status === "cancelled") return "slot-cancelled";
+
+  if (status === "reserved" || status === "confirmed") {
+    if (cajaStatus === "paid")    return "slot-caja-paid";
+    if (cajaStatus === "waiting") return "slot-caja-waiting";
+    return `slot-${status}`;
+  }
+
+  return `slot-${status}`;
+}
+
+function resolveLabel(status, cajaStatus) {
+  if (status === "available") return "Disponible";
+  if (status === "blocked")   return "Bloqueada";
+  if (status === "cancelled") return "Cancelada";
+
+  if (status === "reserved" || status === "confirmed") {
+    if (cajaStatus === "paid")    return "Pagado ✓";
+    if (cajaStatus === "waiting") return "En espera";
+    return status === "confirmed" ? "Confirmada" : "Reservada";
+  }
+
+  return status;
 }
