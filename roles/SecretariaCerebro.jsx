@@ -6,19 +6,9 @@ import AgendaSummarySelector from "../components/agenda/AgendaSummarySelector";
 import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecretaria";
+import PagoModal from "../components/caja/PagoModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-/*
-SecretariaCerebro — PRODUCCIÓN REAL
-
-✔ Cerebro único del rol secretaria
-✔ SOLO navegación
-✔ NO pinta UI
-✔ NO botones
-✔ NO sidebar
-✔ HOME primero
-*/
 
 export default function SecretariaCerebro() {
   const navigate = useNavigate();
@@ -31,29 +21,27 @@ export default function SecretariaCerebro() {
   const [patientOpen,     setPatientOpen]     = useState(false);
   const [pendingSlot,     setPendingSlot]     = useState(null);
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
+  const [pagoOpen,        setPagoOpen]        = useState(false);
+  const [pagoSlot,        setPagoSlot]        = useState(null);
 
   // =========================
   // CARGA PROFESIONALES
   // =========================
   useEffect(() => {
     let cancelled = false;
-
     async function loadProfessionals() {
       setLoading(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
         const data = await res.json();
-        if (!cancelled) {
-          setProfessionals(data.map((p) => ({ id: p.id, name: p.name })));
-        }
+        if (!cancelled) setProfessionals(data.map(p => ({ id: p.id, name: p.name })));
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
     loadProfessionals();
     return () => { cancelled = true; };
   }, []);
@@ -77,6 +65,14 @@ export default function SecretariaCerebro() {
     }
     setModalSlot(slot);
     setModalOpen(true);
+  }
+
+  // =========================
+  // CONFIRMAR LLEGADA → abre PagoModal
+  // =========================
+  function handleConfirmarLlegada() {
+    setPagoSlot(modalSlot);
+    setPagoOpen(true);
   }
 
   // =========================
@@ -165,8 +161,8 @@ export default function SecretariaCerebro() {
       {/* MODAL PACIENTE */}
       <PatientForm
         open={patientOpen}
-        onConfirm={(patient) => { reserveSlot(patient.rut); setPatientOpen(false); }}
-        onCreate={(patient)  => { reserveSlot(patient.rut); setPatientOpen(false); }}
+        onConfirm={patient => { reserveSlot(patient.rut); setPatientOpen(false); }}
+        onCreate={patient  => { reserveSlot(patient.rut); setPatientOpen(false); }}
         onCancel={() => { setPendingSlot(null); setPatientOpen(false); }}
       />
 
@@ -179,7 +175,16 @@ export default function SecretariaCerebro() {
         onConfirm={closeModal}
         onCancel={() => { cancelSlot(modalSlot); closeModal(); }}
         onReschedule={closeModal}
-        onCajaUpdate={() => {
+        onConfirmarLlegada={handleConfirmarLlegada}
+      />
+
+      {/* PAGO MODAL — al nivel raíz, nunca queda tapado */}
+      <PagoModal
+        open={pagoOpen}
+        slot={pagoSlot}
+        onClose={() => setPagoOpen(false)}
+        onSuccess={() => {
+          setPagoOpen(false);
           setAgendaReloadKey(k => k + 1);
           closeModal();
         }}
