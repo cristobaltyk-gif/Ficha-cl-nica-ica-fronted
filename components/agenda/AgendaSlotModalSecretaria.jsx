@@ -21,12 +21,10 @@ export default function AgendaSlotModalSecretaria({
   onConfirm,
   onCancel,
   onReschedule,
-  onCajaUpdate   // ← nuevo: avisa al cerebro que caja cambió
+  onCajaUpdate
 }) {
   const [mode,       setMode]       = useState("actions");
   const [formAction, setFormAction] = useState(null);
-
-  // caja local
   const [cajaLoading, setCajaLoading] = useState(false);
   const [tipo, setTipo]               = useState("particular");
 
@@ -36,7 +34,7 @@ export default function AgendaSlotModalSecretaria({
       setFormAction(null);
       setTipo(slot?.tipoCaja || "particular");
     }
-  }, [open, slot]);
+  }, [open]);
 
   if (!open || !slot) return null;
 
@@ -45,7 +43,7 @@ export default function AgendaSlotModalSecretaria({
   const tieneReserva = status === "reserved" || status === "confirmed";
 
   // =========================
-  // ACCIONES CAJA
+  // CAJA
   // =========================
   async function patchCaja(fields) {
     setCajaLoading(true);
@@ -62,24 +60,15 @@ export default function AgendaSlotModalSecretaria({
     }
   }
 
-  function handleLlego() {
-    patchCaja({ arrival_status: "waiting", tipo_atencion: tipo });
-  }
-
-  function handlePagado() {
-    patchCaja({ pagado: true });
-  }
-
-  function handleTipo(e) {
-    setTipo(e.target.value);
-  }
+  function handleLlego()  { patchCaja({ arrival_status: "waiting", tipo_atencion: tipo }); }
+  function handlePagado() { patchCaja({ pagado: true }); }
 
   // =========================
-  // ACCIONES AGENDA (intactas)
+  // ACCIONES AGENDA — INTACTAS
   // =========================
-  function handlePatientSubmit(patient) {
-    if (formAction === "reserve") onReserve?.({ slot, patient });
-    if (formAction === "confirm") onConfirm?.({ slot, patient });
+  function handlePatientSubmit(p) {
+    if (formAction === "reserve") onReserve?.({ slot, patient: p });
+    if (formAction === "confirm") onConfirm?.({ slot, patient: p });
     setMode("actions");
     setFormAction(null);
   }
@@ -89,25 +78,27 @@ export default function AgendaSlotModalSecretaria({
       <div className="modal">
 
         <h3>🕒 Hora {time}</h3>
+
         <p><strong>Profesional:</strong> {slot.professionalName}</p>
+
         {patient && (
           <p><strong>Paciente:</strong> {patient.nombre || patient.rut}</p>
         )}
+
         <p><strong>Estado:</strong> {status}</p>
 
-        {/* ── SECCIÓN CAJA ── */}
+        {/* ── SECCIÓN CAJA (solo si hay reserva) ── */}
         {tieneReserva && (
           <div className="modal-caja">
             <p className="modal-caja-title">Caja</p>
 
-            {/* Tipo atención */}
             {!pagado && (
               <div className="modal-caja-row">
                 <label>Tipo</label>
                 <select
                   value={tipo}
-                  onChange={handleTipo}
-                  disabled={cajaLoading || cajaStatus === "waiting" || pagado}
+                  onChange={(e) => setTipo(e.target.value)}
+                  disabled={cajaLoading || cajaStatus === "waiting"}
                 >
                   {TIPOS.map(t => (
                     <option key={t.value} value={t.value}>{t.label}</option>
@@ -116,7 +107,6 @@ export default function AgendaSlotModalSecretaria({
               </div>
             )}
 
-            {/* Acciones caja */}
             <div className="modal-caja-actions">
               {!cajaStatus && (
                 <button
@@ -145,7 +135,7 @@ export default function AgendaSlotModalSecretaria({
           </div>
         )}
 
-        {/* ── FORMULARIO PACIENTE ── */}
+        {/* ── FORMULARIO PACIENTE — INTACTO ── */}
         {mode === "form" && (
           <PatientForm
             onSubmit={handlePatientSubmit}
@@ -158,7 +148,7 @@ export default function AgendaSlotModalSecretaria({
           />
         )}
 
-        {/* ── ACCIONES AGENDA (intactas) ── */}
+        {/* ── ACCIONES AGENDA — INTACTAS ── */}
         {mode === "actions" && (
           <div className="modal-actions">
 
@@ -166,11 +156,19 @@ export default function AgendaSlotModalSecretaria({
               <>
                 <button
                   disabled={loading}
-                  onClick={() => { setMode("form"); setFormAction("confirm"); }}
+                  onClick={() => {
+                    setMode("form");
+                    setFormAction("confirm");
+                  }}
                 >
                   Confirmar paciente
                 </button>
-                <button className="danger" disabled={loading} onClick={onCancel}>
+
+                <button
+                  className="danger"
+                  disabled={loading}
+                  onClick={onCancel}
+                >
                   Anular reserva
                 </button>
               </>
@@ -181,7 +179,12 @@ export default function AgendaSlotModalSecretaria({
                 <button disabled={loading} onClick={onReschedule}>
                   Cambiar hora
                 </button>
-                <button className="danger" disabled={loading} onClick={onCancel}>
+
+                <button
+                  className="danger"
+                  disabled={loading}
+                  onClick={onCancel}
+                >
                   Anular cita
                 </button>
               </>
@@ -191,10 +194,12 @@ export default function AgendaSlotModalSecretaria({
         )}
 
         <div className="modal-footer">
-          <button disabled={loading} onClick={onClose}>Cerrar</button>
+          <button disabled={loading} onClick={onClose}>
+            Cerrar
+          </button>
         </div>
 
       </div>
     </div>
   );
-            }
+}
