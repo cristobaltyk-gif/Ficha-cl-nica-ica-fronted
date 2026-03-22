@@ -2,27 +2,21 @@ import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+const TIPOS = [
+  { value: "particular",       label: "Particular",        monto: 35000 },
+  { value: "control_costo",    label: "Control con costo", monto: 15000 },
+  { value: "control_gratuito", label: "Control gratuito",  monto: 0     },
+  { value: "sobrecupo",        label: "Sobrecupo",         monto: 20000 },
+  { value: "cortesia",         label: "Cortesía",          monto: 0     },
+  { value: "kinesiologia",     label: "Kinesiología",      monto: 25000 },
+];
+
 const TIPOS_GRATUITOS = new Set(["control_gratuito", "cortesia"]);
 
 const METODOS = [
-  {
-    value: "efectivo",
-    label: "Efectivo",
-    icon: "💵",
-    desc: "Pago en efectivo"
-  },
-  {
-    value: "transferencia",
-    label: "Transferencia",
-    icon: "🏦",
-    desc: "Transferencia bancaria"
-  },
-  {
-    value: "tarjeta",
-    label: "Tarjeta",
-    icon: "💳",
-    desc: "Débito o crédito"
-  },
+  { value: "efectivo",      label: "Efectivo",      icon: "💵" },
+  { value: "transferencia", label: "Transferencia", icon: "🏦" },
+  { value: "tarjeta",       label: "Tarjeta",       icon: "💳" },
 ];
 
 function formatMonto(monto) {
@@ -37,24 +31,32 @@ export default function PagoModal({
   onSuccess,
   usuarioActual
 }) {
-  const [metodo,    setMetodo]    = useState("efectivo");
-  const [numOp,     setNumOp]     = useState("");
-  const [banco,     setBanco]     = useState("");
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState(null);
+  const [tipo,    setTipo]    = useState("particular");
+  const [metodo,  setMetodo]  = useState("efectivo");
+  const [numOp,   setNumOp]   = useState("");
+  const [banco,   setBanco]   = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState(null);
 
   if (!open || !slot) return null;
 
-  const { date, professional, time, patient, rut, tipo_atencion, monto } = slot;
+  const { date, professional, time, patient, rut } = slot;
 
-  const esGratuito = TIPOS_GRATUITOS.has(tipo_atencion);
+  const tipoActual        = TIPOS.find(t => t.value === tipo) || TIPOS[0];
+  const esGratuito        = TIPOS_GRATUITOS.has(tipo);
+  const necesitaOperacion = !esGratuito && (metodo === "transferencia" || metodo === "tarjeta");
 
   const nombrePaciente = patient?.nombre
     ? `${patient.nombre} ${patient.apellido_paterno ?? ""}`
     : rut || "—";
 
-  const necesitaOperacion = !esGratuito &&
-    (metodo === "transferencia" || metodo === "tarjeta");
+  function handleTipo(val) {
+    setTipo(val);
+    setMetodo("efectivo");
+    setNumOp("");
+    setBanco("");
+    setError(null);
+  }
 
   async function handlePagar() {
     setError(null);
@@ -74,10 +76,10 @@ export default function PagoModal({
           professional,
           time,
           rut:              rut || patient?.rut,
-          tipo_atencion,
+          tipo_atencion:    tipo,
           metodo_pago:      esGratuito ? null : metodo,
           numero_operacion: necesitaOperacion ? numOp.trim() : null,
-          banco_origen:     necesitaOperacion ? banco.trim() || null : null,
+          banco_origen:     necesitaOperacion && banco.trim() ? banco.trim() : null,
           pagado_por:       usuarioActual || null,
         })
       });
@@ -99,9 +101,9 @@ export default function PagoModal({
     <div style={s.backdrop}>
       <div style={s.modal}>
 
-        {/* ── HEADER ── */}
+        {/* HEADER */}
         <div style={s.header}>
-          <p style={s.headerTitle}>Registrar pago</p>
+          <p style={s.headerTitle}>Confirmar llegada</p>
           <div style={s.headerMeta}>
             <span style={s.headerNombre}>{nombrePaciente}</span>
             <span style={s.headerDot}>·</span>
@@ -109,25 +111,53 @@ export default function PagoModal({
           </div>
         </div>
 
-        {/* ── BODY ── */}
         <div style={s.body}>
 
-          {/* Monto */}
+          {/* 1 — TIPO DE ATENCIÓN */}
+          <div>
+            <p style={s.sectionLabel}>Tipo de atención</p>
+            <div style={s.tipoGrid}>
+              {TIPOS.map(t => (
+                <button
+                  key={t.value}
+                  style={{
+                    ...s.tipoBtn,
+                    ...(tipo === t.value ? s.tipoBtnActive : {})
+                  }}
+                  onClick={() => handleTipo(t.value)}
+                >
+                  <span style={{
+                    ...s.tipoBtnLabel,
+                    color: tipo === t.value ? "#fff" : "#0f172a"
+                  }}>
+                    {t.label}
+                  </span>
+                  <span style={{
+                    ...s.tipoBtnMonto,
+                    color: tipo === t.value ? "rgba(255,255,255,0.65)" : "#64748b"
+                  }}>
+                    {formatMonto(t.monto)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2 — MONTO */}
           <div style={s.montoRow}>
             <span style={s.montoLabel}>Total a cobrar</span>
             <span style={{
               ...s.montoValue,
               color: esGratuito ? "#16a34a" : "#0f172a"
             }}>
-              {formatMonto(monto)}
+              {formatMonto(tipoActual.monto)}
             </span>
           </div>
 
-          {/* Método pago — solo si tiene costo */}
+          {/* 3 — MÉTODO DE PAGO (solo si tiene costo) */}
           {!esGratuito && (
-            <>
+            <div>
               <p style={s.sectionLabel}>Método de pago</p>
-
               <div style={s.metodosGrid}>
                 {METODOS.map(m => (
                   <button
@@ -144,17 +174,21 @@ export default function PagoModal({
                     }}
                   >
                     <span style={s.metodoBtnIcon}>{m.icon}</span>
-                    <span style={s.metodoBtnLabel}>{m.label}</span>
+                    <span style={{
+                      ...s.metodoBtnLabel,
+                      color: metodo === m.value ? "#fff" : "#374151"
+                    }}>
+                      {m.label}
+                    </span>
                   </button>
                 ))}
               </div>
 
-              {/* Campos extra para transferencia y tarjeta */}
               {necesitaOperacion && (
                 <div style={s.extraFields}>
                   <div style={s.fieldGroup}>
                     <label style={s.fieldLabel}>
-                      N° operación <span style={s.required}>*</span>
+                      N° operación <span style={{ color: "#ef4444" }}>*</span>
                     </label>
                     <input
                       style={s.input}
@@ -165,7 +199,6 @@ export default function PagoModal({
                       maxLength={20}
                     />
                   </div>
-
                   <div style={s.fieldGroup}>
                     <label style={s.fieldLabel}>Banco origen</label>
                     <input
@@ -179,10 +212,10 @@ export default function PagoModal({
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
 
-          {/* Gratuito — mensaje */}
+          {/* Gratuito */}
           {esGratuito && (
             <div style={s.gratuitoMsg}>
               <span style={s.gratuitoIcon}>✓</span>
@@ -190,32 +223,21 @@ export default function PagoModal({
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <p style={s.errorMsg}>{error}</p>
-          )}
+          {error && <p style={s.errorMsg}>{error}</p>}
 
         </div>
 
-        {/* ── FOOTER ── */}
+        {/* FOOTER */}
         <div style={s.footer}>
-          <button
-            style={s.btnCancel}
-            onClick={onClose}
-            disabled={loading}
-          >
+          <button style={s.btnCancel} onClick={onClose} disabled={loading}>
             Cancelar
           </button>
-          <button
-            style={s.btnPagar}
-            onClick={handlePagar}
-            disabled={loading}
-          >
+          <button style={s.btnPagar} onClick={handlePagar} disabled={loading}>
             {loading
               ? "Guardando…"
               : esGratuito
                 ? "✓ Confirmar registro"
-                : `✓ Registrar ${formatMonto(monto)}`
+                : `✓ Cobrar ${formatMonto(tipoActual.monto)}`
             }
           </button>
         </div>
@@ -241,26 +263,14 @@ const s = {
     borderRadius: 16,
     width: "100%",
     maxWidth: 400,
+    maxHeight: "90vh",
+    overflowY: "auto",
     boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
-    overflow: "hidden",
     fontFamily: "'DM Sans', system-ui, sans-serif",
   },
-  header: {
-    background: "#0f172a",
-    padding: "18px 24px",
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    color: "#fff",
-    margin: 0,
-  },
-  headerMeta: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 4,
-  },
+  header: { background: "#0f172a", padding: "18px 24px", position: "sticky", top: 0 },
+  headerTitle:  { fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 },
+  headerMeta:   { display: "flex", alignItems: "center", gap: 6, marginTop: 4 },
   headerNombre: { fontSize: 13, color: "rgba(255,255,255,0.6)" },
   headerDot:    { fontSize: 13, color: "rgba(255,255,255,0.3)" },
   headerTime:   { fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "monospace" },
@@ -272,6 +282,38 @@ const s = {
     gap: 16,
   },
 
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+    color: "#64748b",
+    margin: "0 0 10px 0",
+  },
+
+  tipoGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: 8,
+  },
+  tipoBtn: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 2,
+    padding: "10px 12px",
+    border: "1.5px solid #e2e8f0",
+    borderRadius: 10,
+    background: "#f8fafc",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    fontFamily: "'DM Sans', system-ui, sans-serif",
+    textAlign: "left",
+  },
+  tipoBtnActive: { border: "1.5px solid #0f172a", background: "#0f172a" },
+  tipoBtnLabel:  { fontSize: 13, fontWeight: 600 },
+  tipoBtnMonto:  { fontSize: 11, fontWeight: 500 },
+
   montoRow: {
     display: "flex",
     alignItems: "center",
@@ -282,21 +324,13 @@ const s = {
     padding: "12px 16px",
   },
   montoLabel: { fontSize: 13, fontWeight: 600, color: "#64748b" },
-  montoValue: { fontSize: 20, fontWeight: 700 },
-
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
-    color: "#64748b",
-    margin: 0,
-  },
+  montoValue: { fontSize: 22, fontWeight: 700 },
 
   metodosGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: 8,
+    marginBottom: 12,
   },
   metodoBtn: {
     display: "flex",
@@ -311,12 +345,9 @@ const s = {
     transition: "all 0.15s",
     fontFamily: "'DM Sans', system-ui, sans-serif",
   },
-  metodoBtnActive: {
-    border: "1.5px solid #0f172a",
-    background: "#0f172a",
-  },
-  metodoBtnIcon:  { fontSize: 20 },
-  metodoBtnLabel: { fontSize: 12, fontWeight: 600, color: "inherit" },
+  metodoBtnActive: { border: "1.5px solid #0f172a", background: "#0f172a" },
+  metodoBtnIcon:   { fontSize: 20 },
+  metodoBtnLabel:  { fontSize: 12, fontWeight: 600 },
 
   extraFields: {
     display: "flex",
@@ -327,17 +358,8 @@ const s = {
     borderRadius: 10,
     padding: "14px 16px",
   },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: "#374151",
-  },
-  required: { color: "#ef4444" },
+  fieldGroup: { display: "flex", flexDirection: "column", gap: 4 },
+  fieldLabel: { fontSize: 12, fontWeight: 600, color: "#374151" },
   input: {
     border: "1px solid #e2e8f0",
     borderRadius: 7,
@@ -379,6 +401,9 @@ const s = {
     gap: 10,
     padding: "16px 24px",
     borderTop: "1px solid #f1f5f9",
+    position: "sticky",
+    bottom: 0,
+    background: "#fff",
   },
   btnCancel: {
     flex: 1,
@@ -403,6 +428,5 @@ const s = {
     fontWeight: 700,
     cursor: "pointer",
     fontFamily: "'DM Sans', system-ui, sans-serif",
-    transition: "background 0.15s",
   },
 };
