@@ -4,55 +4,36 @@ import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/*
-AgendaDayController — PRODUCCIÓN REAL (CANÓNICO FINAL)
-
-✔ Orquesta Agenda.jsx
-✔ Construye slots desde schedule
-✔ Backend = verdad
-✔ NO decide flujos
-✔ NO navega
-✔ Emite eventos al cerebro
-✔ Resuelve paciente SOLO si reservado / confirmado
-*/
-
 export default function AgendaDayController({
   professional,
   date,
-
-  // 👇 DECIDE EL CEREBRO
-  role, // "MEDICO" | "SECRETARIA"
+  role,
   onAttend,
   onNoShow,
   onCancelFinal
 }) {
-  // 🔐 AUTH INTERNO (MISMO PATRÓN QUE PatientForm)
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
   const [loading, setLoading] = useState(false);
   const [agendaData, setAgendaData] = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
-  const [patientsCache, setPatientsCache] = useState({}); // cache por RUT
+  const [patientsCache, setPatientsCache] = useState({});
 
   // =========================
-  // LOAD PROFESSIONALS (1 VEZ)
+  // LOAD PROFESSIONALS
   // =========================
   useEffect(() => {
     async function loadProfessionals() {
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) return;
-
         const data = await res.json();
         const map = {};
-        data.forEach((p) => {
-          map[p.id] = p;
-        });
+        data.forEach((p) => { map[p.id] = p; });
         setProfessionalsMap(map);
       } catch {}
     }
-
     loadProfessionals();
   }, []);
 
@@ -62,27 +43,18 @@ export default function AgendaDayController({
   function getWeekdayKey(dateStr) {
     const [y, m, d] = dateStr.split("-").map(Number);
     const dt = new Date(y, m - 1, d);
-    return dt
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
+    return dt.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
   }
 
   function buildSlotsFromSchedule(schedule, weekdayKey) {
     const slots = {};
-
     if (!schedule?.days?.[weekdayKey]) return slots;
-
     const interval = schedule.slotMinutes;
-
     schedule.days[weekdayKey].forEach(({ start, end }) => {
       let minutes =
-        Number(start.split(":")[0]) * 60 +
-        Number(start.split(":")[1]);
-
+        Number(start.split(":")[0]) * 60 + Number(start.split(":")[1]);
       const endMinutes =
-        Number(end.split(":")[0]) * 60 +
-        Number(end.split(":")[1]);
-
+        Number(end.split(":")[0]) * 60 + Number(end.split(":")[1]);
       while (minutes < endMinutes) {
         const hh = String(Math.floor(minutes / 60)).padStart(2, "0");
         const mm = String(minutes % 60).padStart(2, "0");
@@ -90,111 +62,101 @@ export default function AgendaDayController({
         minutes += interval;
       }
     });
-
     return slots;
   }
 
   // =========================
-  // RESOLVER PACIENTES (SOLO LOS NECESARIOS)
+  // RESOLVER PACIENTES
   // =========================
   async function resolvePatients(slots) {
     if (!internalUser) return;
-
     const ruts = Object.values(slots)
-      .filter(
-        (s) =>
-          (s.status === "reserved" || s.status === "confirmed") &&
-          s.rut
-      )
-      .map((s) => s.rut);
-
+      .filter(s => (s.status === "reserved" || s.status === "confirmed") && s.rut)
+      .map(s => s.rut);
     const uniqueRuts = [...new Set(ruts)];
-    const missing = uniqueRuts.filter((rut) => !patientsCache[rut]);
-
+    const missing = uniqueRuts.filter(rut => !patientsCache[rut]);
     if (missing.length === 0) return;
-
     try {
       const results = await Promise.all(
-        missing.map((rut) =>
+        missing.map(rut =>
           fetch(`${API_URL}/api/fichas/admin/${rut}`, {
-            headers: {
-              "X-Internal-User": internalUser
-            }
+            headers: { "X-Internal-User": internalUser }
           })
-            .then((r) => (r.ok ? r.json() : null))
+            .then(r => r.ok ? r.json() : null)
             .catch(() => null)
         )
       );
-
-      setPatientsCache((prev) => {
+      setPatientsCache(prev => {
         const copy = { ...prev };
-        results.forEach((p) => {
-          if (p?.rut) {
-            copy[p.rut] = p;
-          }
-        });
+        results.forEach(p => { if (p?.rut) copy[p.rut] = p; });
         return copy;
       });
     } catch {}
   }
 
   // =========================
-  // LOAD AGENDA
+  // LOAD AGENDA + CAJA
   // =========================
   const loadAgenda = useCallback(async () => {
     if (!professional || !date) return;
-
     const prof = professionalsMap[professional];
     if (!prof) return;
 
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_URL}/agenda?date=${encodeURIComponent(date)}`
-      );
-      if (!res.ok) throw new Error("agenda");
+      // ── fetch paralelo: agenda + caja ──
+      const [agendaRes, cajaRes] = await Promise.all([
+        fetch(`${API_URL}/agenda?date=${encodeURIComponent(date)}`),
+        fetch(`${API_URL}/api/caja/day?date=${encodeURIComponent(date)}&professional=${encodeURIComponent(professional)}`)
+          .catch(() => null)
+      ]);
 
-      const data = await res.json();
-      const weekdayKey = getWeekdayKey(date);
+      if (!agendaRes.ok) throw new Error("agenda");
 
-      const baseSlots = buildSlotsFromSchedule(
-        prof.schedule,
-        weekdayKey
-      );
+      const agendaJson = await agendaRes.json();
 
-      const backendSlots =
-        data.calendar?.[professional]?.slots || {};
+      // caja puede no existir aún — no es crítico
+      let cajaMap = {};
+      if (cajaRes?.ok) {
+        const cajaJson = await cajaRes.json();
+        (cajaJson.slots || []).forEach(s => {
+          cajaMap[s.time] = s;
+        });
+      }
 
-      // 👉 SOLO AQUÍ resolvemos pacientes
+      const weekdayKey  = getWeekdayKey(date);
+      const baseSlots   = buildSlotsFromSchedule(prof.schedule, weekdayKey);
+      const backendSlots = agendaJson.calendar?.[professional]?.slots || {};
+
       await resolvePatients(backendSlots);
 
       Object.entries(backendSlots).forEach(([time, slot]) => {
+        if (role === "PUBLIC" && slot.status !== "available") {
+          delete baseSlots[time];
+          return;
+        }
 
-  // 🔒 VISTA PUBLICA: ocultar todo lo que no sea available
-  if (role === "PUBLIC" && slot.status !== "available") {
-    delete baseSlots[time];
-    return;
-  }
+        const cajaSlot = cajaMap[time] || null;
 
-  baseSlots[time] = {
-    time,
-    status: slot.status,
-    rut: slot.rut || null,
-    patient: slot.rut ? patientsCache[slot.rut] || null : null,
-
-    // info UI
-    professional,
-    professionalName:
-      professionalsMap[professional]?.name || professional
-  };
-});
+        baseSlots[time] = {
+          time,
+          status:           slot.status,
+          rut:              slot.rut || null,
+          patient:          slot.rut ? patientsCache[slot.rut] || null : null,
+          professional,
+          professionalName: professionalsMap[professional]?.name || professional,
+          // ── caja ──
+          cajaStatus:       cajaSlot?.arrival_status ?? null,
+          tipoCaja:         cajaSlot?.tipo_atencion  ?? null,
+          pagado:           cajaSlot?.pagado         ?? false,
+          monto:            cajaSlot?.monto          ?? null,
+        };
+      });
 
       setAgendaData({
         calendar: {
-          [professional]: {
-            slots: baseSlots
-          }
+          [professional]: { slots: baseSlots }
         }
       });
     } catch {
@@ -202,84 +164,50 @@ export default function AgendaDayController({
     } finally {
       setLoading(false);
     }
-  }, [
-    professional,
-    date,
-    professionalsMap,
-    patientsCache,
-    internalUser
-  ]);
+  }, [professional, date, professionalsMap, patientsCache, internalUser]);
 
+  useEffect(() => { loadAgenda(); }, [loadAgenda]);
+
+  // =========================
+  // REINYECTAR PACIENTES
+  // =========================
   useEffect(() => {
-    loadAgenda();
-  }, [loadAgenda]);
-
- // =========================
-// REINYECTAR PACIENTES CUANDO CACHE SE ACTUALIZA
-// =========================
-useEffect(() => {
-  if (!agendaData) return;
-
-  setAgendaData(prev => {
-    if (!prev) return prev;
-
-    const calendar = { ...prev.calendar };
-    const day = calendar[professional];
-    if (!day) return prev;
-
-    const slots = { ...day.slots };
-
-    Object.entries(slots).forEach(([time, slot]) => {
-      if (
-        (slot.status === "reserved" || slot.status === "confirmed") &&
-        slot.rut &&
-        patientsCache[slot.rut]
-      ) {
-        slots[time] = {
-          ...slot,
-          patient: patientsCache[slot.rut]
-        };
-      }
-    });
-
-    return {
-      ...prev,
-      calendar: {
-        ...calendar,
-        [professional]: {
-          ...day,
-          slots
+    if (!agendaData) return;
+    setAgendaData(prev => {
+      if (!prev) return prev;
+      const calendar = { ...prev.calendar };
+      const day = calendar[professional];
+      if (!day) return prev;
+      const slots = { ...day.slots };
+      Object.entries(slots).forEach(([time, slot]) => {
+        if (
+          (slot.status === "reserved" || slot.status === "confirmed") &&
+          slot.rut &&
+          patientsCache[slot.rut]
+        ) {
+          slots[time] = { ...slot, patient: patientsCache[slot.rut] };
         }
-      }
-    };
-  });
-}, [patientsCache, professional]); 
+      });
+      return {
+        ...prev,
+        calendar: { ...calendar, [professional]: { ...day, slots } }
+      };
+    });
+  }, [patientsCache, professional]);
 
   // =========================
-  // SLOT CLICK → EMITE AL CEREBRO
+  // SLOT CLICK
   // =========================
- function handleSelectSlot(slot) {
-  // 🔒 MÉDICO NO INTERACTÚA CON DISPONIBLES
-  if (role === "MEDICO" && slot.status === "available") {
-    return;
+  function handleSelectSlot(slot) {
+    if (role === "MEDICO" && slot.status === "available") return;
+    onAttend?.({ ...slot, professional, date });
   }
-
-  onAttend?.({
-    ...slot,
-    professional,
-    date
-  });
-} 
 
   // =========================
   // RENDER
   // =========================
   if (!professional || !date) {
-    return (
-      <div className="agenda-placeholder">
-        Selecciona un profesional y un día
-      </div>
-    );
+    return <div className="agenda-placeholder">Selecciona un profesional y un día</div>;
   }
 
   return (
