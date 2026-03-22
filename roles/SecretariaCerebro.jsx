@@ -22,11 +22,7 @@ export default function SecretariaCerebro() {
   const [pendingSlot,     setPendingSlot]     = useState(null);
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
   const [pagoOpen,        setPagoOpen]        = useState(false);
-  const [pagoSlot,        setPagoSlot]        = useState(null);
 
-  // =========================
-  // CARGA PROFESIONALES
-  // =========================
   useEffect(() => {
     let cancelled = false;
     async function loadProfessionals() {
@@ -46,17 +42,11 @@ export default function SecretariaCerebro() {
     return () => { cancelled = true; };
   }, []);
 
-  // =========================
-  // AGENDA SUMMARY
-  // =========================
   function handleSelectDay(payload) {
     setSelectedDay(payload);
     navigate("agenda/dia");
   }
 
-  // =========================
-  // SLOT CLICK
-  // =========================
   function handleAttend(slot) {
     if (slot.status === "available") {
       setPendingSlot(slot);
@@ -67,17 +57,6 @@ export default function SecretariaCerebro() {
     setModalOpen(true);
   }
 
-  // =========================
-  // CONFIRMAR LLEGADA → abre PagoModal
-  // =========================
-  function handleConfirmarLlegada() {
-    setPagoSlot(modalSlot);
-    setPagoOpen(true);
-  }
-
-  // =========================
-  // RESERVA
-  // =========================
   async function reserveSlot(rut) {
     if (!pendingSlot) return;
     const { date, time, professional } = pendingSlot;
@@ -94,9 +73,6 @@ export default function SecretariaCerebro() {
     }
   }
 
-  // =========================
-  // ANULAR
-  // =========================
   async function cancelSlot(slot) {
     if (!slot) return;
     const { date, time, professional } = slot;
@@ -116,9 +92,6 @@ export default function SecretariaCerebro() {
     setModalSlot(null);
   }
 
-  // =========================
-  // RENDER
-  // =========================
   return (
     <>
       <Routes>
@@ -158,7 +131,6 @@ export default function SecretariaCerebro() {
 
       </Routes>
 
-      {/* MODAL PACIENTE */}
       <PatientForm
         open={patientOpen}
         onConfirm={patient => { reserveSlot(patient.rut); setPatientOpen(false); }}
@@ -166,7 +138,6 @@ export default function SecretariaCerebro() {
         onCancel={() => { setPendingSlot(null); setPatientOpen(false); }}
       />
 
-      {/* MODAL SECRETARIA */}
       <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
@@ -175,13 +146,12 @@ export default function SecretariaCerebro() {
         onConfirm={closeModal}
         onCancel={() => { cancelSlot(modalSlot); closeModal(); }}
         onReschedule={closeModal}
-        onConfirmarLlegada={handleConfirmarLlegada}
+        onConfirmarLlegada={() => setPagoOpen(true)}
       />
 
-      {/* PAGO MODAL — al nivel raíz, nunca queda tapado */}
       <PagoModal
         open={pagoOpen}
-        slot={pagoSlot}
+        slot={modalSlot}
         onClose={() => setPagoOpen(false)}
         onSuccess={() => {
           setPagoOpen(false);
@@ -191,4 +161,4 @@ export default function SecretariaCerebro() {
       />
     </>
   );
-}
+        }
