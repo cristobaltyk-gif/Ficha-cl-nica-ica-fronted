@@ -1,18 +1,6 @@
 import "../../styles/agenda/agenda.css";
 import AgendaColumn from "./AgendaColumn";
 
-/*
-Agenda — CEREBRO UI AGENDA DIARIA (PRODUCCIÓN REAL)
-
-✔ SOLO UI
-✔ NO backend
-✔ NO estado local
-✔ NO modal
-✔ NO validaciones
-✔ NO decisiones
-✔ SOLO pinta lo que el Controller entrega
-*/
-
 export default function Agenda({
   loading = false,
   date,
@@ -24,33 +12,39 @@ export default function Agenda({
     <section className="agenda-page">
       <section className="agenda-container">
 
-        <div className="agenda-grid">
-          {professionals.map((prof) => {
-            const profId = prof.id;
-            const calendar = agendaData?.calendar?.[profId];
-
-            return (
-              <AgendaColumn
-                key={profId}
-                professional={prof}
-                slots={calendar?.slots || {}}   // 👈 SI NO HAY, ES VACÍO
-                onSelectSlot={(slot, time) =>
-                  onSelectSlot?.({
-                    professional: profId,
-                    time,
-                    ...slot
-                  })
-                }
-              />
-            );
-          })}
-        </div>
-
-        {loading && (
+        {loading ? (
           <div className="agenda-state agenda-loading">
-            Cargando agenda…
+            <span className="agenda-loading-spinner"/>
+            <span>Cargando agenda…</span>
+          </div>
+        ) : professionals.length === 0 ? (
+          <div className="agenda-state">
+            No hay profesionales disponibles
+          </div>
+        ) : (
+          <div className="agenda-grid">
+            {professionals.map((prof) => {
+              const profId = prof.id;
+              const calendar = agendaData?.calendar?.[profId];
+
+              return (
+                <AgendaColumn
+                  key={profId}
+                  professional={prof}
+                  slots={calendar?.slots || {}}
+                  onSelectSlot={(slot, time) =>
+                    onSelectSlot?.({
+                      professional: profId,
+                      time,
+                      ...slot
+                    })
+                  }
+                />
+              );
+            })}
           </div>
         )}
+
       </section>
     </section>
   );
