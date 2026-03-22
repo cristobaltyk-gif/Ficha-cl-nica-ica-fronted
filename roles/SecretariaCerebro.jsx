@@ -23,25 +23,14 @@ SecretariaCerebro — PRODUCCIÓN REAL
 export default function SecretariaCerebro() {
   const navigate = useNavigate();
 
-  // =========================
-  // ESTADO
-  // =========================
-  const [professionals, setProfessionals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState(null);
-
-  // MODAL AGENDA
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalSlot, setModalSlot] = useState(null);
-
-  // MODAL PACIENTE
-  const [patientOpen, setPatientOpen] = useState(false);
-
-  // 🔑 SLOT DISPONIBLE PENDIENTE DE RESERVA
-  const [pendingSlot, setPendingSlot] = useState(null);
- 
-  // 🔄 fuerza recarga de AgendaDayController
-const [agendaReloadKey, setAgendaReloadKey] = useState(0);
+  const [professionals,   setProfessionals]   = useState([]);
+  const [loading,         setLoading]         = useState(true);
+  const [selectedDay,     setSelectedDay]     = useState(null);
+  const [modalOpen,       setModalOpen]       = useState(false);
+  const [modalSlot,       setModalSlot]       = useState(null);
+  const [patientOpen,     setPatientOpen]     = useState(false);
+  const [pendingSlot,     setPendingSlot]     = useState(null);
+  const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
   // =========================
   // CARGA PROFESIONALES
@@ -54,12 +43,9 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
-
         const data = await res.json();
         if (!cancelled) {
-          setProfessionals(
-            data.map((p) => ({ id: p.id, name: p.name }))
-          );
+          setProfessionals(data.map((p) => ({ id: p.id, name: p.name })));
         }
       } catch {
         if (!cancelled) setProfessionals([]);
@@ -69,9 +55,7 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
     }
 
     loadProfessionals();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   // =========================
@@ -83,78 +67,59 @@ const [agendaReloadKey, setAgendaReloadKey] = useState(0);
   }
 
   // =========================
-  // SLOT CLICK (DECISIÓN FINAL)
+  // SLOT CLICK
   // =========================
   function handleAttend(slot) {
-    // ✅ DISPONIBLE → FORMULARIO PACIENTE
     if (slot.status === "available") {
-      setPendingSlot(slot);      // 👈 CLAVE
+      setPendingSlot(slot);
       setPatientOpen(true);
       return;
     }
-
-    // ❌ NO TOCAR ESTE FLUJO
     setModalSlot(slot);
     setModalOpen(true);
   }
 
   // =========================
-  // RESERVA REAL (AGENDA)
+  // RESERVA
   // =========================
   async function reserveSlot(rut) {
     if (!pendingSlot) return;
-
     const { date, time, professional } = pendingSlot;
-
     try {
       await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          date,
-          time,
-          professional,
-          rut
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, professional, rut })
       });
       setAgendaReloadKey(k => k + 1);
     } catch {
-      // backend decide errores
     } finally {
       setPendingSlot(null);
     }
   }
 
-// =========================
-// ANULAR SLOT (AGENDA)
-// =========================
-async function cancelSlot(slot) {
-  if (!slot) return;
-
-  const { date, time, professional } = slot;
-
-  try {
-    await fetch(`${API_URL}/agenda/cancel`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        date,
-        time,
-        professional
-      })
-    });
-
-    // 🔄 refrescar agenda
-    setAgendaReloadKey(k => k + 1);
-  } catch {
-    // backend decide errores
+  // =========================
+  // ANULAR
+  // =========================
+  async function cancelSlot(slot) {
+    if (!slot) return;
+    const { date, time, professional } = slot;
+    try {
+      await fetch(`${API_URL}/agenda/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, professional })
+      });
+      setAgendaReloadKey(k => k + 1);
+    } catch {
+    }
   }
-}
-  
+
+  function closeModal() {
+    setModalOpen(false);
+    setModalSlot(null);
+  }
+
   // =========================
   // RENDER
   // =========================
@@ -162,10 +127,8 @@ async function cancelSlot(slot) {
     <>
       <Routes>
 
-        {/* HOME */}
         <Route index element={<HomeSecretaria />} />
 
-        {/* AGENDA SUMMARY */}
         <Route
           path="agenda"
           element={
@@ -180,22 +143,19 @@ async function cancelSlot(slot) {
           }
         />
 
-        {/* AGENDA DIARIA */}
         <Route
           path="agenda/dia"
           element={
             selectedDay ? (
               <AgendaDayController
-               key={agendaReloadKey} 
+                key={agendaReloadKey}
                 professional={selectedDay.professional}
                 date={selectedDay.date}
                 role="SECRETARIA"
                 onAttend={handleAttend}
               />
             ) : (
-              <div className="agenda-placeholder">
-                Selecciona un día
-              </div>
+              <div className="agenda-placeholder">Selecciona un día</div>
             )
           }
         />
@@ -205,44 +165,23 @@ async function cancelSlot(slot) {
       {/* MODAL PACIENTE */}
       <PatientForm
         open={patientOpen}
-        onConfirm={(patient) => {
-          reserveSlot(patient.rut);
-          setPatientOpen(false);
-        }}
-        onCreate={(patient) => {
-          reserveSlot(patient.rut);
-          setPatientOpen(false);
-        }}
-        onCancel={() => {
-          setPendingSlot(null);
-          setPatientOpen(false);
-        }}
+        onConfirm={(patient) => { reserveSlot(patient.rut); setPatientOpen(false); }}
+        onCreate={(patient)  => { reserveSlot(patient.rut); setPatientOpen(false); }}
+        onCancel={() => { setPendingSlot(null); setPatientOpen(false); }}
       />
 
-      {/* MODAL SECRETARIA — AGENDA (INTOCABLE) */}
+      {/* MODAL SECRETARIA */}
       <AgendaSlotModalSecretaria
         open={modalOpen}
         slot={modalSlot}
-        onClose={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
-        onReserve={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
-        onConfirm={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
-        onCancel={() => {
-          cancelSlot(modalSlot);
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
-        onReschedule={() => {
-          setModalOpen(false);
-          setModalSlot(null);
+        onClose={closeModal}
+        onReserve={closeModal}
+        onConfirm={closeModal}
+        onCancel={() => { cancelSlot(modalSlot); closeModal(); }}
+        onReschedule={closeModal}
+        onCajaUpdate={() => {
+          setAgendaReloadKey(k => k + 1);
+          closeModal();
         }}
       />
     </>
