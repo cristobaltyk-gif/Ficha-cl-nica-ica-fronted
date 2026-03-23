@@ -1,6 +1,5 @@
 import "../../styles/agenda/agenda-slot-modal.css";
-import { useState, useEffect } from "react";
-import PatientForm from "../patient/PatientForm";
+import { useEffect } from "react";
 
 export default function AgendaSlotModalSecretaria({
   open,
@@ -8,33 +7,17 @@ export default function AgendaSlotModalSecretaria({
   loading = false,
 
   onClose,
-  onReserve,
   onConfirm,
   onCancel,
   onReschedule,
   onConfirmarLlegada
 }) {
-  const [mode,       setMode]       = useState("actions");
-  const [formAction, setFormAction] = useState(null);
-
-  useEffect(() => {
-    if (open) {
-      setMode("actions");
-      setFormAction(null);
-    }
-  }, [open]);
+  useEffect(() => {}, [open]);
 
   if (!open || !slot) return null;
 
   const { time, status, patient, pagado } = slot;
   const tieneReserva = status === "reserved" || status === "confirmed";
-
-  function handlePatientSubmit(p) {
-    if (formAction === "reserve") onReserve?.({ slot, patient: p });
-    if (formAction === "confirm") onConfirm?.({ slot, patient: p });
-    setMode("actions");
-    setFormAction(null);
-  }
 
   return (
     <div className="modal-backdrop">
@@ -65,53 +48,35 @@ export default function AgendaSlotModalSecretaria({
           </div>
         )}
 
-        {/* ── FORMULARIO PACIENTE ── */}
-        {mode === "form" && (
-          <PatientForm
-            onSubmit={handlePatientSubmit}
-            onCancel={() => {
-              if (!loading) {
-                setMode("actions");
-                setFormAction(null);
-              }
-            }}
-          />
-        )}
-
         {/* ── ACCIONES AGENDA ── */}
-        {mode === "actions" && (
-          <div className="modal-actions">
+        <div className="modal-actions">
 
-            {status === "reserved" && (
-              <>
-                <button
-                  disabled={loading}
-                  onClick={() => {
-                    setMode("form");
-                    setFormAction("confirm");
-                  }}
-                >
-                  Confirmar paciente
-                </button>
-                <button className="danger" disabled={loading} onClick={onCancel}>
-                  Anular reserva
-                </button>
-              </>
-            )}
+          {status === "reserved" && (
+            <>
+              <button
+                disabled={loading}
+                onClick={onConfirm}
+              >
+                Confirmar paciente
+              </button>
+              <button className="danger" disabled={loading} onClick={onCancel}>
+                Anular reserva
+              </button>
+            </>
+          )}
 
-            {status === "confirmed" && (
-              <>
-                <button disabled={loading} onClick={onReschedule}>
-                  Cambiar hora
-                </button>
-                <button className="danger" disabled={loading} onClick={onCancel}>
-                  Anular cita
-                </button>
-              </>
-            )}
+          {status === "confirmed" && (
+            <>
+              <button disabled={loading} onClick={onReschedule}>
+                Cambiar hora
+              </button>
+              <button className="danger" disabled={loading} onClick={onCancel}>
+                Anular cita
+              </button>
+            </>
+          )}
 
-          </div>
-        )}
+        </div>
 
         <div className="modal-footer">
           <button disabled={loading} onClick={onClose}>Cerrar</button>
