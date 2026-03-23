@@ -75,6 +75,22 @@ export default function SecretariaCerebro() {
     }
   }
 
+  async function confirmSlot() {
+    if (!modalSlot) return;
+    const { date, time, professional } = modalSlot;
+    try {
+      await fetch(`${API_URL}/agenda/confirm`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, professional })
+      });
+      setAgendaReloadKey(k => k + 1);
+    } catch {
+    } finally {
+      closeModal();
+    }
+  }
+
   async function cancelAgenda(slot) {
     if (!slot) return;
     const { date, time, professional } = slot;
@@ -169,8 +185,7 @@ export default function SecretariaCerebro() {
         open={modalOpen}
         slot={modalSlot}
         onClose={closeModal}
-        onReserve={closeModal}
-        onConfirm={closeModal}
+        onConfirm={confirmSlot}
         onCancel={handleCancelRequest}
         onReschedule={closeModal}
         onConfirmarLlegada={() => setPagoOpen(true)}
@@ -199,4 +214,4 @@ export default function SecretariaCerebro() {
       />
     </>
   );
-}
+          }
