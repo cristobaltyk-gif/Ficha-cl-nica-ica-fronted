@@ -75,7 +75,7 @@ export default function SecretariaCerebro() {
     }
   }
 
-  async function cancelSlot(slot) {
+  async function cancelAgenda(slot) {
     if (!slot) return;
     const { date, time, professional } = slot;
     try {
@@ -84,13 +84,29 @@ export default function SecretariaCerebro() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date, time, professional })
       });
-      setAgendaReloadKey(k => k + 1);
-    } catch {
-    }
+    } catch {}
+  }
+
+  async function clearCaja(slot) {
+    if (!slot) return;
+    const { date, time, professional } = slot;
+    try {
+      await fetch(`${API_URL}/api/caja/slot`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, professional })
+      });
+    } catch {}
+  }
+
+  async function cancelSlot(slot) {
+    await clearCaja(slot);
+    await cancelAgenda(slot);
+    setAgendaReloadKey(k => k + 1);
   }
 
   function handleCancelRequest() {
-    if (modalSlot?.pagado) {
+    if (modalSlot?.cajaStatus === "paid" || modalSlot?.pagado) {
       setAnulacionOpen(true);
     } else {
       cancelSlot(modalSlot);
