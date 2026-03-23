@@ -7,6 +7,7 @@ import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecretaria";
 import PagoModal from "../components/caja/PagoModal";
+import AnulacionModal from "../components/caja/AnulacionModal";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -22,6 +23,7 @@ export default function SecretariaCerebro() {
   const [pendingSlot,     setPendingSlot]     = useState(null);
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
   const [pagoOpen,        setPagoOpen]        = useState(false);
+  const [anulacionOpen,   setAnulacionOpen]   = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +89,15 @@ export default function SecretariaCerebro() {
     }
   }
 
+  function handleCancelRequest() {
+    if (modalSlot?.pagado) {
+      setAnulacionOpen(true);
+    } else {
+      cancelSlot(modalSlot);
+      closeModal();
+    }
+  }
+
   function closeModal() {
     setModalOpen(false);
     setModalSlot(null);
@@ -144,7 +155,7 @@ export default function SecretariaCerebro() {
         onClose={closeModal}
         onReserve={closeModal}
         onConfirm={closeModal}
-        onCancel={() => { cancelSlot(modalSlot); closeModal(); }}
+        onCancel={handleCancelRequest}
         onReschedule={closeModal}
         onConfirmarLlegada={() => setPagoOpen(true)}
       />
@@ -159,6 +170,17 @@ export default function SecretariaCerebro() {
           closeModal();
         }}
       />
+
+      <AnulacionModal
+        open={anulacionOpen}
+        slot={modalSlot}
+        onClose={() => setAnulacionOpen(false)}
+        onSuccess={() => {
+          setAnulacionOpen(false);
+          cancelSlot(modalSlot);
+          closeModal();
+        }}
+      />
     </>
   );
-        }
+}
