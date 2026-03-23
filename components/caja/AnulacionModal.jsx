@@ -117,7 +117,7 @@ export default function AnulacionModal({
 }
 
 const s = {
-  backdrop:      { position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:500, padding:16 },
+  backdrop:      { position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:2500, padding:16 },
   modal:         { background:"#fff", borderRadius:16, width:"100%", maxWidth:400, boxShadow:"0 24px 64px rgba(0,0,0,0.25)", overflow:"hidden", fontFamily:"'DM Sans',system-ui,sans-serif" },
   header:        { background:"#0f172a", padding:"18px 24px" },
   headerTitle:   { fontSize:15, fontWeight:700, color:"#fff", margin:0 },
