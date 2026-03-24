@@ -44,6 +44,16 @@ export default function HomeSecretaria() {
 
         <button
           className="home-card"
+          onClick={() => navigate("caja")}
+          aria-label="Caja"
+        >
+          <span className="icon">💰</span>
+          <span className="title">Caja</span>
+          <span className="desc">Resumen de pagos</span>
+        </button>
+
+        <button
+          className="home-card"
           onClick={() => navigate("administracion")}
           aria-label="Administración"
         >
