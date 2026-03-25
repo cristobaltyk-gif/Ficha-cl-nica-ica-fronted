@@ -8,6 +8,7 @@ import PatientForm from "../components/patient/PatientForm";
 import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecretaria";
 import PagoModal from "../components/caja/PagoModal";
 import AnulacionModal from "../components/caja/AnulacionModal";
+import CajaResumenController from "../components/caja/CajaResumenController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -172,6 +173,13 @@ export default function SecretariaCerebro() {
           }
         />
 
+        <Route
+          path="caja"
+          element={
+            <CajaResumenController professionals={professionals} />
+          }
+        />
+
       </Routes>
 
       <PatientForm
@@ -214,4 +222,4 @@ export default function SecretariaCerebro() {
       />
     </>
   );
-          }
+}
