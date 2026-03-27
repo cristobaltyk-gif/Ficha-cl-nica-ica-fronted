@@ -13,14 +13,17 @@ export default function InformesCerebroMedico() {
   const location = useLocation();
 
   const [admin,          setAdmin]          = useState(null);
+  const [eventos,        setEventos]        = useState([]);
+  const [seleccionados,  setSeleccionados]  = useState([]);
   const [resumen,        setResumen]        = useState("");
   const [showForm,       setShowForm]       = useState(true);
   const [error,          setError]          = useState(null);
+  const [loadingEventos, setLoadingEventos] = useState(false);
   const [loadingResumen, setLoadingResumen] = useState(false);
   const [loadingPdf,     setLoadingPdf]     = useState(false);
   const [resumenError,   setResumenError]   = useState(null);
 
-  // 🔥 REHIDRATAR — igual que BusquedaCerebroPaciente
+  // 🔥 REHIDRATAR
   useEffect(() => {
     if (location.state?.rut) {
       const rut = location.state.rut;
@@ -33,25 +36,55 @@ export default function InformesCerebroMedico() {
     const rut = dataPaciente.rut;
 
     setAdmin(null);
+    setEventos([]);
+    setSeleccionados([]);
     setResumen("");
     setError(null);
     setResumenError(null);
+    setLoadingEventos(true);
 
     try {
-      const res = await fetch(`${API_URL}/api/fichas/admin/${rut}`, {
+      const resAdmin = await fetch(`${API_URL}/api/fichas/admin/${rut}`, {
         headers: { "X-Internal-User": session?.usuario }
       });
-      if (!res.ok) throw new Error("No se pudo cargar ficha administrativa");
-      const data = await res.json();
-      setAdmin(data);
+      if (!resAdmin.ok) throw new Error("No se pudo cargar ficha administrativa");
+      const adminData = await resAdmin.json();
+      setAdmin(adminData);
+
+      const resEventos = await fetch(
+        `${API_URL}/api/fichas/resumen-clinico/${rut}/eventos`,
+        { headers: { "X-Internal-User": session?.usuario } }
+      );
+      if (!resEventos.ok) throw new Error("No se pudo cargar atenciones");
+      const eventosData = await resEventos.json();
+      const lista = eventosData.eventos || [];
+      setEventos(lista);
+      setSeleccionados(lista.map(e => e.id)); // todos seleccionados por defecto
+
       setShowForm(false);
     } catch (e) {
       setError(e.message);
+    } finally {
+      setLoadingEventos(false);
+    }
+  }
+
+  function toggleEvento(id) {
+    setSeleccionados(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  }
+
+  function toggleTodos() {
+    if (seleccionados.length === eventos.length) {
+      setSeleccionados([]);
+    } else {
+      setSeleccionados(eventos.map(e => e.id));
     }
   }
 
   async function handleGenerarResumen() {
-    if (!admin?.rut) return;
+    if (!admin?.rut || seleccionados.length === 0) return;
     setLoadingResumen(true);
     setResumenError(null);
     setResumen("");
@@ -61,7 +94,11 @@ export default function InformesCerebroMedico() {
         `${API_URL}/api/fichas/resumen-clinico/${admin.rut}`,
         {
           method: "POST",
-          headers: { "X-Internal-User": session?.usuario }
+          headers: {
+            "Content-Type": "application/json",
+            "X-Internal-User": session?.usuario
+          },
+          body: JSON.stringify({ eventos_seleccionados: seleccionados })
         }
       );
       if (!res.ok) throw new Error("Error generando resumen clínico");
@@ -96,7 +133,6 @@ export default function InformesCerebroMedico() {
           professional:     professional
         })
       });
-
       if (!res.ok) throw new Error("Error generando PDF");
       const blob = await res.blob();
       window.open(window.URL.createObjectURL(blob), "_blank");
@@ -110,6 +146,8 @@ export default function InformesCerebroMedico() {
   function handleReset() {
     setShowForm(true);
     setAdmin(null);
+    setEventos([]);
+    setSeleccionados([]);
     setResumen("");
     setError(null);
     setResumenError(null);
@@ -141,7 +179,7 @@ export default function InformesCerebroMedico() {
             </div>
           )}
 
-          {/* ERROR BÚSQUEDA */}
+          {/* ERROR */}
           {error && (
             <div className="ica-card">
               <p style={{ color: "red" }}>{error}</p>
@@ -155,14 +193,64 @@ export default function InformesCerebroMedico() {
               <p><strong>Nombre:</strong> {admin.nombre} {admin.apellido_paterno} {admin.apellido_materno}</p>
               <p><strong>RUT:</strong> {admin.rut}</p>
               <p><strong>Previsión:</strong> {admin.prevision}</p>
+            </div>
+          )}
 
-              <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {/* SELECCIÓN DE ATENCIONES */}
+          {admin && eventos.length > 0 && (
+            <div className="ica-card">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <h3 style={{ margin: 0 }}>Atenciones</h3>
+                <button
+                  className="btn-secondary"
+                  onClick={toggleTodos}
+                  style={{ fontSize: 12, padding: "4px 10px" }}
+                >
+                  {seleccionados.length === eventos.length ? "Desmarcar todo" : "Marcar todo"}
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {eventos.map(ev => (
+                  <label
+                    key={ev.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 12,
+                      padding: "10px 14px",
+                      border: `1.5px solid ${seleccionados.includes(ev.id) ? "#2563eb" : "#e2e8f0"}`,
+                      borderRadius: 10,
+                      background: seleccionados.includes(ev.id) ? "#eff6ff" : "#f8fafc",
+                      cursor: "pointer",
+                      transition: "all 0.1s"
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.includes(ev.id)}
+                      onChange={() => toggleEvento(ev.id)}
+                      style={{ marginTop: 2, flexShrink: 0 }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>
+                        {ev.fecha} · {ev.hora} · {ev.professional_name}
+                      </div>
+                      <div style={{ fontSize: 13.5, fontWeight: 600, color: "#0f172a", marginTop: 2 }}>
+                        {ev.diagnostico || "Sin diagnóstico"}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 16, display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <button
                   className="btn-primary"
                   onClick={handleGenerarResumen}
-                  disabled={loadingResumen}
+                  disabled={loadingResumen || seleccionados.length === 0}
                 >
-                  {loadingResumen ? "Generando resumen…" : "🤖 Generar resumen clínico"}
+                  {loadingResumen ? "Generando resumen…" : `🤖 Generar resumen (${seleccionados.length} seleccionadas)`}
                 </button>
 
                 {resumen && (
@@ -175,6 +263,13 @@ export default function InformesCerebroMedico() {
                   </button>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* SIN ATENCIONES */}
+          {admin && !loadingEventos && eventos.length === 0 && (
+            <div className="ica-card">
+              <p style={{ color: "#64748b" }}>Sin atenciones registradas</p>
             </div>
           )}
 
@@ -207,7 +302,6 @@ export default function InformesCerebroMedico() {
           )}
 
         </DashboardPacientes>
-
       </div>
     </div>
   );
