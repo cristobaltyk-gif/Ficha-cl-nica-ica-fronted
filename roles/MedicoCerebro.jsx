@@ -36,11 +36,11 @@ export default function MedicoCerebro() {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(() => {
-    const saved = sessionStorage.getItem("medico_selected_day");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const saved = sessionStorage.getItem("medico_selected_day");
+  return saved ? JSON.parse(saved) : null;
+});
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
-
+ 
   // MODAL MÉDICO (IGUAL A SECRETARÍA)
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
@@ -82,22 +82,25 @@ export default function MedicoCerebro() {
     }
 
     loadProfessional();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [professional]);
 
   // =========================
   // AGENDA SUMMARY
   // =========================
   function handleSelectDay(payload) {
-    setSelectedDay(payload);
-    sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
-    navigate("agenda/dia");
+  setSelectedDay(payload);
+  sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
+  navigate("agenda/dia");
   }
 
   // =========================
   // SLOT CLICK (EVENTO PURO)
   // =========================
   function handleAttend(slot) {
+    // AgendaDayController SOLO avisa
     setModalSlot(slot);
     setModalOpen(true);
   }
@@ -110,11 +113,22 @@ export default function MedicoCerebro() {
     try {
       await fetch(`${API_URL}/agenda/cancel`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, time, professional })
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          date,
+          time,
+          professional
+        })
       });
+
+      // 🔄 refrescar agenda diaria
       setAgendaReloadKey(k => k + 1);
-    } catch {}
+
+    } catch {
+      // backend decide errores
+    }
   }
 
   // =========================
@@ -167,7 +181,7 @@ export default function MedicoCerebro() {
           element={<MedicoAtencionCerebro />}
         />
 
-        {/* 📝 INFORMES — módulo IA */}
+        {/* 📝 INFORMES — módulo IA resumen clínico */}
         <Route
           path="informes"
           element={<InformesCerebroMedico />}
