@@ -1,0 +1,203 @@
+import { useState, useEffect } from "react";
+import { useAuth } from "../auth/AuthContext.jsx";
+import PatientForm from "../components/patient/PatientForm";
+import DashboardPacientes from "../pages/dashboard-pacientes";
+import "../styles/pacientes/patient-form.css";
+import "../styles/pacientes/dashboard-pacientes.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+export default function InformesCerebroMedico() {
+  const { session, professional } = useAuth();
+
+  const [admin,           setAdmin]           = useState(null);
+  const [resumen,         setResumen]         = useState("");
+  const [showForm,        setShowForm]        = useState(true);
+  const [error,           setError]           = useState(null);
+  const [loadingResumen,  setLoadingResumen]  = useState(false);
+  const [loadingPdf,      setLoadingPdf]      = useState(false);
+  const [resumenError,    setResumenError]    = useState(null);
+
+  async function handlePacienteSeleccionado(dataPaciente) {
+    const rut = dataPaciente.rut;
+
+    setAdmin(null);
+    setResumen("");
+    setError(null);
+    setResumenError(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/fichas/admin/${rut}`, {
+        headers: { "X-Internal-User": session?.usuario }
+      });
+      if (!res.ok) throw new Error("No se pudo cargar ficha administrativa");
+      const data = await res.json();
+      setAdmin(data);
+      setShowForm(false);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  async function handleGenerarResumen() {
+    if (!admin?.rut) return;
+    setLoadingResumen(true);
+    setResumenError(null);
+    setResumen("");
+
+    try {
+      const res = await fetch(
+        `${API_URL}/api/fichas/resumen-clinico/${admin.rut}`,
+        {
+          method: "POST",
+          headers: { "X-Internal-User": session?.usuario }
+        }
+      );
+      if (!res.ok) throw new Error("Error generando resumen clínico");
+      const data = await res.json();
+      setResumen(data.resumen || "");
+    } catch (e) {
+      setResumenError(e.message);
+    } finally {
+      setLoadingResumen(false);
+    }
+  }
+
+  async function handleImprimirInforme() {
+    if (!admin || !resumen) return;
+    setLoadingPdf(true);
+
+    try {
+      const res = await fetch(`${API_URL}/api/pdf/informe`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": session?.usuario
+        },
+        body: JSON.stringify({
+          nombre:           admin.nombre,
+          apellido_paterno: admin.apellido_paterno,
+          apellido_materno: admin.apellido_materno,
+          fecha_nacimiento: admin.fecha_nacimiento,
+          rut:              admin.rut,
+          diagnostico:      "Resumen clínico integral",
+          indicaciones:     resumen,
+          professional:     professional
+        })
+      });
+
+      if (!res.ok) throw new Error("Error generando PDF");
+      const blob = await res.blob();
+      window.open(window.URL.createObjectURL(blob), "_blank");
+    } catch (e) {
+      setResumenError(e.message);
+    } finally {
+      setLoadingPdf(false);
+    }
+  }
+
+  function handleReset() {
+    setShowForm(true);
+    setAdmin(null);
+    setResumen("");
+    setError(null);
+    setResumenError(null);
+  }
+
+  return (
+    <div className="dashboard-pacientes-wrapper">
+      <div className="dashboard-pacientes-container">
+
+        <DashboardPacientes
+          title="Informes clínicos"
+          subtitle="Resumen clínico integral generado por IA"
+          actions={
+            !showForm && (
+              <button className="btn-secondary" onClick={handleReset}>
+                Buscar otro paciente
+              </button>
+            )
+          }
+        >
+
+          {/* BUSCADOR */}
+          {showForm && (
+            <div className="ica-card">
+              <PatientForm
+                onConfirm={handlePacienteSeleccionado}
+                onCancel={() => setShowForm(false)}
+              />
+            </div>
+          )}
+
+          {/* ERROR BÚSQUEDA */}
+          {error && (
+            <div className="ica-card">
+              <p style={{ color: "red" }}>{error}</p>
+            </div>
+          )}
+
+          {/* FICHA PACIENTE */}
+          {admin && (
+            <div className="ica-card">
+              <h3>Paciente</h3>
+              <p><strong>Nombre:</strong> {admin.nombre} {admin.apellido_paterno} {admin.apellido_materno}</p>
+              <p><strong>RUT:</strong> {admin.rut}</p>
+              <p><strong>Previsión:</strong> {admin.prevision}</p>
+
+              <div style={{ marginTop: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button
+                  className="btn-primary"
+                  onClick={handleGenerarResumen}
+                  disabled={loadingResumen}
+                >
+                  {loadingResumen ? "Generando resumen…" : "🤖 Generar resumen clínico"}
+                </button>
+
+                {resumen && (
+                  <button
+                    className="btn-primary"
+                    onClick={handleImprimirInforme}
+                    disabled={loadingPdf}
+                  >
+                    {loadingPdf ? "Generando PDF…" : "🖨️ Imprimir informe"}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ERROR RESUMEN */}
+          {resumenError && (
+            <div className="ica-card">
+              <p style={{ color: "red" }}>{resumenError}</p>
+            </div>
+          )}
+
+          {/* RESUMEN GENERADO */}
+          {resumen && (
+            <div className="ica-card">
+              <h3>Resumen clínico integral</h3>
+              <div style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: 10,
+                padding: "16px 18px",
+                fontSize: 13.5,
+                lineHeight: 1.7,
+                color: "#0f172a",
+                whiteSpace: "pre-wrap",
+                marginTop: 12,
+                fontFamily: "Georgia, serif"
+              }}>
+                {resumen}
+              </div>
+            </div>
+          )}
+
+        </DashboardPacientes>
+
+      </div>
+    </div>
+  );
+}
