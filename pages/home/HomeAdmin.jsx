@@ -1,6 +1,16 @@
 import "../../styles/home/home-secretaria.css";
 import { useNavigate } from "react-router-dom";
 
+const MODULOS = [
+  { id: "contable",       icon: "📊", title: "Contable",       desc: "Resumen mensual, ingresos, exportar PDF" },
+  { id: "caja",           icon: "💰", title: "Caja del día",   desc: "Pagos del día por profesional" },
+  { id: "profesionales",  icon: "🩺", title: "Profesionales",  desc: "Crear, editar y eliminar profesionales" },
+  { id: "agenda",         icon: "📅", title: "Agenda",         desc: "Configurar horarios por profesional" },
+  { id: "usuarios",       icon: "👤", title: "Usuarios",       desc: "Crear, editar y eliminar usuarios" },
+  { id: "informes",       icon: "📋", title: "Informes",       desc: "Informes clínicos del centro" },
+  { id: "configuracion",  icon: "⚙️", title: "Configuración",  desc: "Parámetros del sistema" },
+];
+
 export default function HomeAdmin() {
   const navigate = useNavigate();
 
@@ -8,61 +18,22 @@ export default function HomeAdmin() {
     <div className="home-secretaria">
       <header className="home-header">
         <h1>Administración</h1>
-        <p>Panel de gestión del centro médico</p>
+        <p>Panel de gestión — Instituto de Cirugía Articular</p>
       </header>
 
       <section className="home-grid">
-
-        <button
-          className="home-card"
-          onClick={() => navigate("contable")}
-          aria-label="Contable"
-        >
-          <span className="icon">📊</span>
-          <span className="title">Contable</span>
-          <span className="desc">Resumen mensual de pagos</span>
-        </button>
-
-        <button
-          className="home-card"
-          onClick={() => navigate("profesionales")}
-          aria-label="Profesionales"
-        >
-          <span className="icon">🩺</span>
-          <span className="title">Profesionales</span>
-          <span className="desc">Agenda y horarios</span>
-        </button>
-
-        <button
-          className="home-card"
-          onClick={() => navigate("usuarios")}
-          aria-label="Usuarios"
-        >
-          <span className="icon">👤</span>
-          <span className="title">Usuarios</span>
-          <span className="desc">Roles y accesos</span>
-        </button>
-
-        <button
-          className="home-card"
-          onClick={() => navigate("informes")}
-          aria-label="Informes"
-        >
-          <span className="icon">📋</span>
-          <span className="title">Informes</span>
-          <span className="desc">Informes clínicos</span>
-        </button>
-
-        <button
-          className="home-card"
-          onClick={() => navigate("configuracion")}
-          aria-label="Configuración"
-        >
-          <span className="icon">⚙️</span>
-          <span className="title">Configuración</span>
-          <span className="desc">Parámetros del sistema</span>
-        </button>
-
+        {MODULOS.map(m => (
+          <button
+            key={m.id}
+            className="home-card"
+            onClick={() => navigate(m.id)}
+            aria-label={m.title}
+          >
+            <span className="icon">{m.icon}</span>
+            <span className="title">{m.title}</span>
+            <span className="desc">{m.desc}</span>
+          </button>
+        ))}
       </section>
     </div>
   );
