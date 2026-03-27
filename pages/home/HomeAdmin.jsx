@@ -8,10 +8,11 @@ export default function HomeAdmin() {
     <div className="home-secretaria">
       <header className="home-header">
         <h1>Administración</h1>
-        <p>Panel principal</p>
+        <p>Panel de gestión del centro médico</p>
       </header>
 
       <section className="home-grid">
+
         <button
           className="home-card"
           onClick={() => navigate("contable")}
@@ -29,7 +30,7 @@ export default function HomeAdmin() {
         >
           <span className="icon">🩺</span>
           <span className="title">Profesionales</span>
-          <span className="desc">Configuración de agenda</span>
+          <span className="desc">Agenda y horarios</span>
         </button>
 
         <button
@@ -51,6 +52,17 @@ export default function HomeAdmin() {
           <span className="title">Informes</span>
           <span className="desc">Informes clínicos</span>
         </button>
+
+        <button
+          className="home-card"
+          onClick={() => navigate("configuracion")}
+          aria-label="Configuración"
+        >
+          <span className="icon">⚙️</span>
+          <span className="title">Configuración</span>
+          <span className="desc">Parámetros del sistema</span>
+        </button>
+
       </section>
     </div>
   );
