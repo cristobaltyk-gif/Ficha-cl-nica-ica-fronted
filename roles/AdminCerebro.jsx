@@ -3,17 +3,9 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 
 import HomeAdmin from "../pages/home/HomeAdmin";
 import ContableController from "../components/caja/ContableController";
+import CajaResumenController from "../components/caja/CajaResumenController";
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-/*
-AdminCerebro — PRODUCCIÓN REAL
-
-✔ Cerebro único del rol admin
-✔ SOLO navegación
-✔ NO pinta UI
-✔ HOME primero
-*/
 
 export default function AdminCerebro() {
   const navigate = useNavigate();
@@ -41,17 +33,27 @@ export default function AdminCerebro() {
 
       <Route
         path="contable"
-        element={<ContableController professionals={professionals} />}
+        element={<ContableController />}
+      />
+
+      <Route
+        path="caja"
+        element={<CajaResumenController professionals={professionals} />}
       />
 
       <Route
         path="profesionales"
-        element={<div className="agenda-placeholder">Configuración de profesionales — próximamente</div>}
+        element={<div className="agenda-placeholder">Profesionales — próximamente</div>}
+      />
+
+      <Route
+        path="agenda"
+        element={<div className="agenda-placeholder">Configuración de agenda — próximamente</div>}
       />
 
       <Route
         path="usuarios"
-        element={<div className="agenda-placeholder">Usuarios y roles — próximamente</div>}
+        element={<div className="agenda-placeholder">Usuarios — próximamente</div>}
       />
 
       <Route
