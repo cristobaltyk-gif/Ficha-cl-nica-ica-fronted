@@ -21,7 +21,7 @@ export default function BusquedaCerebroPaciente() {
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(true);
 
-  // 🔥 REHIDRATAR (MISMA LÓGICA)
+  // 🔥 REHIDRATAR
   useEffect(() => {
     if (location.state?.rut) {
       const rut = location.state.rut;
@@ -30,11 +30,7 @@ export default function BusquedaCerebroPaciente() {
     }
   }, []);
 
-  // =========================
-  // BUSCAR PACIENTE (MISMA LÓGICA)
-  // =========================
   async function handlePacienteSeleccionado(dataPaciente) {
-
     const rut = dataPaciente.rut;
 
     setRutSeleccionado(rut);
@@ -44,12 +40,10 @@ export default function BusquedaCerebroPaciente() {
     setError(null);
 
     try {
-
       const resAdmin = await fetch(
         `${API_URL}/api/fichas/admin/${rut}`,
         { headers: { "X-Internal-User": session?.usuario } }
       );
-
       if (!resAdmin.ok) throw new Error("No se pudo cargar ficha administrativa");
       const adminData = await resAdmin.json();
       setAdmin(adminData);
@@ -58,13 +52,11 @@ export default function BusquedaCerebroPaciente() {
         `${API_URL}/api/fichas/evento/${rut}`,
         { headers: { "X-Internal-User": session?.usuario } }
       );
-
       if (!resEventos.ok) throw new Error("No se pudo cargar historial clínico");
       const eventosData = await resEventos.json();
       setEventos(eventosData);
 
       setShowForm(false);
-
     } catch (e) {
       setError(e.message);
     }
@@ -74,9 +66,6 @@ export default function BusquedaCerebroPaciente() {
     setDetalle(ev);
   }
 
-  // =========================
-  // UI NUEVA (SOLO PRESENTACIÓN)
-  // =========================
   return (
     <div className="dashboard-pacientes-wrapper">
       <div className="dashboard-pacientes-container">
@@ -144,11 +133,11 @@ export default function BusquedaCerebroPaciente() {
 
                     navigate("/medico/agenda/dia/atencion", {
                       state: {
-                        rut: rutSeleccionado,
-                        date: new Date().toISOString().slice(0, 10),
-                        time: horaActual,
+                        rut:          rutSeleccionado,
+                        date:         new Date().toISOString().slice(0, 10),
+                        time:         horaActual,
                         professional: professional,
-                        origin: "informes"
+                        origin:       "pacientes"
                       }
                     });
                   }}
@@ -158,9 +147,7 @@ export default function BusquedaCerebroPaciente() {
               </div>
 
               {eventos.length === 0 && (
-                <p style={{ color: "#64748b" }}>
-                  Sin atenciones registradas
-                </p>
+                <p style={{ color: "#64748b" }}>Sin atenciones registradas</p>
               )}
 
               {eventos.map((ev, index) => (
@@ -169,20 +156,11 @@ export default function BusquedaCerebroPaciente() {
                   className="ica-event-card"
                   onClick={() => handleVerDetalle(ev)}
                 >
-                  <div className="ica-event-header">
-                    {ev.fecha} {ev.hora}
-                  </div>
-
-                  <div className="ica-event-diagnostico">
-                    {ev.diagnostico || "Sin diagnóstico"}
-                  </div>
-
-                  <div className="ica-event-professional">
-                    {ev.professional_name || ""}
-                  </div>
+                  <div className="ica-event-header">{ev.fecha} {ev.hora}</div>
+                  <div className="ica-event-diagnostico">{ev.diagnostico || "Sin diagnóstico"}</div>
+                  <div className="ica-event-professional">{ev.professional_name || ""}</div>
                 </div>
               ))}
-
             </div>
           )}
 
@@ -190,64 +168,20 @@ export default function BusquedaCerebroPaciente() {
           {detalle && (
             <div className="ica-detalle">
               <h3>Detalle Atención</h3>
-
-              <div className="ica-detalle-section">
-                <strong>Fecha</strong>
-                {detalle.fecha} {detalle.hora}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Profesional</strong>
-                {detalle.professional_name}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Motivo</strong>
-                {detalle.atencion || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Diagnóstico</strong>
-                {detalle.diagnostico || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Receta</strong>
-                {detalle.receta || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Exámenes</strong>
-                {detalle.examenes || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Indicaciones</strong>
-                {detalle.indicaciones || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Orden kinésica</strong>
-                {detalle.orden_kinesiologia || "-"}
-              </div>
-
-              <div className="ica-detalle-section">
-                <strong>Indicación quirúrgica</strong>
-                {detalle.indicacion_quirurgica || "-"}
-              </div>
-
-              <button
-                className="btn-secondary"
-                onClick={() => setDetalle(null)}
-              >
-                Cerrar
-              </button>
-
+              <div className="ica-detalle-section"><strong>Fecha</strong>{detalle.fecha} {detalle.hora}</div>
+              <div className="ica-detalle-section"><strong>Profesional</strong>{detalle.professional_name}</div>
+              <div className="ica-detalle-section"><strong>Motivo</strong>{detalle.atencion || "-"}</div>
+              <div className="ica-detalle-section"><strong>Diagnóstico</strong>{detalle.diagnostico || "-"}</div>
+              <div className="ica-detalle-section"><strong>Receta</strong>{detalle.receta || "-"}</div>
+              <div className="ica-detalle-section"><strong>Exámenes</strong>{detalle.examenes || "-"}</div>
+              <div className="ica-detalle-section"><strong>Indicaciones</strong>{detalle.indicaciones || "-"}</div>
+              <div className="ica-detalle-section"><strong>Orden kinésica</strong>{detalle.orden_kinesiologia || "-"}</div>
+              <div className="ica-detalle-section"><strong>Indicación quirúrgica</strong>{detalle.indicacion_quirurgica || "-"}</div>
+              <button className="btn-secondary" onClick={() => setDetalle(null)}>Cerrar</button>
             </div>
           )}
 
         </DashboardPacientes>
-
       </div>
     </div>
   );
