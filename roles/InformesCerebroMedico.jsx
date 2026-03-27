@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useLocation } from "react-router-dom";
 import PatientForm from "../components/patient/PatientForm";
 import DashboardPacientes from "../pages/dashboard-pacientes";
 import "../styles/pacientes/patient-form.css";
@@ -9,14 +10,24 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function InformesCerebroMedico() {
   const { session, professional } = useAuth();
+  const location = useLocation();
 
-  const [admin,           setAdmin]           = useState(null);
-  const [resumen,         setResumen]         = useState("");
-  const [showForm,        setShowForm]        = useState(true);
-  const [error,           setError]           = useState(null);
-  const [loadingResumen,  setLoadingResumen]  = useState(false);
-  const [loadingPdf,      setLoadingPdf]      = useState(false);
-  const [resumenError,    setResumenError]    = useState(null);
+  const [admin,          setAdmin]          = useState(null);
+  const [resumen,        setResumen]        = useState("");
+  const [showForm,       setShowForm]       = useState(true);
+  const [error,          setError]          = useState(null);
+  const [loadingResumen, setLoadingResumen] = useState(false);
+  const [loadingPdf,     setLoadingPdf]     = useState(false);
+  const [resumenError,   setResumenError]   = useState(null);
+
+  // 🔥 REHIDRATAR — igual que BusquedaCerebroPaciente
+  useEffect(() => {
+    if (location.state?.rut) {
+      const rut = location.state.rut;
+      handlePacienteSeleccionado({ rut });
+      window.history.replaceState({}, document.title);
+    }
+  }, []);
 
   async function handlePacienteSeleccionado(dataPaciente) {
     const rut = dataPaciente.rut;
