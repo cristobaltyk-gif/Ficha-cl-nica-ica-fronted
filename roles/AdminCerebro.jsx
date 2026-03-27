@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 
 import HomeAdmin from "../pages/home/HomeAdmin";
 import ContableController from "../components/caja/ContableController";
+import CajaResumenController from "../components/caja/CajaResumenController";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,12 +32,12 @@ export default function AdminCerebro() {
       <Route index element={<HomeAdmin />} />
 
       <Route
-        path="contable"
-        element={<ContableController />}
+        path="caja"
+        element={<CajaResumenController professionals={professionals} />}
       />
 
       <Route
-        path="caja"
+        path="contable"
         element={<ContableController />}
       />
 
