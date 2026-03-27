@@ -14,19 +14,45 @@ export default function MedicoAtencionCerebro() {
   const navigate = useNavigate();
   const origin = state?.origin;
 
+  // =========================
+  // ORIGEN DE NAVEGACIÓN
+  // =========================
+
   function handleBackNavigation() {
-    if (origin === "informes") {
-      navigate("/medico/informes", { replace: true, state: { rut: state.rut } });
+    if (origin === "pacientes") {
+      navigate("/medico/pacientes", {
+        replace: true,
+        state: { rut: state.rut }
+      });
       return;
     }
+
+    if (origin === "informes") {
+      navigate("/medico/informes", {
+        replace: true,
+        state: { rut: state.rut }
+      });
+      return;
+    }
+
     if (origin === "agenda") {
       navigate(-1);
       return;
     }
+
     navigate("/medico", { replace: true });
   }
 
-  if (!state || !state.rut || !state.date || !state.time || !state.professional) {
+  // =========================
+  // VALIDACIÓN DE CONTEXTO
+  // =========================
+  if (
+    !state ||
+    !state.rut ||
+    !state.date ||
+    !state.time ||
+    !state.professional
+  ) {
     return (
       <div className="dashboard-placeholder">
         Atención inválida o acceso directo no permitido
@@ -34,44 +60,51 @@ export default function MedicoAtencionCerebro() {
     );
   }
 
+  // =========================
+  // VALIDAR SI ES HOY
+  // =========================
   const hoy    = new Date();
   const hoyISO = hoy.toISOString().slice(0, 10);
   const esHoy  = state.date === hoyISO;
 
+  // =========================
+  // FICHA ADMINISTRATIVA
+  // =========================
   const [admin,             setAdmin]             = useState(null);
   const [adminError,        setAdminError]        = useState(null);
-  const [professionalName,  setProfessionalName]  = useState("");
-  const [professionalError, setProfessionalError] = useState(null);
-  const [rawText,           setRawText]           = useState("");
-  const [atencion,          setAtencion]          = useState("");
-  const [diagnostico,       setDiagnostico]       = useState("");
-  const [receta,            setReceta]            = useState("");
-  const [examenes,          setExamenes]          = useState("");
-  const [indicaciones,      setIndicaciones]      = useState("");
-  const [ordenKinesiologia, setOrdenKinesiologia] = useState("");
-  const [indicacionQuirurgica, setIndicacionQuirurgica] = useState("");
-  const [ordering,          setOrdering]          = useState(false);
-  const [orderError,        setOrderError]        = useState(null);
 
   useEffect(() => {
     if (!state?.rut) return;
+
     async function loadFichaAdministrativa() {
       try {
         setAdminError(null);
+
         const internalUser = session?.usuario;
         if (!internalUser) { setAdminError("Sesión inválida"); return; }
-        const res = await fetch(`${API_URL}/api/fichas/admin/${state.rut}`, {
-          headers: { "Content-Type": "application/json", "X-Internal-User": internalUser }
-        });
+
+        const res = await fetch(
+          `${API_URL}/api/fichas/admin/${state.rut}`,
+          { headers: { "Content-Type": "application/json", "X-Internal-User": internalUser } }
+        );
+
         if (!res.ok) throw new Error("ADMIN_ERROR");
-        setAdmin(await res.json());
+        const data = await res.json();
+        setAdmin(data);
       } catch (e) {
         console.error("❌ ERROR ADMIN:", e);
         setAdminError("No se pudo cargar ficha administrativa");
       }
     }
+
     loadFichaAdministrativa();
   }, [state?.rut, session?.usuario]);
+
+  // =========================
+  // PROFESIONAL
+  // =========================
+  const [professionalName,  setProfessionalName]  = useState("");
+  const [professionalError, setProfessionalError] = useState(null);
 
   useEffect(() => {
     async function loadProfessional() {
@@ -91,6 +124,21 @@ export default function MedicoAtencionCerebro() {
     loadProfessional();
   }, [state.professional]);
 
+  // =========================
+  // ESTADO CLÍNICO
+  // =========================
+  const [rawText,              setRawText]              = useState("");
+  const [atencion,             setAtencion]             = useState("");
+  const [diagnostico,          setDiagnostico]          = useState("");
+  const [receta,               setReceta]               = useState("");
+  const [examenes,             setExamenes]             = useState("");
+  const [indicaciones,         setIndicaciones]         = useState("");
+  const [ordenKinesiologia,    setOrdenKinesiologia]    = useState("");
+  const [indicacionQuirurgica, setIndicacionQuirurgica] = useState("");
+
+  // =========================
+  // CALCULAR EDAD
+  // =========================
   function calcularEdad(fechaNacimiento) {
     if (!fechaNacimiento) return "";
     const nacimiento = new Date(fechaNacimiento);
@@ -101,6 +149,12 @@ export default function MedicoAtencionCerebro() {
     return edad;
   }
 
+  const [ordering,   setOrdering]   = useState(false);
+  const [orderError, setOrderError] = useState(null);
+
+  // =========================
+  // WEB SPEECH
+  // =========================
   const speech = useWebSpeech({
     lang: "es-CL",
     onChunk: (text) => {
@@ -114,6 +168,9 @@ export default function MedicoAtencionCerebro() {
     else speech.stop();
   }
 
+  // =========================
+  // ORDENAR CLÍNICAMENTE (CLAUDE)
+  // =========================
   async function handleOrdenarClinicamente() {
     const inputText = atencion.trim() || rawText.trim();
     if (!inputText) { setOrderError("No hay texto para ordenar"); return; }
@@ -129,15 +186,14 @@ export default function MedicoAtencionCerebro() {
       });
 
       if (!res.ok) throw new Error("CLAUDE_ERROR");
-
       const data = await res.json();
 
-      setAtencion(data.atencion             || "");
-      setDiagnostico(data.diagnostico       || "");
-      setReceta(data.receta                 || "");
-      setExamenes(data.examenes             || "");
-      setIndicaciones(data.indicaciones     || "");
-      setOrdenKinesiologia(data.ordenKinesica      || "");
+      setAtencion(data.atencion                  || "");
+      setDiagnostico(data.diagnostico             || "");
+      setReceta(data.receta                       || "");
+      setExamenes(data.examenes                   || "");
+      setIndicaciones(data.indicaciones           || "");
+      setOrdenKinesiologia(data.ordenKinesica     || "");
       setIndicacionQuirurgica(data.indicacionQuirurgica || "");
 
     } catch (e) {
@@ -148,6 +204,9 @@ export default function MedicoAtencionCerebro() {
     }
   }
 
+  // =========================
+  // PDF HELPERS
+  // =========================
   async function openPdf(endpoint, payload) {
     try {
       const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
@@ -206,8 +265,12 @@ export default function MedicoAtencionCerebro() {
     });
   }
 
+  // =========================
+  // GUARDAR TODO
+  // =========================
   async function handleGuardarTodo() {
     if (!esHoy) { alert("Solo se puede guardar atención del día actual"); return; }
+
     try {
       const res = await fetch(`${API_URL}/api/fichas/evento`, {
         method: "POST",
@@ -219,11 +282,14 @@ export default function MedicoAtencionCerebro() {
           indicacion_quirurgica: indicacionQuirurgica
         })
       });
+
       if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Error al guardar"); }
+
       if (receta.trim())    await handlePrintReceta();
       if (atencion.trim())  await handlePrintInforme();
       if (diagnostico.trim()) await handlePrintKine();
       if (examenes.trim())  await handlePrintExamenes();
+
       alert("✅ Evento clínico guardado correctamente");
       handleBackNavigation();
     } catch (e) {
@@ -232,8 +298,12 @@ export default function MedicoAtencionCerebro() {
     }
   }
 
+  // =========================
+  // MODIFICAR EVENTO
+  // =========================
   async function handleModificarEvento() {
     if (!esHoy) { alert("Solo se puede modificar atención del día actual"); return; }
+
     try {
       const res = await fetch(`${API_URL}/api/fichas/evento`, {
         method: "PUT",
@@ -245,7 +315,9 @@ export default function MedicoAtencionCerebro() {
           indicacion_quirurgica: indicacionQuirurgica
         })
       });
+
       if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Error al modificar"); }
+
       alert("✅ Evento clínico modificado correctamente");
       handleBackNavigation();
     } catch (e) {
@@ -254,12 +326,18 @@ export default function MedicoAtencionCerebro() {
     }
   }
 
+  // =========================
+  // BLOQUEOS
+  // =========================
   if (adminError)        return <div>{adminError}</div>;
   if (professionalError) return <div>{professionalError}</div>;
   if (!admin || !professionalName) return <div>Cargando información…</div>;
 
   const edadCalculada = calcularEdad(admin.fecha_nacimiento);
 
+  // =========================
+  // UI — DASHBOARD SOLO PINTA
+  // =========================
   return (
     <DashboardAtencion
       rut={admin.rut}
@@ -295,11 +373,11 @@ export default function MedicoAtencionCerebro() {
       ordering={ordering}
       orderError={orderError}
       onImprimir={(tipo) => {
-        if (tipo === "receta")      handlePrintReceta();
-        if (tipo === "examenes")    handlePrintExamenes();
+        if (tipo === "receta")       handlePrintReceta();
+        if (tipo === "examenes")     handlePrintExamenes();
         if (tipo === "indicaciones") handlePrintInforme();
         if (tipo === "kinesiologia") handlePrintKine();
-        if (tipo === "quirurgica")  handlePrintQuirurgica();
+        if (tipo === "quirurgica")   handlePrintQuirurgica();
       }}
       onGuardar={handleGuardarTodo}
       onModificar={handleModificarEvento}
