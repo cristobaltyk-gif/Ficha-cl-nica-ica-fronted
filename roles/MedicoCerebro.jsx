@@ -30,6 +30,9 @@ export default function MedicoCerebro() {
   const { professional } = useAuth();
   const navigate = useNavigate();
 
+  // =========================
+  // ESTADO
+  // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(() => {
@@ -38,9 +41,13 @@ export default function MedicoCerebro() {
   });
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
 
+  // MODAL MÉDICO (IGUAL A SECRETARÍA)
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
 
+  // =========================
+  // SEGURIDAD
+  // =========================
   if (!professional) {
     return (
       <div className="agenda-placeholder">
@@ -49,6 +56,9 @@ export default function MedicoCerebro() {
     );
   }
 
+  // =========================
+  // CARGA PROFESIONAL ÚNICO
+  // =========================
   useEffect(() => {
     let cancelled = false;
 
@@ -75,12 +85,18 @@ export default function MedicoCerebro() {
     return () => { cancelled = true; };
   }, [professional]);
 
+  // =========================
+  // AGENDA SUMMARY
+  // =========================
   function handleSelectDay(payload) {
     setSelectedDay(payload);
     sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
     navigate("agenda/dia");
   }
 
+  // =========================
+  // SLOT CLICK (EVENTO PURO)
+  // =========================
   function handleAttend(slot) {
     setModalSlot(slot);
     setModalOpen(true);
@@ -101,12 +117,17 @@ export default function MedicoCerebro() {
     } catch {}
   }
 
+  // =========================
+  // RENDER
+  // =========================
   return (
     <>
       <Routes>
 
+        {/* HOME */}
         <Route index element={<HomeMedico />} />
 
+        {/* AGENDA SUMMARY */}
         <Route
           path="agenda"
           element={
@@ -121,6 +142,7 @@ export default function MedicoCerebro() {
           }
         />
 
+        {/* AGENDA DIARIA */}
         <Route
           path="agenda/dia"
           element={
@@ -145,11 +167,13 @@ export default function MedicoCerebro() {
           element={<MedicoAtencionCerebro />}
         />
 
+        {/* 📝 INFORMES — módulo IA */}
         <Route
           path="informes"
           element={<InformesCerebroMedico />}
         />
 
+        {/* 👥 PACIENTES — búsqueda como estaba */}
         <Route
           path="pacientes"
           element={<BusquedaCerebroPaciente />}
@@ -157,6 +181,7 @@ export default function MedicoCerebro() {
 
       </Routes>
 
+      {/* MODAL MÉDICO — DECIDE EL CEREBRO */}
       <AgendaSlotModalMedico
         open={modalOpen}
         slot={modalSlot}
