@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 import HomeMedico from "../pages/home/HomeMedico";
@@ -12,40 +12,65 @@ import InformesCerebroMedico from "./InformesCerebroMedico.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+/*
+MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
+
+✔ Cerebro único del rol médico
+✔ SOLO navegación
+✔ NO pinta UI
+✔ NO header
+✔ NO botones
+✔ NO sidebar
+✔ HOME primero
+✔ 1 profesional automático
+✔ AgendaDayController SOLO emite eventos
+*/
+
 export default function MedicoCerebro() {
   const { professional } = useAuth();
   const navigate = useNavigate();
 
-  const [professionals,   setProfessionals]   = useState([]);
-  const [loading,         setLoading]         = useState(true);
-  const [selectedDay,     setSelectedDay]     = useState(() => {
+  const [professionals, setProfessionals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState(() => {
     const saved = sessionStorage.getItem("medico_selected_day");
     return saved ? JSON.parse(saved) : null;
   });
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
-  const [modalOpen,       setModalOpen]       = useState(false);
-  const [modalSlot,       setModalSlot]       = useState(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalSlot, setModalSlot] = useState(null);
 
   if (!professional) {
-    return <div className="agenda-placeholder">Médico sin profesional asignado</div>;
+    return (
+      <div className="agenda-placeholder">
+        Médico sin profesional asignado
+      </div>
+    );
   }
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadProfessional() {
       setLoading(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
+
         const data = await res.json();
         const prof = data.find(p => p.id === professional);
-        if (!cancelled && prof) setProfessionals([{ id: prof.id, name: prof.name }]);
+
+        if (!cancelled && prof) {
+          setProfessionals([{ id: prof.id, name: prof.name }]);
+        }
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
+
     loadProfessional();
     return () => { cancelled = true; };
   }, [professional]);
@@ -63,7 +88,9 @@ export default function MedicoCerebro() {
 
   async function cancelSlot(slot) {
     if (!slot) return;
+
     const { date, time, professional } = slot;
+
     try {
       await fetch(`${API_URL}/agenda/cancel`, {
         method: "POST",
@@ -106,7 +133,9 @@ export default function MedicoCerebro() {
                 onAttend={handleAttend}
               />
             ) : (
-              <div className="agenda-placeholder">Selecciona un día</div>
+              <div className="agenda-placeholder">
+                Selecciona un día
+              </div>
             )
           }
         />
@@ -131,10 +160,15 @@ export default function MedicoCerebro() {
       <AgendaSlotModalMedico
         open={modalOpen}
         slot={modalSlot}
-        onClose={() => { setModalOpen(false); setModalSlot(null); }}
+        onClose={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+
         onAttend={(slot) => {
           setModalOpen(false);
           setModalSlot(null);
+
           navigate("agenda/dia/atencion", {
             state: {
               rut:          slot.patient?.rut || slot.rut,
@@ -145,7 +179,12 @@ export default function MedicoCerebro() {
             }
           });
         }}
-        onNoShow={() => { setModalOpen(false); setModalSlot(null); }}
+
+        onNoShow={() => {
+          setModalOpen(false);
+          setModalSlot(null);
+        }}
+
         onCancel={() => {
           cancelSlot(modalSlot);
           setModalOpen(false);
