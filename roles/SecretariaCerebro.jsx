@@ -11,7 +11,7 @@ import AnulacionModal from "../components/caja/AnulacionModal";
 import CajaResumenController from "../components/caja/CajaResumenController";
 import PacientesSecretaria from "./PacientesSecretaria.jsx";
 import MedicosSecretaria from "./MedicosSecretaria.jsx";
-import HorariosAdmin from "./HorariosAdmin.jsx";
+import ConfiguracionSecretaria from "./ConfiguracionSecretaria.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -186,14 +186,16 @@ export default function SecretariaCerebro() {
           element={<PacientesSecretaria />}
         />
 
+        {/* Médicos — lista + editar horarios */}
         <Route
           path="medicos"
           element={<MedicosSecretaria />}
         />
 
+        {/* Administración — configuración personal de la secretaria */}
         <Route
           path="administracion"
-          element={<HorariosAdmin />}
+          element={<ConfiguracionSecretaria />}
         />
 
       </Routes>
