@@ -9,6 +9,8 @@ import AgendaSlotModalSecretaria from "../components/agenda/AgendaSlotModalSecre
 import PagoModal from "../components/caja/PagoModal";
 import AnulacionModal from "../components/caja/AnulacionModal";
 import CajaResumenController from "../components/caja/CajaResumenController";
+import PacientesSecretaria from "./PacientesSecretaria.jsx";
+import MedicosSecretaria from "./MedicosSecretaria.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -175,9 +177,17 @@ export default function SecretariaCerebro() {
 
         <Route
           path="caja"
-          element={
-            <CajaResumenController professionals={professionals} />
-          }
+          element={<CajaResumenController professionals={professionals} />}
+        />
+
+        <Route
+          path="pacientes"
+          element={<PacientesSecretaria />}
+        />
+
+        <Route
+          path="medicos"
+          element={<MedicosSecretaria />}
         />
 
       </Routes>
