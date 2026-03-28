@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import HomeAdmin from "../pages/home/HomeAdmin";
 import ContableController from "../components/caja/ContableController";
 import CajaResumenController from "../components/caja/CajaResumenController";
+import HorariosAdmin from "./HorariosAdmin.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -42,13 +43,13 @@ export default function AdminCerebro() {
       />
 
       <Route
-        path="profesionales"
-        element={<div className="agenda-placeholder">Profesionales — próximamente</div>}
+        path="agenda"
+        element={<HorariosAdmin />}
       />
 
       <Route
-        path="agenda"
-        element={<div className="agenda-placeholder">Configuración de agenda — próximamente</div>}
+        path="profesionales"
+        element={<div className="agenda-placeholder">Profesionales — próximamente</div>}
       />
 
       <Route
