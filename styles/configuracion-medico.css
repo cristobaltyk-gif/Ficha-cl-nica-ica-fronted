@@ -1,0 +1,241 @@
+/* ==========================================
+   ICA — CONFIGURACIÓN MÉDICO
+   ========================================== */
+
+.cfg-root {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* HEADER */
+.cfg-header {
+  background: #fff;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cfg-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
+}
+
+.cfg-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* CONTENT */
+.cfg-content {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* TABS */
+.cfg-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.cfg-tab {
+  flex: 1;
+  padding: 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.cfg-tab.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+/* CARD */
+.cfg-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* FIELD */
+.cfg-field {
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cfg-field:last-child { border-bottom: none; padding-bottom: 0; }
+.cfg-field:first-child { padding-top: 0; }
+
+.cfg-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin: 0 0 5px;
+}
+
+.cfg-field-value {
+  font-size: 14px;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* INPUT */
+.cfg-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  color: #0f172a;
+}
+
+.cfg-input:focus {
+  border-color: #94a3b8;
+}
+
+.cfg-input-time {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  outline: none;
+  color: #0f172a;
+}
+
+/* BOTONES */
+.cfg-btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.cfg-btn-primary:hover { background: #1e293b; }
+.cfg-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.cfg-btn-primary.success { background: #16a34a; }
+
+.cfg-btn-secondary {
+  padding: 5px 10px;
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.cfg-btn-save {
+  padding: 5px 10px;
+  background: #0f172a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.cfg-btn-save.success { background: #16a34a; }
+
+.cfg-btn-remove {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* DÍA HEADER */
+.cfg-dia-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cfg-dia-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cfg-dia-actions { display: flex; gap: 6px; }
+
+/* BLOQUE ROW */
+.cfg-bloque-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cfg-bloque-sep {
+  color: #94a3b8;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* MENSAJES */
+.cfg-error {
+  font-size: 13px;
+  color: #dc2626;
+  margin: 0 0 12px;
+}
+
+.cfg-success {
+  font-size: 13px;
+  color: #16a34a;
+  margin: 0 0 12px;
+}
+
+.cfg-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* IMAGEN */
+.cfg-img {
+  max-height: 70px;
+  margin-top: 6px;
+  display: block;
+}
