@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useLocation } from "react-router-dom";
 import PatientForm from "../components/patient/PatientForm";
-import DashboardPacientes from "../pages/dashboard-pacientes";
-import "../styles/pacientes/patient-form.css";
 import "../styles/pacientes/dashboard-pacientes.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -131,168 +129,139 @@ export default function InformesCerebroMedico() {
     setResumenError(null);
   }
 
+  const nombreCompleto = admin
+    ? `${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`.trim()
+    : "";
+
   return (
-    <div className="dashboard-pacientes-wrapper">
-      <div className="dashboard-pacientes-container">
-        <DashboardPacientes
-          title="Informes clínicos"
-          subtitle="Resumen clínico integral generado por IA"
-          actions={!showForm && (
-            <button className="btn-secondary" onClick={handleReset}>
-              Buscar otro paciente
-            </button>
-          )}
-        >
+    <div className="dp-root">
 
-          {showForm && (
-            <div className="ica-card">
-              <PatientForm
-                onConfirm={handlePacienteSeleccionado}
-                onCancel={() => setShowForm(false)}
-              />
-            </div>
-          )}
+      {/* HEADER */}
+      <div className="dp-header">
+        <div className="dp-header-left">
+          <h1>{admin ? nombreCompleto : "Informes clínicos"}</h1>
+          {admin && <p>{admin.rut} · {admin.prevision}</p>}
+          {!admin && <p>Resumen clínico integral generado por IA</p>}
+        </div>
+        {!showForm && (
+          <button className="dp-btn-secondary" onClick={handleReset}>
+            ← Buscar otro
+          </button>
+        )}
+      </div>
 
-          {error && (
-            <div className="ica-card">
-              <p style={{ color: "red" }}>{error}</p>
-            </div>
-          )}
+      <div className="dp-content">
 
-          {admin && (
-            <div className="ica-card">
-              <p style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 700, color: "#0f172a" }}>
-                {admin.nombre} {admin.apellido_paterno} {admin.apellido_materno}
+        {/* ERROR */}
+        {error && (
+          <div className="dp-card">
+            <p className="dp-error">{error}</p>
+          </div>
+        )}
+
+        {/* BUSCADOR */}
+        {showForm && (
+          <div className="dp-card">
+            <PatientForm
+              onConfirm={handlePacienteSeleccionado}
+              onCancel={() => setShowForm(false)}
+            />
+          </div>
+        )}
+
+        {/* SELECCIÓN DE ATENCIONES */}
+        {admin && eventos.length > 0 && (
+          <div className="dp-card">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <p className="dp-label" style={{ margin: 0 }}>
+                Atenciones · {seleccionados.length}/{eventos.length} seleccionadas
               </p>
-              <p style={{ margin: 0, fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>
-                {admin.rut} · {admin.prevision}
-              </p>
+              <button className="dp-btn-secondary" onClick={toggleTodos}>
+                {seleccionados.length === eventos.length ? "Desmarcar todo" : "Marcar todo"}
+              </button>
             </div>
-          )}
 
-          {admin && eventos.length > 0 && (
-            <div className="ica-card">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>
-                  Atenciones ({seleccionados.length}/{eventos.length})
-                </span>
-                <button
-                  onClick={toggleTodos}
-                  style={{
-                    fontSize: 12, fontWeight: 600,
-                    padding: "4px 12px",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 999,
-                    background: "#f8fafc",
-                    color: "#374151",
-                    cursor: "pointer",
-                    fontFamily: "'DM Sans', system-ui, sans-serif"
-                  }}
+            {eventos.map((ev, i) => {
+              const sel = seleccionados.includes(ev.id);
+              return (
+                <div
+                  key={ev.id}
+                  className="dp-event-row"
+                  onClick={() => toggleEvento(ev.id)}
+                  style={{ borderBottomColor: i < eventos.length - 1 ? "#f1f5f9" : "transparent" }}
                 >
-                  {seleccionados.length === eventos.length ? "Desmarcar todo" : "Marcar todo"}
-                </button>
-              </div>
+                  {/* CHECKBOX */}
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                    border: `2px solid ${sel ? "#2563eb" : "#cbd5e1"}`,
+                    background: sel ? "#2563eb" : "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {sel && (
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {eventos.map(ev => {
-                  const sel = seleccionados.includes(ev.id);
-                  return (
-                    <div
-                      key={ev.id}
-                      onClick={() => toggleEvento(ev.id)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        padding: "12px 14px",
-                        border: `1.5px solid ${sel ? "#2563eb" : "#e2e8f0"}`,
-                        borderRadius: 10,
-                        background: sel ? "#eff6ff" : "#f8fafc",
-                        cursor: "pointer",
-                        transition: "all 0.12s",
-                      }}
-                    >
-                      {/* CHECKBOX VISUAL */}
-                      <div style={{
-                        width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-                        border: `2px solid ${sel ? "#2563eb" : "#cbd5e1"}`,
-                        background: sel ? "#2563eb" : "#fff",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>
-                        {sel && (
-                          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                            <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
-                      </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className="dp-event-diag">{ev.diagnostico || "Sin diagnóstico"}</p>
+                    <p className="dp-event-meta">
+                      {ev.fecha} · {ev.hora}{ev.professional_name ? ` · ${ev.professional_name}` : ""}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
 
-                      {/* CONTENIDO */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginBottom: 2 }}>
-                          {ev.diagnostico || "Sin diagnóstico"}
-                        </div>
-                        <div style={{ fontSize: 11.5, color: "#64748b" }}>
-                          {ev.fecha} · {ev.hora}
-                          {ev.professional_name ? ` · ${ev.professional_name}` : ""}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                className="dp-btn-primary"
+                onClick={handleGenerarResumen}
+                disabled={loadingResumen || seleccionados.length === 0}
+              >
+                {loadingResumen ? "Generando resumen…" : `Generar resumen (${seleccionados.length} atenciones)`}
+              </button>
 
-              <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {resumen && (
                 <button
-                  className="btn-primary"
-                  onClick={handleGenerarResumen}
-                  disabled={loadingResumen || seleccionados.length === 0}
+                  className="dp-btn-primary"
+                  onClick={handleImprimirInforme}
+                  disabled={loadingPdf}
+                  style={{ background: "#1e40af" }}
                 >
-                  {loadingResumen
-                    ? "Generando…"
-                    : `🤖 Generar resumen (${seleccionados.length})`}
+                  {loadingPdf ? "Generando PDF…" : "Imprimir informe"}
                 </button>
-
-                {resumen && (
-                  <button
-                    className="btn-primary"
-                    onClick={handleImprimirInforme}
-                    disabled={loadingPdf}
-                  >
-                    {loadingPdf ? "Generando PDF…" : "🖨️ Imprimir"}
-                  </button>
-                )}
-              </div>
+              )}
             </div>
-          )}
+          </div>
+        )}
 
-          {admin && !loadingEventos && eventos.length === 0 && (
-            <div className="ica-card">
-              <p style={{ color: "#64748b" }}>Sin atenciones registradas</p>
-            </div>
-          )}
+        {/* SIN ATENCIONES */}
+        {admin && !loadingEventos && eventos.length === 0 && (
+          <div className="dp-card">
+            <p className="dp-empty">Sin atenciones registradas</p>
+          </div>
+        )}
 
-          {resumenError && (
-            <div className="ica-card">
-              <p style={{ color: "red" }}>{resumenError}</p>
-            </div>
-          )}
+        {/* ERROR RESUMEN */}
+        {resumenError && (
+          <div className="dp-card">
+            <p className="dp-error">{resumenError}</p>
+          </div>
+        )}
 
-          {resumen && (
-            <div className="ica-card">
-              <h3 style={{ marginTop: 0 }}>Resumen clínico</h3>
-              <div style={{
-                background: "#f8fafc", border: "1px solid #e2e8f0",
-                borderRadius: 10, padding: "16px 18px",
-                fontSize: 13.5, lineHeight: 1.8, color: "#0f172a",
-                whiteSpace: "pre-wrap", fontFamily: "Georgia, serif"
-              }}>
-                {resumen}
-              </div>
-            </div>
-          )}
+        {/* RESUMEN */}
+        {resumen && (
+          <div className="dp-card">
+            <p className="dp-label">Resumen clínico integral</p>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.8, color: "#0f172a", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif" }}>
+              {resumen}
+            </p>
+          </div>
+        )}
 
-        </DashboardPacientes>
       </div>
     </div>
   );
-          }
+}
