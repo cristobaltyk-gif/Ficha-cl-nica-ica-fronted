@@ -9,6 +9,7 @@ import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
 import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
 import BusquedaCerebroPaciente from "./BusquedaCerebroPaciente.jsx";
 import InformesCerebroMedico from "./InformesCerebroMedico.jsx";
+import CajaResumenController from "../components/caja/CajaResumenController.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,9 +19,6 @@ MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
 ✔ Cerebro único del rol médico
 ✔ SOLO navegación
 ✔ NO pinta UI
-✔ NO header
-✔ NO botones
-✔ NO sidebar
 ✔ HOME primero
 ✔ 1 profesional automático
 ✔ AgendaDayController SOLO emite eventos
@@ -30,24 +28,17 @@ export default function MedicoCerebro() {
   const { professional } = useAuth();
   const navigate = useNavigate();
 
-  // =========================
-  // ESTADO
-  // =========================
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDay, setSelectedDay] = useState(() => {
-  const saved = sessionStorage.getItem("medico_selected_day");
-  return saved ? JSON.parse(saved) : null;
-});
+    const saved = sessionStorage.getItem("medico_selected_day");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
- 
-  // MODAL MÉDICO (IGUAL A SECRETARÍA)
+
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
 
-  // =========================
-  // SEGURIDAD
-  // =========================
   if (!professional) {
     return (
       <div className="agenda-placeholder">
@@ -56,9 +47,6 @@ export default function MedicoCerebro() {
     );
   }
 
-  // =========================
-  // CARGA PROFESIONAL ÚNICO
-  // =========================
   useEffect(() => {
     let cancelled = false;
 
@@ -82,66 +70,50 @@ export default function MedicoCerebro() {
     }
 
     loadProfessional();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [professional]);
 
-  // =========================
-  // AGENDA SUMMARY
-  // =========================
   function handleSelectDay(payload) {
-  setSelectedDay(payload);
-  sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
-  navigate("agenda/dia");
+    setSelectedDay(payload);
+    sessionStorage.setItem("medico_selected_day", JSON.stringify(payload));
+    navigate("agenda/dia");
   }
 
-  // =========================
-  // SLOT CLICK (EVENTO PURO)
-  // =========================
   function handleAttend(slot) {
-    // AgendaDayController SOLO avisa
     setModalSlot(slot);
     setModalOpen(true);
   }
 
   async function cancelSlot(slot) {
     if (!slot) return;
-
     const { date, time, professional } = slot;
-
     try {
       await fetch(`${API_URL}/agenda/cancel`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          date,
-          time,
-          professional
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, professional })
       });
-
-      // 🔄 refrescar agenda diaria
       setAgendaReloadKey(k => k + 1);
-
-    } catch {
-      // backend decide errores
-    }
+    } catch {}
   }
 
-  // =========================
-  // RENDER
-  // =========================
+  // Navega a pagos del día seleccionado en agenda
+  function handleVerPagosDia() {
+    if (!selectedDay) return;
+    navigate("pagos-dia", {
+      state: {
+        date:         selectedDay.date,
+        professional: selectedDay.professional
+      }
+    });
+  }
+
   return (
     <>
       <Routes>
 
-        {/* HOME */}
         <Route index element={<HomeMedico />} />
 
-        {/* AGENDA SUMMARY */}
         <Route
           path="agenda"
           element={
@@ -156,7 +128,6 @@ export default function MedicoCerebro() {
           }
         />
 
-        {/* AGENDA DIARIA */}
         <Route
           path="agenda/dia"
           element={
@@ -167,11 +138,10 @@ export default function MedicoCerebro() {
                 date={selectedDay.date}
                 role="MEDICO"
                 onAttend={handleAttend}
+                onVerPagos={handleVerPagosDia}
               />
             ) : (
-              <div className="agenda-placeholder">
-                Selecciona un día
-              </div>
+              <div className="agenda-placeholder">Selecciona un día</div>
             )
           }
         />
@@ -181,13 +151,31 @@ export default function MedicoCerebro() {
           element={<MedicoAtencionCerebro />}
         />
 
-        {/* 📝 INFORMES — módulo IA resumen clínico */}
+        {/* Pagos desde agenda día — fecha fija */}
+        <Route
+          path="pagos-dia"
+          element={
+            <CajaResumenController
+              professionals={professionals}
+              fechaFija={selectedDay?.date}
+              profesionalFijo={professional}
+            />
+          }
+        />
+
+        {/* Pagos desde home — selector libre */}
+        <Route
+          path="pagos"
+          element={
+            <CajaResumenController professionals={professionals} />
+          }
+        />
+
         <Route
           path="informes"
           element={<InformesCerebroMedico />}
         />
 
-        {/* 👥 PACIENTES — búsqueda como estaba */}
         <Route
           path="pacientes"
           element={<BusquedaCerebroPaciente />}
@@ -195,19 +183,14 @@ export default function MedicoCerebro() {
 
       </Routes>
 
-      {/* MODAL MÉDICO — DECIDE EL CEREBRO */}
       <AgendaSlotModalMedico
         open={modalOpen}
         slot={modalSlot}
-        onClose={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
+        onClose={() => { setModalOpen(false); setModalSlot(null); }}
 
         onAttend={(slot) => {
           setModalOpen(false);
           setModalSlot(null);
-
           navigate("agenda/dia/atencion", {
             state: {
               rut:          slot.patient?.rut || slot.rut,
@@ -219,10 +202,7 @@ export default function MedicoCerebro() {
           });
         }}
 
-        onNoShow={() => {
-          setModalOpen(false);
-          setModalSlot(null);
-        }}
+        onNoShow={() => { setModalOpen(false); setModalSlot(null); }}
 
         onCancel={() => {
           cancelSlot(modalSlot);
