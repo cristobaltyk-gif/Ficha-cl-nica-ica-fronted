@@ -10,19 +10,9 @@ import MedicoAtencionCerebro from "./AtencionClinicaCerebro.jsx";
 import BusquedaCerebroPaciente from "./BusquedaCerebroPaciente.jsx";
 import InformesCerebroMedico from "./InformesCerebroMedico.jsx";
 import CajaResumenController from "../components/caja/CajaResumenController.jsx";
+import ConfiguracionMedico from "./ConfiguracionMedico.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
-
-/*
-MedicoCerebro — PRODUCCIÓN REAL (CANÓNICO)
-
-✔ Cerebro único del rol médico
-✔ SOLO navegación
-✔ NO pinta UI
-✔ HOME primero
-✔ 1 profesional automático
-✔ AgendaDayController SOLO emite eventos
-*/
 
 export default function MedicoCerebro() {
   const { professional } = useAuth();
@@ -35,40 +25,29 @@ export default function MedicoCerebro() {
     return saved ? JSON.parse(saved) : null;
   });
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [modalSlot, setModalSlot] = useState(null);
 
   if (!professional) {
-    return (
-      <div className="agenda-placeholder">
-        Médico sin profesional asignado
-      </div>
-    );
+    return <div className="agenda-placeholder">Médico sin profesional asignado</div>;
   }
 
   useEffect(() => {
     let cancelled = false;
-
     async function loadProfessional() {
       setLoading(true);
       try {
         const res = await fetch(`${API_URL}/professionals`);
         if (!res.ok) throw new Error("professionals");
-
         const data = await res.json();
         const prof = data.find(p => p.id === professional);
-
-        if (!cancelled && prof) {
-          setProfessionals([{ id: prof.id, name: prof.name }]);
-        }
+        if (!cancelled && prof) setProfessionals([{ id: prof.id, name: prof.name }]);
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
     loadProfessional();
     return () => { cancelled = true; };
   }, [professional]);
@@ -97,15 +76,9 @@ export default function MedicoCerebro() {
     } catch {}
   }
 
-  // Navega a pagos del día seleccionado en agenda
   function handleVerPagosDia() {
     if (!selectedDay) return;
-    navigate("pagos-dia", {
-      state: {
-        date:         selectedDay.date,
-        professional: selectedDay.professional
-      }
-    });
+    navigate("pagos-dia");
   }
 
   return (
@@ -151,7 +124,7 @@ export default function MedicoCerebro() {
           element={<MedicoAtencionCerebro />}
         />
 
-        {/* Pagos desde agenda día — fecha fija */}
+        {/* Pagos desde agenda — fecha y profesional fijos */}
         <Route
           path="pagos-dia"
           element={
@@ -163,23 +136,20 @@ export default function MedicoCerebro() {
           }
         />
 
-        {/* Pagos desde home — selector libre */}
+        {/* Pagos desde home — selector día/semana/mes, profesional fijo */}
         <Route
           path="pagos"
           element={
-            <CajaResumenController professionals={professionals} />
+            <CajaResumenController
+              professionals={professionals}
+              profesionalFijo={professional}
+            />
           }
         />
 
-        <Route
-          path="informes"
-          element={<InformesCerebroMedico />}
-        />
-
-        <Route
-          path="pacientes"
-          element={<BusquedaCerebroPaciente />}
-        />
+        <Route path="informes"       element={<InformesCerebroMedico />} />
+        <Route path="pacientes"      element={<BusquedaCerebroPaciente />} />
+        <Route path="configuracion"  element={<ConfiguracionMedico />} />
 
       </Routes>
 
