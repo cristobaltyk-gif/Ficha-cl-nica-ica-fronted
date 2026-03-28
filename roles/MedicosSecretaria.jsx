@@ -3,14 +3,23 @@ import "../styles/pacientes/dashboard-pacientes.css";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const DIAS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-const DIAS_ES = { monday: "Lun", tuesday: "Mar", wednesday: "Mié",
-                  thursday: "Jue", friday: "Vie", saturday: "Sáb", sunday: "Dom" };
+const DIAS = [
+  { key: "monday",    label: "Lunes" },
+  { key: "tuesday",   label: "Martes" },
+  { key: "wednesday", label: "Miércoles" },
+  { key: "thursday",  label: "Jueves" },
+  { key: "friday",    label: "Viernes" },
+  { key: "saturday",  label: "Sábado" },
+  { key: "sunday",    label: "Domingo" },
+];
 
 export default function MedicosSecretaria() {
   const [professionals, setProfessionals] = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [detalle,       setDetalle]       = useState(null);
+  const [horarios,      setHorarios]      = useState({});
+  const [horSuccess,    setHorSuccess]    = useState(null);
+  const [horError,      setHorError]      = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -27,6 +36,65 @@ export default function MedicosSecretaria() {
     load();
   }, []);
 
+  function handleSeleccionar(prof) {
+    setDetalle(prof);
+    setHorSuccess(null);
+    setHorError(null);
+
+    const dias = prof.schedule?.days || {};
+    const init = {};
+    DIAS.forEach(d => {
+      const bloques = dias[d.key];
+      if (bloques) {
+        const arr = Array.isArray(bloques) ? bloques : bloques.blocks || [];
+        init[d.key] = arr.map(b => ({ start: b.start, end: b.end }));
+      } else {
+        init[d.key] = [];
+      }
+    });
+    setHorarios(init);
+  }
+
+  function addBloque(dia) {
+    setHorarios(prev => ({ ...prev, [dia]: [...(prev[dia] || []), { start: "09:00", end: "13:00" }] }));
+  }
+
+  function removeBloque(dia, idx) {
+    setHorarios(prev => ({ ...prev, [dia]: prev[dia].filter((_, i) => i !== idx) }));
+  }
+
+  function updateBloque(dia, idx, field, value) {
+    setHorarios(prev => {
+      const copy = [...prev[dia]];
+      copy[idx] = { ...copy[idx], [field]: value };
+      return { ...prev, [dia]: copy };
+    });
+  }
+
+  async function handleGuardarHorario(dia) {
+    setHorError(null);
+    setHorSuccess(null);
+    const bloques = horarios[dia] || [];
+
+    try {
+      if (bloques.length === 0) {
+        await fetch(`${API_URL}/admin/professionals/${detalle.id}/day/${dia}`, {
+          method: "DELETE",
+        });
+      } else {
+        await fetch(`${API_URL}/admin/professionals/${detalle.id}/day`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ weekday: dia, blocks: bloques, slotMinutes: 15 })
+        });
+      }
+      setHorSuccess(dia);
+      setTimeout(() => setHorSuccess(null), 2000);
+    } catch {
+      setHorError(dia);
+    }
+  }
+
   return (
     <div className="dp-root">
 
@@ -35,7 +103,7 @@ export default function MedicosSecretaria() {
         <div className="dp-header-left">
           <h1>{detalle ? detalle.name : "Profesionales"}</h1>
           {!detalle && <p>{professionals.length} profesionales activos</p>}
-          {detalle && <p>{detalle.specialty || ""}</p>}
+          {detalle && <p>{detalle.specialty || detalle.id}</p>}
         </div>
         {detalle && (
           <button className="dp-btn-secondary" onClick={() => setDetalle(null)}>
@@ -62,7 +130,7 @@ export default function MedicosSecretaria() {
               <div
                 key={p.id}
                 className="dp-event-row"
-                onClick={() => setDetalle(p)}
+                onClick={() => handleSeleccionar(p)}
                 style={{ borderBottomColor: i < professionals.length - 1 ? "#f1f5f9" : "transparent" }}
               >
                 <div style={{
@@ -85,9 +153,10 @@ export default function MedicosSecretaria() {
           </div>
         )}
 
-        {/* DETALLE PROFESIONAL */}
+        {/* DETALLE + HORARIOS EDITABLES */}
         {detalle && (
           <>
+            {/* INFO */}
             <div className="dp-card">
               <div className="dp-field">
                 <p className="dp-field-label">ID</p>
@@ -101,32 +170,61 @@ export default function MedicosSecretaria() {
               )}
             </div>
 
-            {/* HORARIO */}
-            {detalle.schedule?.days && (
-              <div className="dp-card">
-                <p className="dp-label">Horario semanal</p>
-                {DIAS.filter(d => detalle.schedule.days[d]).map(dia => {
-                  const bloques = detalle.schedule.days[dia];
-                  const slots = Array.isArray(bloques)
-                    ? bloques
-                    : bloques?.blocks || [];
-                  return (
-                    <div key={dia} className="dp-event-row" style={{ cursor: "default" }}>
-                      <div style={{ width: 36, flexShrink: 0 }}>
-                        <p className="dp-event-diag" style={{ fontSize: 13 }}>{DIAS_ES[dia]}</p>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        {slots.map((b, i) => (
-                          <p key={i} className="dp-event-meta" style={{ margin: "1px 0" }}>
-                            {b.start} – {b.end}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* HORARIOS EDITABLES */}
+            {DIAS.map(({ key, label }) => (
+              <div key={key} className="dp-card">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <p className="dp-label" style={{ margin: 0 }}>{label}</p>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button
+                      className="dp-btn-secondary"
+                      style={{ fontSize: 11, padding: "4px 10px" }}
+                      onClick={() => addBloque(key)}
+                    >
+                      + Bloque
+                    </button>
+                    <button
+                      className="dp-btn-primary"
+                      style={{
+                        fontSize: 11, padding: "4px 10px", width: "auto",
+                        background: horSuccess === key ? "#16a34a" : "#0f172a"
+                      }}
+                      onClick={() => handleGuardarHorario(key)}
+                    >
+                      {horSuccess === key ? "✓" : "Guardar"}
+                    </button>
+                  </div>
+                </div>
+
+                {(horarios[key] || []).length === 0 && (
+                  <p className="dp-empty">Día libre</p>
+                )}
+
+                {(horarios[key] || []).map((b, idx) => (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <input
+                      type="time"
+                      value={b.start}
+                      onChange={e => updateBloque(key, idx, "start", e.target.value)}
+                      style={{ flex: 1, padding: "8px", border: "1px solid #e2e8f0", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', system-ui" }}
+                    />
+                    <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
+                    <input
+                      type="time"
+                      value={b.end}
+                      onChange={e => updateBloque(key, idx, "end", e.target.value)}
+                      style={{ flex: 1, padding: "8px", border: "1px solid #e2e8f0", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', system-ui" }}
+                    />
+                    <button
+                      onClick={() => removeBloque(key, idx)}
+                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: 18, padding: "0 4px" }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
-            )}
+            ))}
           </>
         )}
 
