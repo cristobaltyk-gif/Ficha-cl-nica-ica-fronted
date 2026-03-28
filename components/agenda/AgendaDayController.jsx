@@ -10,7 +10,8 @@ export default function AgendaDayController({
   role,
   onAttend,
   onNoShow,
-  onCancelFinal
+  onCancelFinal,
+  onVerPagos,   // opcional — lo pasa MedicoCerebro
 }) {
   const { session } = useAuth();
   const internalUser = session?.usuario;
@@ -20,9 +21,6 @@ export default function AgendaDayController({
   const [professionalsMap, setProfessionalsMap] = useState({});
   const [patientsCache, setPatientsCache] = useState({});
 
-  // =========================
-  // LOAD PROFESSIONALS
-  // =========================
   useEffect(() => {
     async function loadProfessionals() {
       try {
@@ -37,9 +35,6 @@ export default function AgendaDayController({
     loadProfessionals();
   }, []);
 
-  // =========================
-  // HELPERS
-  // =========================
   function getWeekdayKey(dateStr) {
     const [y, m, d] = dateStr.split("-").map(Number);
     const dt = new Date(y, m - 1, d);
@@ -65,9 +60,6 @@ export default function AgendaDayController({
     return slots;
   }
 
-  // =========================
-  // RESOLVER PACIENTES
-  // =========================
   async function resolvePatients(slots) {
     if (!internalUser) return;
     const ruts = Object.values(slots)
@@ -94,9 +86,6 @@ export default function AgendaDayController({
     } catch {}
   }
 
-  // =========================
-  // LOAD AGENDA + CAJA
-  // =========================
   const loadAgenda = useCallback(async () => {
     if (!professional || !date) return;
     const prof = professionalsMap[professional];
@@ -165,9 +154,6 @@ export default function AgendaDayController({
 
   useEffect(() => { loadAgenda(); }, [loadAgenda]);
 
-  // =========================
-  // REINYECTAR PACIENTES
-  // =========================
   useEffect(() => {
     if (!agendaData) return;
     setAgendaData(prev => {
@@ -192,17 +178,11 @@ export default function AgendaDayController({
     });
   }, [patientsCache, professional]);
 
-  // =========================
-  // SLOT CLICK
-  // =========================
   function handleSelectSlot(slot) {
     if (role === "MEDICO" && slot.status === "available") return;
     onAttend?.({ ...slot, professional, date });
   }
 
-  // =========================
-  // RENDER
-  // =========================
   if (!professional || !date) {
     return <div className="agenda-placeholder">Selecciona un profesional y un día</div>;
   }
@@ -217,6 +197,7 @@ export default function AgendaDayController({
       }]}
       agendaData={agendaData}
       onSelectSlot={handleSelectSlot}
+      onVerPagos={onVerPagos}
     />
   );
 }
