@@ -5,6 +5,7 @@ import HomeAdmin from "../pages/home/HomeAdmin";
 import ContableController from "../components/caja/ContableController";
 import CajaResumenController from "../components/caja/CajaResumenController";
 import HorariosAdmin from "./HorariosAdmin.jsx";
+import EquipoAdmin from "./EquipoAdmin.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,28 +34,23 @@ export default function AdminCerebro() {
       <Route index element={<HomeAdmin />} />
 
       <Route
-        path="caja"
-        element={<CajaResumenController professionals={professionals} />}
-      />
-
-      <Route
         path="contable"
         element={<ContableController />}
       />
 
       <Route
+        path="caja"
+        element={<CajaResumenController professionals={professionals} />}
+      />
+
+      <Route
+        path="equipo"
+        element={<EquipoAdmin />}
+      />
+
+      <Route
         path="agenda"
         element={<HorariosAdmin />}
-      />
-
-      <Route
-        path="profesionales"
-        element={<div className="agenda-placeholder">Profesionales — próximamente</div>}
-      />
-
-      <Route
-        path="usuarios"
-        element={<div className="agenda-placeholder">Usuarios — próximamente</div>}
       />
 
       <Route
