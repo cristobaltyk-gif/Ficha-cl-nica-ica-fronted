@@ -35,40 +35,6 @@ export default function AgendaSlotModalSecretaria({
   const gratuitoConfirmado = slot.gratuito_confirmado === true;
   const gratuitoAceptado   = slot.gratuito_aceptado === true;
 
-  async function handleMarcarGratuito() {
-    if (!slot.professional) return;
-    setMarcandoGratuito(true);
-    setGratuitoMsg(null);
-
-    try {
-      const res = await fetch(`${API_URL}/api/control/gratuito`, {
-        method:  "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "X-Internal-User": session?.usuario
-        },
-        body: JSON.stringify({
-          date:         slot.date,
-          time:         slot.time,
-          professional: slot.professional
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Error");
-
-      setGratuitoMsg(
-        data.email_enviado
-          ? `✓ Email enviado a ${data.email}`
-          : "✓ Marcado como gratuito (paciente sin correo registrado)"
-      );
-    } catch (e) {
-      setGratuitoMsg(`❌ ${e.message}`);
-    } finally {
-      setMarcandoGratuito(false);
-    }
-  }
-
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -107,24 +73,6 @@ export default function AgendaSlotModalSecretaria({
           <div className="modal-caja">
             <span className="caja-done">✓ Registrado en caja</span>
           </div>
-        )}
-
-        {/* MARCAR GRATUITO */}
-        {tieneReserva && !esGratuito && !pagado && (
-          <div className="modal-caja">
-            <button
-              className="caja-btn"
-              style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #86efac" }}
-              onClick={handleMarcarGratuito}
-              disabled={marcandoGratuito}
-            >
-              {marcandoGratuito ? "Enviando…" : "🎁 Marcar como gratuito"}
-            </button>
-          </div>
-        )}
-
-        {gratuitoMsg && (
-          <p style={{ fontSize: 12, color: "#16a34a", margin: "6px 0" }}>{gratuitoMsg}</p>
         )}
 
         {/* ACCIONES AGENDA */}
