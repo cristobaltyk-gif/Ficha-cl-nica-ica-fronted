@@ -1,137 +1,126 @@
-import "../styles/atencion/dashboard-kine.css";
+import "../../styles/pacientes/dashboard-pacientes.css";
 
 /*
-DashboardAtencionKine — PRODUCCIÓN REAL (ICA)
+DashboardAtencionKine — UI PURA
 
-✔ UI pura
-✔ Sin fetch
-✔ Sin lógica
-✔ Cerebro Kine controla todo
-✔ Preparado para evolución por sesión
+Campos:
+- Atención
+- Examen físico
+- Diagnóstico
+- Plan de tratamiento
 */
 
 export default function DashboardAtencionKine({
-  /* ===============================
-     FICHA ADMINISTRATIVA
-  =============================== */
   rut,
   nombre,
   edad,
-  sexo,
   date,
+  time,
   professional,
-
-  /* ===============================
-     CONTENIDO KINÉSICO
-  =============================== */
   atencion,
   examenFisico,
   diagnostico,
-  plan,
-
+  planTratamiento,
   onChangeAtencion,
   onChangeExamenFisico,
   onChangeDiagnostico,
-  onChangePlan,
-
-  /* ===============================
-     ACCIONES
-  =============================== */
+  onChangePlanTratamiento,
+  onImprimir,
   onGuardar,
-  onHistorial
+  onModificar,
+  onCancelar,
 }) {
   return (
-    <div className="dashboard dashboard-kine">
+    <div className="dp-root">
 
-      {/* ===============================
-          HEADER — ADMINISTRATIVO
-      =============================== */}
-      <header className="dashboard-header admin-header">
-
-        <div className="admin-header-top">
-          <h1>Atención Kinésica</h1>
-
-          <div className="admin-actions">
-            {onHistorial && (
-              <button className="btn-outline" onClick={onHistorial}>
-                📚 Historial
-              </button>
-            )}
-
-            {onGuardar && (
-              <button className="btn-primary" onClick={onGuardar}>
-                💾 Guardar sesión
-              </button>
-            )}
-          </div>
+      {/* HEADER */}
+      <div className="dp-header">
+        <div className="dp-header-left">
+          <h1>{nombre}</h1>
+          <p>
+            {rut}
+            {edad ? ` · ${edad} años` : ""}
+            {" · "}{date} {time}
+            {professional ? ` · ${professional}` : ""}
+          </p>
         </div>
+      </div>
 
-        <div className="admin-grid">
-          <div><strong>Paciente</strong><span>{nombre}</span></div>
-          <div><strong>RUT</strong><span>{rut}</span></div>
-          <div><strong>Edad</strong><span>{edad}</span></div>
-          <div><strong>Sexo</strong><span>{sexo}</span></div>
-          <div><strong>Fecha</strong><span>{date}</span></div>
-          <div><strong>Kinesiólogo</strong><span>{professional}</span></div>
-        </div>
+      <div className="dp-content">
+        <div className="dp-card">
 
-      </header>
-
-      {/* ===============================
-          BODY — CONTENIDO KINÉSICO
-      =============================== */}
-      <main className="dashboard-body kine-layout">
-
-        {/* 1️⃣ ATENCIÓN */}
-        <section className="panel">
-          <div className="panel-header">Atención</div>
-          <div className="panel-body">
+          {/* ATENCIÓN */}
+          <div className="dp-field">
+            <p className="dp-field-label">Atención</p>
             <textarea
+              className="dp-textarea"
+              rows={4}
+              placeholder="Motivo de consulta y descripción de la sesión…"
               value={atencion}
-              onChange={(e) => onChangeAtencion(e.target.value)}
-              placeholder="Motivo de consulta, evolución desde sesión anterior…"
+              onChange={e => onChangeAtencion(e.target.value)}
             />
           </div>
-        </section>
 
-        {/* 2️⃣ EXAMEN FÍSICO */}
-        <section className="panel">
-          <div className="panel-header">Examen físico</div>
-          <div className="panel-body">
+          {/* EXAMEN FÍSICO */}
+          <div className="dp-field">
+            <p className="dp-field-label">Examen físico</p>
             <textarea
+              className="dp-textarea"
+              rows={4}
+              placeholder="Hallazgos del examen físico, rangos articulares, fuerza muscular…"
               value={examenFisico}
-              onChange={(e) => onChangeExamenFisico(e.target.value)}
-              placeholder="ROM, fuerza, dolor (EVA), tests específicos…"
+              onChange={e => onChangeExamenFisico(e.target.value)}
             />
           </div>
-        </section>
 
-        {/* 3️⃣ DIAGNÓSTICO KINÉSICO */}
-        <section className="panel">
-          <div className="panel-header">Diagnóstico kinésico</div>
-          <div className="panel-body">
+          {/* DIAGNÓSTICO */}
+          <div className="dp-field">
+            <p className="dp-field-label">Diagnóstico</p>
             <textarea
+              className="dp-textarea"
+              rows={3}
+              placeholder="Diagnóstico funcional kinésico…"
               value={diagnostico}
-              onChange={(e) => onChangeDiagnostico(e.target.value)}
-              placeholder="Déficits funcionales, alteraciones biomecánicas…"
+              onChange={e => onChangeDiagnostico(e.target.value)}
             />
           </div>
-        </section>
 
-        {/* 4️⃣ PLAN DE TRATAMIENTO */}
-        <section className="panel">
-          <div className="panel-header">Plan de tratamiento</div>
-          <div className="panel-body">
+          {/* PLAN DE TRATAMIENTO */}
+          <div className="dp-field">
+            <p className="dp-field-label">Plan de tratamiento</p>
             <textarea
-              value={plan}
-              onChange={(e) => onChangePlan(e.target.value)}
-              placeholder="Objetivos, técnicas, frecuencia, progresión…"
+              className="dp-textarea"
+              rows={4}
+              placeholder="Objetivos, técnicas, frecuencia de sesiones…"
+              value={planTratamiento}
+              onChange={e => onChangePlanTratamiento(e.target.value)}
             />
           </div>
-        </section>
 
-      </main>
+          {/* IMPRIMIR INFORME */}
+          <button
+            className="dp-btn-secondary"
+            onClick={onImprimir}
+            style={{ marginBottom: 8 }}
+          >
+            🖨️ Imprimir informe kinésico
+          </button>
 
+          {/* ACCIONES */}
+          <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+            <button className="dp-btn-primary" onClick={onGuardar} style={{ flex: 2 }}>
+              ✓ Guardar atención
+            </button>
+            <button className="dp-btn-secondary" onClick={onModificar} style={{ flex: 1 }}>
+              Modificar
+            </button>
+            <button className="dp-btn-secondary" onClick={onCancelar} style={{ flex: 1 }}>
+              Cancelar
+            </button>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }
