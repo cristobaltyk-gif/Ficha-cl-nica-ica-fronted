@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,6 +32,8 @@ export default function PagoModal({
   onSuccess,
   usuarioActual
 }) {
+  const { session } = useAuth();
+
   const [config,  setConfig]  = useState({});
   const [tipo,    setTipo]    = useState("particular");
   const [metodo,  setMetodo]  = useState("efectivo");
@@ -39,7 +42,6 @@ export default function PagoModal({
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  // Cargar config de montos desde backend
   useEffect(() => {
     if (!open) return;
     fetch(`${API_URL}/api/caja/config`)
@@ -82,6 +84,23 @@ export default function PagoModal({
     }
     setLoading(true);
     try {
+
+      // Si es control gratuito — enviar email al paciente
+      if (tipo === "control_gratuito") {
+        try {
+          await fetch(`${API_URL}/api/control/gratuito`, {
+            method:  "POST",
+            headers: {
+              "Content-Type":    "application/json",
+              "X-Internal-User": session?.usuario
+            },
+            body: JSON.stringify({ date, time, professional })
+          });
+        } catch {
+          // No bloqueamos el pago si falla el email
+        }
+      }
+
       const res = await fetch(`${API_URL}/api/caja/pago`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,7 +143,6 @@ export default function PagoModal({
 
         <div style={s.body}>
 
-          {/* TIPO */}
           <div>
             <p style={s.sectionLabel}>Tipo de atención</p>
             <div style={s.tipoGrid}>
@@ -145,7 +163,6 @@ export default function PagoModal({
             </div>
           </div>
 
-          {/* MONTO */}
           <div style={s.montoRow}>
             <span style={s.montoLabel}>Total a cobrar</span>
             <span style={{ ...s.montoValue, color: esGratuito ? "#16a34a" : "#0f172a" }}>
@@ -153,7 +170,6 @@ export default function PagoModal({
             </span>
           </div>
 
-          {/* MÉTODO */}
           {!esGratuito && (
             <div>
               <p style={s.sectionLabel}>Método de pago</p>
@@ -190,7 +206,10 @@ export default function PagoModal({
           {esGratuito && (
             <div style={s.gratuitoMsg}>
               <span>✓</span>
-              <span>Sin costo — solo confirma el registro.</span>
+              <span>
+                Sin costo — solo confirma el registro.
+                {tipo === "control_gratuito" && " Se notificará al paciente por email."}
+              </span>
             </div>
           )}
 
