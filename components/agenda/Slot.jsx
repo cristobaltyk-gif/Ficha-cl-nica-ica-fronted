@@ -1,148 +1,106 @@
-import "../../styles/agenda/agenda-slot-modal.css";
-import { useEffect, useState } from "react";
+import "../../styles/agenda/slot.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-export default function AgendaSlotModalSecretaria({
-  open,
-  slot,
-  loading = false,
-  onClose,
-  onConfirm,
-  onCancel,
-  onReschedule,
-  onConfirmarLlegada
+export default function Slot({
+  time,
+  status     = "available",
+  patient,
+  rut,
+  onSelect,
+  cajaStatus,
+  gratuito,
+  gratuito_confirmado,
+  gratuito_aceptado,
 }) {
-  const [marcandoGratuito, setMarcandoGratuito] = useState(false);
-  const [gratuitoMsg,      setGratuitoMsg]      = useState(null);
+  const isClickable =
+    status === "available" ||
+    status === "reserved"  ||
+    status === "confirmed";
 
-  useEffect(() => {
-    if (open) {
-      setGratuitoMsg(null);
-      setMarcandoGratuito(false);
-    }
-  }, [open]);
+  const showPatient =
+    (status === "reserved" || status === "confirmed") &&
+    (patient?.nombre || patient?.rut || rut);
 
-  if (!open || !slot) return null;
+  const handleClick = () => {
+    if (!isClickable) return;
+    onSelect?.(time);
+  };
 
-  const { time, status, patient, pagado } = slot;
-  const tieneReserva = status === "reserved" || status === "confirmed";
-
-  const esGratuito          = slot.gratuito === true;
-  const gratuitoConfirmado  = slot.gratuito_confirmado === true;
-  const gratuitoAceptado    = slot.gratuito_aceptado === true;
-
-  async function handleMarcarGratuito() {
-    if (!slot.professional && !slot.professionalId) return;
-    setMarcandoGratuito(true);
-    setGratuitoMsg(null);
-
-    try {
-      const res = await fetch(`${API_URL}/api/control/gratuito`, {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({
-          date:         slot.date,
-          time:         slot.time,
-          professional: slot.professional
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.detail || "Error");
-
-      setGratuitoMsg(
-        data.email_enviado
-          ? `✓ Email enviado a ${data.email}`
-          : "✓ Marcado como gratuito (sin email — paciente sin correo)"
-      );
-    } catch (e) {
-      setGratuitoMsg(`❌ ${e.message}`);
-    } finally {
-      setMarcandoGratuito(false);
-    }
-  }
+  const slotClass   = resolveSlotClass(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
+  const statusLabel = resolveLabel(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-
-        <h3>🕒 Hora {time}</h3>
-        <p><strong>Profesional:</strong> {slot.professionalName}</p>
-        {patient && (
-          <p><strong>Paciente:</strong> {patient.nombre || patient.rut}</p>
-        )}
-        <p><strong>Estado:</strong> {status}</p>
-
-        {/* ── ESTADO GRATUITO ── */}
-        {esGratuito && (
-          <div style={{
-            background: "#f0fdf4", border: "1px solid #86efac",
-            borderRadius: 8, padding: "10px 14px", margin: "8px 0", fontSize: 13
-          }}>
-            {gratuitoAceptado
-              ? "✅ Control gratuito — aceptado por médico"
-              : gratuitoConfirmado
-              ? "⏳ Control gratuito — confirmado por paciente, pendiente médico"
-              : "📧 Control gratuito — esperando confirmación del paciente"}
-          </div>
-        )}
-
-        {/* ── CONFIRMAR LLEGADA ── */}
-        {tieneReserva && !pagado && !esGratuito && (
-          <div className="modal-caja">
-            <button className="caja-btn caja-btn--llego" onClick={onConfirmarLlegada}>
-              ✓ Confirmar llegada
-            </button>
-          </div>
-        )}
-
-        {tieneReserva && pagado && (
-          <div className="modal-caja">
-            <span className="caja-done">✓ Registrado en caja</span>
-          </div>
-        )}
-
-        {/* ── MARCAR GRATUITO ── */}
-        {tieneReserva && !esGratuito && !pagado && (
-          <div className="modal-caja">
-            <button
-              className="caja-btn"
-              style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #86efac" }}
-              onClick={handleMarcarGratuito}
-              disabled={marcandoGratuito}
-            >
-              {marcandoGratuito ? "Enviando…" : "🎁 Marcar como gratuito"}
-            </button>
-          </div>
-        )}
-
-        {gratuitoMsg && (
-          <p style={{ fontSize: 12, color: "#16a34a", margin: "6px 0" }}>{gratuitoMsg}</p>
-        )}
-
-        {/* ── ACCIONES AGENDA ── */}
-        <div className="modal-actions">
-          {status === "reserved" && (
-            <>
-              <button disabled={loading} onClick={onConfirm}>Confirmar paciente</button>
-              <button className="danger" disabled={loading} onClick={onCancel}>Anular reserva</button>
-            </>
-          )}
-          {status === "confirmed" && (
-            <>
-              <button disabled={loading} onClick={onReschedule}>Cambiar hora</button>
-              <button className="danger" disabled={loading} onClick={onCancel}>Anular cita</button>
-            </>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <button disabled={loading} onClick={onClose}>Cerrar</button>
-        </div>
-
+    <div
+      className={`slot ${slotClass}`}
+      onClick={handleClick}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : -1}
+      aria-disabled={!isClickable}
+    >
+      <div className="slot-left">
+        <span className="slot-time">{time}</span>
+        <span className="slot-label">{statusLabel}</span>
       </div>
+
+      {showPatient ? (
+        <div className="slot-patient">
+          {patient?.nombre && (
+            <span className="slot-patient-name">
+              {patient.nombre} {patient?.apellido_paterno ?? ""}
+            </span>
+          )}
+          {(patient?.rut || rut) && (
+            <span className="slot-patient-rut">{patient?.rut || rut}</span>
+          )}
+        </div>
+      ) : (
+        isClickable && status === "available" && (
+          <span className="slot-cta">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        )
+      )}
     </div>
   );
-          }
+}
+
+function resolveSlotClass(status, cajaStatus, gratuito, gratuitoConfirmado, gratuitoAceptado) {
+  if (status === "available") return "slot-available";
+  if (status === "blocked")   return "slot-blocked";
+  if (status === "cancelled") return "slot-cancelled";
+
+  if (status === "reserved" || status === "confirmed") {
+    // Gratuito tiene prioridad visual sobre caja
+    if (gratuito) {
+      if (gratuitoAceptado)   return "slot-gratuito-aceptado";
+      if (gratuitoConfirmado) return "slot-gratuito-confirmado";
+      return "slot-gratuito";
+    }
+    if (cajaStatus === "paid")    return "slot-caja-paid";
+    if (cajaStatus === "waiting") return "slot-caja-waiting";
+    return `slot-${status}`;
+  }
+
+  return `slot-${status}`;
+}
+
+function resolveLabel(status, cajaStatus, gratuito, gratuitoConfirmado, gratuitoAceptado) {
+  if (status === "available") return "Disponible";
+  if (status === "blocked")   return "Bloqueada";
+  if (status === "cancelled") return "Cancelada";
+
+  if (status === "reserved" || status === "confirmed") {
+    if (gratuito) {
+      if (gratuitoAceptado)   return "Gratuito ✓";
+      if (gratuitoConfirmado) return "Gratuito — pendiente médico";
+      return "Gratuito — pendiente paciente";
+    }
+    if (cajaStatus === "paid")    return "Pagado ✓";
+    if (cajaStatus === "waiting") return "En espera";
+    return status === "confirmed" ? "Confirmada" : "Reservada";
+  }
+
+  return status;
+}
