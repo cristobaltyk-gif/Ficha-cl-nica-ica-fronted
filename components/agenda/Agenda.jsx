@@ -26,8 +26,20 @@ export default function Agenda({
       <section className="agenda-container">
 
         {onVerPagos && date && (
-          <div className="agenda-pagos-btn">
-            <button onClick={onVerPagos}>
+          <div style={{ display: "flex", justifyContent: "flex-end", padding: "10px 16px 0" }}>
+            <button
+              onClick={onVerPagos}
+              style={{
+                padding: "7px 14px",
+                background: "#f0fdf4",
+                border: "1px solid #86efac",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#166534",
+                cursor: "pointer",
+              }}
+            >
               💰 Pagos del día
             </button>
           </div>
