@@ -135,10 +135,9 @@
 }
 
 /* ============================================================
-   ESTADOS CAJA — reemplazan el color del slot completo
+   ESTADOS CAJA
    ============================================================ */
 
-/* Paciente llegó, en sala de espera */
 .slot-caja-waiting {
   background: #fffbeb;
   border-color: #fcd34d;
@@ -152,7 +151,6 @@
   box-shadow: 0 4px 14px rgba(245,158,11,0.2);
 }
 
-/* Paciente pagado / registrado — azul clínico */
 .slot-caja-paid {
   background: #eff6ff;
   border-color: #2563eb;
@@ -164,6 +162,52 @@
 .slot-caja-paid:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(37,99,235,0.2);
+}
+
+/* ============================================================
+   ESTADOS GRATUITO
+   ============================================================ */
+
+/* Esperando confirmación del paciente */
+.slot-gratuito {
+  background: #fdf4ff;
+  border-color: #e879f9;
+  border-width: 2px;
+  color: #701a75;
+  cursor: pointer;
+}
+.slot-gratuito .slot-label { opacity: 1; }
+.slot-gratuito:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(232,121,249,0.2);
+}
+
+/* Paciente confirmó — pendiente médico */
+.slot-gratuito-confirmado {
+  background: #fff7ed;
+  border-color: #f97316;
+  border-width: 2px;
+  color: #7c2d12;
+  cursor: pointer;
+}
+.slot-gratuito-confirmado .slot-label { opacity: 1; }
+.slot-gratuito-confirmado:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(249,115,22,0.2);
+}
+
+/* Médico aceptó — todo confirmado */
+.slot-gratuito-aceptado {
+  background: #f0fdf4;
+  border-color: #16a34a;
+  border-width: 2px;
+  color: #14532d;
+  cursor: pointer;
+}
+.slot-gratuito-aceptado .slot-label { opacity: 1; }
+.slot-gratuito-aceptado:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(22,163,74,0.2);
 }
 
 /* ── FOCUS ── */
