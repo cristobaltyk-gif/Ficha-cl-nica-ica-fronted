@@ -61,6 +61,7 @@ export default function PagoModal({
 
   const monto          = config[tipo] ?? 0;
   const esGratuito     = TIPOS_GRATUITOS.has(tipo);
+  const esControl      = tipo === "control_gratuito";
   const necesitaOp     = !esGratuito && (metodo === "transferencia" || metodo === "tarjeta");
   const tipos          = Object.keys(config);
 
@@ -78,29 +79,38 @@ export default function PagoModal({
 
   async function handlePagar() {
     setError(null);
+
+    // Control gratuito — solo envía email, NO registra en caja
+    if (esControl) {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/api/control/gratuito`, {
+          method:  "POST",
+          headers: {
+            "Content-Type":    "application/json",
+            "X-Internal-User": session?.usuario
+          },
+          body: JSON.stringify({ date, time, professional })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Error al marcar gratuito");
+        onSuccess?.();
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Resto de tipos — flujo normal de caja
     if (!esGratuito && necesitaOp && !numOp.trim()) {
       setError("Ingresa el número de operación");
       return;
     }
+
     setLoading(true);
     try {
-
-      // Si es control gratuito — enviar email al paciente
-      if (tipo === "control_gratuito") {
-        try {
-          await fetch(`${API_URL}/api/control/gratuito`, {
-            method:  "POST",
-            headers: {
-              "Content-Type":    "application/json",
-              "X-Internal-User": session?.usuario
-            },
-            body: JSON.stringify({ date, time, professional })
-          });
-        } catch {
-          // No bloqueamos el pago si falla el email
-        }
-      }
-
       const res = await fetch(`${API_URL}/api/caja/pago`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -203,13 +213,17 @@ export default function PagoModal({
             </div>
           )}
 
-          {esGratuito && (
+          {esControl && (
+            <div style={s.gratuitoMsg}>
+              <span>📧</span>
+              <span>Se enviará un email al paciente para confirmar la atención sin costo.</span>
+            </div>
+          )}
+
+          {esGratuito && !esControl && (
             <div style={s.gratuitoMsg}>
               <span>✓</span>
-              <span>
-                Sin costo — solo confirma el registro.
-                {tipo === "control_gratuito" && " Se notificará al paciente por email."}
-              </span>
+              <span>Sin costo — solo confirma el registro.</span>
             </div>
           )}
 
@@ -220,7 +234,13 @@ export default function PagoModal({
         <div style={s.footer}>
           <button style={s.btnCancel} onClick={onClose} disabled={loading}>Cancelar</button>
           <button style={s.btnPagar} onClick={handlePagar} disabled={loading}>
-            {loading ? "Guardando…" : esGratuito ? "✓ Confirmar" : `✓ Cobrar ${formatMonto(monto)}`}
+            {loading
+              ? "Guardando…"
+              : esControl
+              ? "📧 Enviar confirmación"
+              : esGratuito
+              ? "✓ Confirmar"
+              : `✓ Cobrar ${formatMonto(monto)}`}
           </button>
         </div>
 
