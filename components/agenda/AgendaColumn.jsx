@@ -46,6 +46,9 @@ export default function AgendaColumn({
               rut={slot.rut}
               patient={slot.patient}
               cajaStatus={slot.cajaStatus}
+              gratuito={slot.gratuito}
+              gratuito_confirmado={slot.gratuito_confirmado}
+              gratuito_aceptado={slot.gratuito_aceptado}
               onSelect={() => onSelectSlot?.(slot, time)}
             />
           );
