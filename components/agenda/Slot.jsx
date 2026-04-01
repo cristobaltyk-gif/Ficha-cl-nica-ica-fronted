@@ -2,7 +2,7 @@ import "../../styles/agenda/slot.css";
 
 export default function Slot({
   time,
-  status     = "available",
+  status = "available",
   patient,
   rut,
   onSelect,
@@ -25,8 +25,8 @@ export default function Slot({
     onSelect?.(time);
   };
 
-  const slotClass   = resolveSlotClass(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
-  const statusLabel = resolveLabel(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
+  const slotClass  = resolveSlotClass(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
+  const slotLabel  = resolveLabel(status, cajaStatus, gratuito, gratuito_confirmado, gratuito_aceptado);
 
   return (
     <div
@@ -38,7 +38,7 @@ export default function Slot({
     >
       <div className="slot-left">
         <span className="slot-time">{time}</span>
-        <span className="slot-label">{statusLabel}</span>
+        <span className="slot-label">{slotLabel}</span>
       </div>
 
       {showPatient ? (
@@ -72,7 +72,6 @@ function resolveSlotClass(status, cajaStatus, gratuito, gratuitoConfirmado, grat
   if (status === "cancelled") return "slot-cancelled";
 
   if (status === "reserved" || status === "confirmed") {
-    // Gratuito tiene prioridad visual sobre caja
     if (gratuito) {
       if (gratuitoAceptado)   return "slot-gratuito-aceptado";
       if (gratuitoConfirmado) return "slot-gratuito-confirmado";
