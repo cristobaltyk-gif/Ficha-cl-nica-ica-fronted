@@ -11,7 +11,7 @@ export default function AgendaDayController({
   onAttend,
   onNoShow,
   onCancelFinal,
-  onVerPagos,   // opcional — lo pasa MedicoCerebro
+  onVerPagos,
 }) {
   const { session } = useAuth();
   const internalUser = session?.usuario;
@@ -128,15 +128,20 @@ export default function AgendaDayController({
 
         baseSlots[time] = {
           time,
-          status:           slot.status,
-          rut:              slot.rut || null,
-          patient:          slot.rut ? patientsCache[slot.rut] || null : null,
+          status:              slot.status,
+          rut:                 slot.rut || null,
+          patient:             slot.rut ? patientsCache[slot.rut] || null : null,
           professional,
-          professionalName: professionalsMap[professional]?.name || professional,
-          cajaStatus:       cajaSlot?.arrival_status ?? null,
-          tipoCaja:         cajaSlot?.tipo_atencion  ?? null,
-          pagado:           cajaSlot?.pagado         ?? false,
-          monto:            cajaSlot?.monto          ?? null,
+          professionalName:    professionalsMap[professional]?.name || professional,
+          cajaStatus:          cajaSlot?.arrival_status    ?? null,
+          tipoCaja:            cajaSlot?.tipo_atencion     ?? null,
+          pagado:              cajaSlot?.pagado            ?? false,
+          monto:               cajaSlot?.monto             ?? null,
+          // 🔥 campos gratuito desde agenda
+          gratuito:            slot.gratuito              ?? false,
+          gratuito_confirmado: slot.gratuito_confirmado   ?? false,
+          gratuito_aceptado:   slot.gratuito_aceptado     ?? false,
+          date,
         };
       });
 
