@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
-import DashboardAtencionKine from "../pages/dashboard-atencion-kine.jsx";
+import DashboardAtencionKine from "../pages/DashboardAtencionKine.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
