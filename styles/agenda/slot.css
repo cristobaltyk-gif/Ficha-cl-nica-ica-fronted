@@ -16,7 +16,6 @@
   font-family: 'DM Sans', sans-serif;
 }
 
-/* ── LEFT ── */
 .slot-left {
   display: flex;
   flex-direction: column;
@@ -39,7 +38,6 @@
   opacity: 0.6;
 }
 
-/* ── PATIENT ── */
 .slot-patient {
   display: flex;
   flex-direction: column;
@@ -64,7 +62,6 @@
   opacity: 0.6;
 }
 
-/* ── CTA ── */
 .slot-cta {
   display: flex;
   align-items: center;
@@ -81,7 +78,7 @@
 .slot:hover .slot-cta { opacity: 1; }
 
 /* ============================================================
-   ESTADOS CLÍNICOS (sin caja)
+   ESTADOS CLÍNICOS
    ============================================================ */
 
 .slot-available {
@@ -165,49 +162,49 @@
 }
 
 /* ============================================================
-   ESTADOS GRATUITO
+   ESTADOS GRATUITO — púrpura
    ============================================================ */
 
 /* Esperando confirmación del paciente */
 .slot-gratuito {
-  background: #fdf4ff;
-  border-color: #e879f9;
+  background: #faf5ff;
+  border-color: #c084fc;
   border-width: 2px;
-  color: #701a75;
+  color: #6b21a8;
   cursor: pointer;
 }
 .slot-gratuito .slot-label { opacity: 1; }
 .slot-gratuito:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(232,121,249,0.2);
+  box-shadow: 0 4px 14px rgba(192,132,252,0.25);
 }
 
 /* Paciente confirmó — pendiente médico */
 .slot-gratuito-confirmado {
-  background: #fff7ed;
-  border-color: #f97316;
+  background: #f5f3ff;
+  border-color: #7c3aed;
   border-width: 2px;
-  color: #7c2d12;
+  color: #4c1d95;
   cursor: pointer;
 }
 .slot-gratuito-confirmado .slot-label { opacity: 1; }
 .slot-gratuito-confirmado:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(249,115,22,0.2);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.25);
 }
 
-/* Médico aceptó — todo confirmado */
+/* Médico aceptó */
 .slot-gratuito-aceptado {
-  background: #f0fdf4;
-  border-color: #16a34a;
+  background: #ede9fe;
+  border-color: #5b21b6;
   border-width: 2px;
-  color: #14532d;
+  color: #3b0764;
   cursor: pointer;
 }
 .slot-gratuito-aceptado .slot-label { opacity: 1; }
 .slot-gratuito-aceptado:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(22,163,74,0.2);
+  box-shadow: 0 4px 14px rgba(91,33,182,0.25);
 }
 
 /* ── FOCUS ── */
