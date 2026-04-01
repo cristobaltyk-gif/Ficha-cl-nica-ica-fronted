@@ -2,14 +2,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import DashboardAtencionKine from "../pages/DashboardAtencionKine.jsx";
+import { useWebSpeech } from "../modules/webspeech/useWebSpeech";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AtencionKineCerebro() {
-  const { state }  = useLocation();
+  const { state }   = useLocation();
   const { session } = useAuth();
-  const navigate   = useNavigate();
-  const origin     = state?.origin;
+  const navigate    = useNavigate();
+  const origin      = state?.origin;
 
   function handleBackNavigation() {
     if (origin === "pacientes") {
@@ -70,10 +71,50 @@ export default function AtencionKineCerebro() {
   }, [state.professional]);
 
   // Campos clínicos kine
-  const [atencion,          setAtencion]          = useState("");
-  const [examenFisico,      setExamenFisico]      = useState("");
-  const [diagnostico,       setDiagnostico]       = useState("");
-  const [planTratamiento,   setPlanTratamiento]   = useState("");
+  const [atencion,        setAtencion]        = useState("");
+  const [examenFisico,    setExamenFisico]    = useState("");
+  const [diagnostico,     setDiagnostico]     = useState("");
+  const [planTratamiento, setPlanTratamiento] = useState("");
+
+  // Claude ordering
+  const [ordering,   setOrdering]   = useState(false);
+  const [orderError, setOrderError] = useState(null);
+
+  // Dictado
+  const speech = useWebSpeech({
+    lang: "es-CL",
+    onChunk: (text) => {
+      setAtencion(prev => (prev ? prev + "\n" + text : text));
+    }
+  });
+
+  function handleDictado() {
+    if (!speech.recording) speech.start();
+    else speech.stop();
+  }
+
+  async function handleOrdenarClinicamente() {
+    const inputText = atencion.trim();
+    if (!inputText) { setOrderError("No hay texto para ordenar"); return; }
+    setOrdering(true);
+    setOrderError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/claude/clinical-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: inputText })
+      });
+      if (!res.ok) throw new Error("CLAUDE_ERROR");
+      const data = await res.json();
+      setAtencion(data.atencion           || atencion);
+      setDiagnostico(data.diagnostico     || diagnostico);
+      setPlanTratamiento(data.ordenKinesica || planTratamiento);
+    } catch {
+      setOrderError("No se pudo ordenar clínicamente");
+    } finally {
+      setOrdering(false);
+    }
+  }
 
   function calcularEdad(fechaNacimiento) {
     if (!fechaNacimiento) return "";
@@ -85,9 +126,9 @@ export default function AtencionKineCerebro() {
     return edad;
   }
 
-  async function openPdf(endpoint, payload) {
+  async function openPdf(payload) {
     try {
-      const res = await fetch(`${API_URL}/api/pdf/${endpoint}`, {
+      const res = await fetch(`${API_URL}/api/pdf/kinesiologia`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
         body: JSON.stringify(payload)
@@ -100,21 +141,22 @@ export default function AtencionKineCerebro() {
     }
   }
 
-  function handlePrintInforme() {
-    const base = {
+  function buildPayload() {
+    return {
       nombre:           admin.nombre,
       apellido_paterno: admin.apellido_paterno,
       apellido_materno: admin.apellido_materno,
       fecha_nacimiento: admin.fecha_nacimiento,
       edad:             edadCalculada,
       rut:              admin.rut,
-    };
-    openPdf("kinesiologia", {
-      ...base,
       diagnostico,
-      lado: "",
-      indicaciones: `${atencion}\n\nExamen físico:\n${examenFisico}\n\nPlan de tratamiento:\n${planTratamiento}`
-    });
+      lado:             "",
+      indicaciones:     `${atencion}\n\nExamen físico:\n${examenFisico}\n\nPlan de tratamiento:\n${planTratamiento}`
+    };
+  }
+
+  function handleImprimir() {
+    openPdf(buildPayload());
   }
 
   async function handleGuardar() {
@@ -140,17 +182,11 @@ export default function AtencionKineCerebro() {
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Error al guardar"); }
 
-      // Abrir informe PDF
-      if (atencion.trim() || diagnostico.trim()) await handlePrintInforme();
+      if (atencion.trim() || diagnostico.trim()) await openPdf(buildPayload());
 
-      // Enviar email si tiene correo
+      // Email si tiene correo
       const emailPaciente = admin.email?.trim();
       if (emailPaciente && (atencion.trim() || diagnostico.trim())) {
-        const base = {
-          nombre: admin.nombre, apellido_paterno: admin.apellido_paterno,
-          apellido_materno: admin.apellido_materno, fecha_nacimiento: admin.fecha_nacimiento,
-          edad: edadCalculada, rut: admin.rut,
-        };
         try {
           await fetch(`${API_URL}/api/pdf/enviar-email`, {
             method: "POST",
@@ -160,10 +196,7 @@ export default function AtencionKineCerebro() {
               nombre_paciente:    `${admin.nombre} ${admin.apellido_paterno}`.trim(),
               fecha:              state.date,
               profesional_nombre: professionalName,
-              kinesiologia: {
-                ...base, diagnostico, lado: "",
-                indicaciones: `${atencion}\n\nExamen físico:\n${examenFisico}\n\nPlan de tratamiento:\n${planTratamiento}`
-              }
+              kinesiologia:       buildPayload()
             })
           });
         } catch {}
@@ -216,6 +249,7 @@ export default function AtencionKineCerebro() {
       rut={admin.rut}
       nombre={`${admin.nombre} ${admin.apellido_paterno} ${admin.apellido_materno || ""}`}
       edad={edadCalculada}
+      prevision={admin.prevision}
       date={state.date}
       time={state.time}
       professional={professionalName}
@@ -227,10 +261,16 @@ export default function AtencionKineCerebro() {
       onChangeExamenFisico={setExamenFisico}
       onChangeDiagnostico={setDiagnostico}
       onChangePlanTratamiento={setPlanTratamiento}
-      onImprimir={handlePrintInforme}
+      onDictado={handleDictado}
+      dictando={speech.recording}
+      puedeDictar={speech.supported && !speech.loading}
+      onOrdenarClinicamente={handleOrdenarClinicamente}
+      puedeOrdenar={!ordering}
+      ordering={ordering}
+      onImprimir={handleImprimir}
       onGuardar={handleGuardar}
       onModificar={handleModificar}
       onCancelar={handleBackNavigation}
     />
   );
-}
+                  }
