@@ -1,5 +1,4 @@
-import "../../styles/pacientes/dashboard-pacientes.css";
-
+import "../styles/pacientes/dashboard-pacientes.css";
 /*
 DashboardAtencionKine — UI PURA
 
