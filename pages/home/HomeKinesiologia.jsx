@@ -25,10 +25,10 @@ export default function HomeKinesiologia() {
           <span className="desc">Buscar pacientes no agendados y ver historial</span>
         </button>
 
-        <button className="home-card" onClick={() => navigate("informes-kine")}>
-          <span className="icon">📄</span>
-          <span className="title">Informes</span>
-          <span className="desc">Evolución, alta y reportes kinésicos</span>
+        <button className="home-card" onClick={() => navigate("pagos")}>
+          <span className="icon">💰</span>
+          <span className="title">Pagos</span>
+          <span className="desc">Resumen de pagos por día o mes</span>
         </button>
 
         <button className="home-card" onClick={() => navigate("configuracion")}>
