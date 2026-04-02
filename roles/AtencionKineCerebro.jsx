@@ -70,17 +70,14 @@ export default function AtencionKineCerebro() {
     loadProfessional();
   }, [state.professional]);
 
-  // Campos clínicos kine
   const [atencion,        setAtencion]        = useState("");
   const [examenFisico,    setExamenFisico]    = useState("");
   const [diagnostico,     setDiagnostico]     = useState("");
   const [planTratamiento, setPlanTratamiento] = useState("");
 
-  // Claude ordering
   const [ordering,   setOrdering]   = useState(false);
   const [orderError, setOrderError] = useState(null);
 
-  // Dictado
   const speech = useWebSpeech({
     lang: "es-CL",
     onChunk: (text) => {
@@ -99,16 +96,17 @@ export default function AtencionKineCerebro() {
     setOrdering(true);
     setOrderError(null);
     try {
-      const res = await fetch(`${API_URL}/api/claude/clinical-order`, {
-        method: "POST",
+      const res = await fetch(`${API_URL}/api/claude/kine-order`, {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: inputText })
+        body:    JSON.stringify({ text: inputText })
       });
       if (!res.ok) throw new Error("CLAUDE_ERROR");
       const data = await res.json();
-      setAtencion(data.atencion           || atencion);
-      setDiagnostico(data.diagnostico     || diagnostico);
-      setPlanTratamiento(data.ordenKinesica || planTratamiento);
+      setAtencion(data.atencion                || atencion);
+      setExamenFisico(data.examen_fisico       || examenFisico);
+      setDiagnostico(data.diagnostico          || diagnostico);
+      setPlanTratamiento(data.plan_tratamiento || planTratamiento);
     } catch {
       setOrderError("No se pudo ordenar clínicamente");
     } finally {
@@ -129,9 +127,9 @@ export default function AtencionKineCerebro() {
   async function openPdf(payload) {
     try {
       const res = await fetch(`${API_URL}/api/pdf/kinesiologia`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
-        body: JSON.stringify(payload)
+        body:    JSON.stringify(payload)
       });
       if (!res.ok) throw new Error();
       const blob = await res.blob();
@@ -163,19 +161,19 @@ export default function AtencionKineCerebro() {
     if (!esHoy) { alert("Solo se puede guardar atención del día actual"); return; }
     try {
       const res = await fetch(`${API_URL}/api/fichas/evento`, {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
-        body: JSON.stringify({
-          rut:              admin.rut,
-          fecha:            state.date,
-          hora:             state.time,
+        body:    JSON.stringify({
+          rut:                   admin.rut,
+          fecha:                 state.date,
+          hora:                  state.time,
           atencion,
           diagnostico,
-          examen_fisico:    examenFisico,
-          plan_tratamiento: planTratamiento,
-          receta:           "",
-          examenes:         "",
-          indicaciones:     planTratamiento,
+          examen_fisico:         examenFisico,
+          plan_tratamiento:      planTratamiento,
+          receta:                "",
+          examenes:              "",
+          indicaciones:          planTratamiento,
           orden_kinesiologia:    "",
           indicacion_quirurgica: ""
         })
@@ -184,14 +182,13 @@ export default function AtencionKineCerebro() {
 
       if (atencion.trim() || diagnostico.trim()) await openPdf(buildPayload());
 
-      // Email si tiene correo
       const emailPaciente = admin.email?.trim();
       if (emailPaciente && (atencion.trim() || diagnostico.trim())) {
         try {
           await fetch(`${API_URL}/api/pdf/enviar-email`, {
-            method: "POST",
+            method:  "POST",
             headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
-            body: JSON.stringify({
+            body:    JSON.stringify({
               email:              emailPaciente,
               nombre_paciente:    `${admin.nombre} ${admin.apellido_paterno}`.trim(),
               fecha:              state.date,
@@ -213,19 +210,19 @@ export default function AtencionKineCerebro() {
     if (!esHoy) { alert("Solo se puede modificar atención del día actual"); return; }
     try {
       const res = await fetch(`${API_URL}/api/fichas/evento`, {
-        method: "PUT",
+        method:  "PUT",
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
-        body: JSON.stringify({
-          rut:              admin.rut,
-          fecha:            state.date,
-          hora:             state.time,
+        body:    JSON.stringify({
+          rut:                   admin.rut,
+          fecha:                 state.date,
+          hora:                  state.time,
           atencion,
           diagnostico,
-          examen_fisico:    examenFisico,
-          plan_tratamiento: planTratamiento,
-          receta:           "",
-          examenes:         "",
-          indicaciones:     planTratamiento,
+          examen_fisico:         examenFisico,
+          plan_tratamiento:      planTratamiento,
+          receta:                "",
+          examenes:              "",
+          indicaciones:          planTratamiento,
           orden_kinesiologia:    "",
           indicacion_quirurgica: ""
         })
@@ -273,4 +270,4 @@ export default function AtencionKineCerebro() {
       onCancelar={handleBackNavigation}
     />
   );
-                  }
+}
