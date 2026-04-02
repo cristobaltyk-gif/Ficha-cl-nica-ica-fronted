@@ -9,6 +9,7 @@ import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
 import AtencionKineCerebro from "./AtencionKineCerebro.jsx";
 import BusquedaCerebroPaciente from "./BusquedaCerebroPaciente.jsx";
 import ConfiguracionMedico from "./ConfiguracionMedico.jsx";
+import CajaResumenController from "../components/caja/CajaResumenController.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -114,13 +115,19 @@ export default function KineCerebro() {
           element={<AtencionKineCerebro />}
         />
 
+        <Route
+          path="pagos"
+          element={
+            <CajaResumenController
+              professionals={professionals}
+              profesionalFijo={professional}
+            />
+          }
+        />
+
         <Route path="pacientes"     element={<BusquedaCerebroPaciente />} />
         <Route path="configuracion" element={<ConfiguracionMedico />} />
 
-        <Route
-          path="informes"
-          element={<div className="agenda-placeholder">Informes kinésicos — próximamente</div>}
-        />
         <Route
           path="informes-kine"
           element={<div className="agenda-placeholder">Informes kinésicos — próximamente</div>}
