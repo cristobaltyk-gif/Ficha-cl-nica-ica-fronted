@@ -179,4 +179,4 @@ const s = {
   btnCancel:      { flex:1, padding:"10px", border:"1px solid #e2e8f0", borderRadius:9, background:"#f8fafc", color:"#64748b", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',system-ui,sans-serif" },
   btnAnular:      { flex:2, padding:"10px", border:"none", borderRadius:9, background:"#ef4444", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',system-ui,sans-serif" },
 };
-            
+      
