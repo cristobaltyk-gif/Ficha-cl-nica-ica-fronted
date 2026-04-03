@@ -5,18 +5,18 @@ import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
 import PublicLayout from "../pages/reservas/PublicBookingLayout";
 
-const API_URL        = import.meta.env.VITE_API_URL;
-const PREDIAG_URL    = "https://asistencia-ica-backend.onrender.com";
-const PREDIAG_FRONT  = "https://app.icarticular.cl";
+const API_URL       = import.meta.env.VITE_API_URL;
+const PREDIAG_URL   = "https://asistencia-ica-backend.onrender.com";  // backend prediagnóstico
+const PREDIAG_FRONT = "https://app.icarticular.cl";                   // frontend prediagnóstico
 
-// ── Zonas de dolor disponibles ──────────────────────────────
+// ── Zonas disponibles ────────────────────────────────────────
 const ZONAS_DOLOR = [
   "Rodilla", "Cadera", "Hombro", "Codo",
-  "Mano / Muñeca", "Tobillo / Pie", "Columna cervical",
+  "Mano", "Tobillo", "Columna cervical",
   "Columna dorsal", "Columna lumbar",
 ];
 
-// ── Styles ──────────────────────────────────────────────────
+// ── Estilos ──────────────────────────────────────────────────
 const S = {
   bannerWrap: {
     background: "#f0f7ff",
@@ -25,15 +25,9 @@ const S = {
     padding: "20px 20px 16px",
     marginBottom: 20,
   },
-  bannerTitle: {
-    fontSize: 15, fontWeight: 700, color: "#1e3a5f", marginBottom: 4,
-  },
-  bannerSub: {
-    fontSize: 13, color: "#475569", marginBottom: 14, lineHeight: 1.5,
-  },
-  zonaGrid: {
-    display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14,
-  },
+  bannerTitle: { fontSize: 15, fontWeight: 700, color: "#1e3a5f", marginBottom: 4 },
+  bannerSub:   { fontSize: 13, color: "#475569", marginBottom: 14, lineHeight: 1.5 },
+  zonaGrid:    { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 },
   zonaBtn: (active) => ({
     padding: "7px 14px", borderRadius: 999, fontSize: 13, fontWeight: 500,
     cursor: "pointer", transition: "all 0.15s",
@@ -44,17 +38,21 @@ const S = {
   derivRow: {
     background: "#fff", border: "1px solid #bfdbfe",
     borderRadius: 12, padding: "12px 16px",
-    display: "flex", alignItems: "center", justifyContent: "space-between",
-    gap: 12, flexWrap: "wrap", marginBottom: 8,
+    marginBottom: 8,
   },
   derivText: { fontSize: 14, color: "#1e3a5f", fontWeight: 500 },
   derivSub:  { fontSize: 12, color: "#64748b", marginTop: 2 },
   skipBtn: {
     background: "none", border: "none", color: "#94a3b8",
     fontSize: 12, cursor: "pointer", textDecoration: "underline",
-    marginTop: 4, padding: 0,
+    padding: 0,
   },
-  // Modal prediagnóstico
+  btnConsultar: {
+    background: "#1d4ed8", color: "#fff", border: "none",
+    borderRadius: 10, padding: "10px 20px", fontSize: 14,
+    fontWeight: 700, cursor: "pointer",
+  },
+  // Modal
   modalBack: {
     position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -65,18 +63,12 @@ const S = {
     maxWidth: 480, width: "100%",
     boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
   },
-  modalTitle: {
-    fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 8,
-  },
-  modalSub: {
-    fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 20,
-  },
-  modalBullets: {
-    listStyle: "none", padding: 0, marginBottom: 20,
-  },
+  modalTitle: { fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 8 },
+  modalSub:   { fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 20 },
+  modalBullets: { listStyle: "none", padding: 0, marginBottom: 20 },
   modalBullet: {
     fontSize: 13, color: "#334155", padding: "6px 0",
-    borderBottom: "1px solid #f1f5f9", display: "flex", gap: 8,
+    borderBottom: "1px solid #f1f5f9",
   },
   btnPrimary: {
     background: "#1d4ed8", color: "#fff", border: "none",
@@ -90,64 +82,66 @@ const S = {
   },
 };
 
-// ── Banner Punto 1: Derivación por síntomas ──────────────────
+// ── Banner Punto 1: derivación por síntomas ──────────────────
 function BannerDerivacion({ onDerivacion, onSkip }) {
-  const [zona, setZona]         = useState("");
-  const [lado, setLado]         = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [zona, setZona]       = useState("");
+  const [lado, setLado]       = useState("");
+  const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
 
-  const zonaKey = zona.toLowerCase().split(" / ")[0].split(" ")[0];
+  const tieneColumna = zona.toLowerCase().includes("columna");
 
   async function handleConsultar() {
     if (!zona) return;
     setLoading(true);
     try {
-      const res = await fetch(`${PREDIAG_URL}/geo-ping`, { method: "GET" });
-      const geo = res.ok ? (await res.json()).geo : null;
+      // Geo silencioso
+      let geo = null;
+      try {
+        const gRes = await fetch(`${PREDIAG_URL}/geo-ping`, { method: "GET" });
+        if (gRes.ok) geo = (await gRes.json()).geo;
+      } catch {}
 
-      const r = await fetch(`${PREDIAG_URL}/sugerir-imagenologia`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      // Usamos resolver directamente via endpoint
-      const resp = await fetch(`${API_URL}/resolver-derivacion`, {
+      // Llamar resolver en backend prediagnóstico
+      const dolor = zona.toLowerCase() + (lado ? ` ${lado.toLowerCase()}` : "");
+      const resp = await fetch(`${PREDIAG_URL}/resolver-derivacion`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dolor: zonaKey, lado, geo }),
-      }).catch(() => null);
+        body: JSON.stringify({ dolor, geo }),
+      });
 
-      let especialidad = zonaKey;
-      if (resp?.ok) {
+      let especialidad = zona.toLowerCase().split(" ")[0];
+      let nota = "";
+      if (resp.ok) {
         const j = await resp.json();
-        especialidad = j?.especialidad || zonaKey;
+        especialidad = j?.especialidad || especialidad;
+        nota = j?.nota || "";
       }
 
-      setResultado({ especialidad, zona, lado });
-      onDerivacion?.({ especialidad, zona, lado });
+      const res = { especialidad, zona, lado, nota };
+      setResultado(res);
+      onDerivacion?.(res);
     } catch {
-      setResultado({ especialidad: zonaKey, zona, lado });
-      onDerivacion?.({ especialidad: zonaKey, zona, lado });
+      const res = { especialidad: zona.toLowerCase().split(" ")[0], zona, lado, nota: "" };
+      setResultado(res);
+      onDerivacion?.(res);
     } finally {
       setLoading(false);
     }
   }
 
   if (resultado) {
-    const esp = resultado.especialidad;
-    const espLabel = esp ? esp.charAt(0).toUpperCase() + esp.slice(1) : zona;
+    const espLabel = resultado.especialidad.charAt(0).toUpperCase() + resultado.especialidad.slice(1);
     return (
       <div style={S.bannerWrap}>
         <div style={S.bannerTitle}>✓ Recomendación según sus síntomas</div>
         <div style={S.derivRow}>
-          <div>
-            <div style={S.derivText}>
-              Especialista en <strong>{espLabel}</strong>
-            </div>
-            <div style={S.derivSub}>
-              Mostrando primero los profesionales más indicados para {zona.toLowerCase()}{lado ? ` ${lado.toLowerCase()}` : ""}.
-            </div>
+          <div style={S.derivText}>
+            Especialista en <strong>{espLabel}</strong>
+          </div>
+          <div style={S.derivSub}>
+            Mostrando primero los profesionales más indicados para{" "}
+            {resultado.zona.toLowerCase()}{resultado.lado ? ` ${resultado.lado.toLowerCase()}` : ""}.
           </div>
         </div>
         <button style={S.skipBtn} onClick={onSkip}>
@@ -166,13 +160,13 @@ function BannerDerivacion({ onDerivacion, onSkip }) {
 
       <div style={S.zonaGrid}>
         {ZONAS_DOLOR.map((z) => (
-          <button key={z} style={S.zonaBtn(zona === z)} onClick={() => setZona(z)}>
+          <button key={z} style={S.zonaBtn(zona === z)} onClick={() => { setZona(z); setLado(""); }}>
             {z}
           </button>
         ))}
       </div>
 
-      {zona && !zona.includes("Columna") && (
+      {zona && !tieneColumna && (
         <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
           {["Derecha", "Izquierda"].map((l) => (
             <button key={l} style={S.zonaBtn(lado === l)} onClick={() => setLado(lado === l ? "" : l)}>
@@ -182,30 +176,25 @@ function BannerDerivacion({ onDerivacion, onSkip }) {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button
-          style={{ ...S.btnPrimary, width: "auto", padding: "10px 20px" }}
-          onClick={handleConsultar}
-          disabled={!zona || loading}
-        >
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <button style={S.btnConsultar} onClick={handleConsultar} disabled={!zona || loading}>
           {loading ? "Consultando…" : "Buscar especialista →"}
         </button>
-        <button style={S.skipBtn} onClick={onSkip}>
-          Saltar
-        </button>
+        <button style={S.skipBtn} onClick={onSkip}>Saltar</button>
       </div>
     </div>
   );
 }
 
-// ── Modal Punto 2: Oferta prediagnóstico post-reserva ────────
+// ── Modal Punto 2: oferta prediagnóstico post-reserva ────────
 function ModalPrediagnostico({ paciente, zona, onClose }) {
-  const url = `${PREDIAG_FRONT}?` + new URLSearchParams({
-    nombre: paciente?.nombre || paciente?.rut || "",
-    rut:    paciente?.rut || "",
+  const params = new URLSearchParams({
+    nombre: paciente?.nombre || "",
+    rut:    paciente?.rut    || "",
     origen: "reserva",
-    dolor:  zona || "",
-  }).toString();
+    dolor:  zona             || "",
+  });
+  const url = `${PREDIAG_FRONT}?${params.toString()}`;
 
   return (
     <div style={S.modalBack} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -214,7 +203,7 @@ function ModalPrediagnostico({ paciente, zona, onClose }) {
         <div style={S.modalTitle}>¿Quiere llegar preparado a su consulta?</div>
         <div style={S.modalSub}>
           Nuestro asistente IA puede sugerirle los exámenes que necesitará,
-          validados por el especialista. Ahorre tiempo y llegue listo.
+          validados por su especialista. Ahorre tiempo y llegue listo.
         </div>
         <ul style={S.modalBullets}>
           {[
@@ -223,17 +212,13 @@ function ModalPrediagnostico({ paciente, zona, onClose }) {
             "✓ Validada por su médico en la consulta",
             "✓ Ahorre tiempo el día de su cita",
           ].map((item) => (
-            <li key={item} style={S.modalBullet}>
-              <span>{item}</span>
-            </li>
+            <li key={item} style={S.modalBullet}>{item}</li>
           ))}
         </ul>
-        <button style={S.btnPrimary} onClick={() => window.open(url, "_blank")}>
+        <button style={S.btnPrimary} onClick={() => { window.open(url, "_blank"); onClose(); }}>
           Iniciar prediagnóstico IA →
         </button>
-        <button style={S.btnSecondary} onClick={onClose}>
-          No por ahora
-        </button>
+        <button style={S.btnSecondary} onClick={onClose}>No por ahora</button>
       </div>
     </div>
   );
@@ -243,25 +228,24 @@ function ModalPrediagnostico({ paciente, zona, onClose }) {
 export default function BookingCerebro() {
   const { session, login } = useAuth();
 
-  const [professionals, setProfessionals]   = useState([]);
-  const [loading, setLoading]               = useState(true);
-  const [loadError, setLoadError]           = useState("");
-  const [selectedDay, setSelectedDay]       = useState(null);
-  const [patientOpen, setPatientOpen]       = useState(false);
-  const [pendingSlot, setPendingSlot]       = useState(null);
+  const [professionals, setProfessionals]     = useState([]);
+  const [loading, setLoading]                 = useState(true);
+  const [loadError, setLoadError]             = useState("");
+  const [selectedDay, setSelectedDay]         = useState(null);
+  const [patientOpen, setPatientOpen]         = useState(false);
+  const [pendingSlot, setPendingSlot]         = useState(null);
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
-  const [reserving, setReserving]           = useState(false);
-  const [reserveError, setReserveError]     = useState("");
+  const [reserving, setReserving]             = useState(false);
+  const [reserveError, setReserveError]       = useState("");
 
-  // ── Prediagnóstico state ──
-  const [mostrarBanner, setMostrarBanner]   = useState(true);
-  const [derivacion, setDerivacion]         = useState(null);   // { especialidad, zona, lado }
-  const [lastPatient, setLastPatient]       = useState(null);
-  const [showPrediag, setShowPrediag]       = useState(false);
+  // Prediagnóstico
+  const [mostrarBanner, setMostrarBanner] = useState(true);
+  const [derivacion, setDerivacion]       = useState(null);
+  const [lastPatient, setLastPatient]     = useState(null);
+  const [showPrediag, setShowPrediag]     = useState(false);
 
   const apiOk = useMemo(() => typeof API_URL === "string" && API_URL.length > 5, []);
 
-  // Auto login público
   useEffect(() => {
     if (!session) {
       login({
@@ -272,10 +256,9 @@ export default function BookingCerebro() {
     }
   }, [session, login]);
 
-  // Cargar profesionales
   useEffect(() => {
     let cancelled = false;
-    async function loadProfessionals() {
+    async function load() {
       setLoading(true); setLoadError(""); setReserveError("");
       if (!apiOk) {
         if (!cancelled) { setProfessionals([]); setLoadError("Falta VITE_API_URL."); setLoading(false); }
@@ -287,7 +270,7 @@ export default function BookingCerebro() {
         const data = await res.json();
         if (!cancelled) {
           const list = Array.isArray(data) ? data : Array.isArray(data?.professionals) ? data.professionals : [];
-          setProfessionals(list.map((p) => ({ id: p.id, name: p.name })));
+          setProfessionals(list.map((p) => ({ id: p.id, name: p.name, specialty: p.specialty })));
         }
       } catch {
         if (!cancelled) { setProfessionals([]); setLoadError("No se pudo cargar la lista de profesionales."); }
@@ -295,20 +278,18 @@ export default function BookingCerebro() {
         if (!cancelled) setLoading(false);
       }
     }
-    loadProfessionals();
+    load();
     return () => { cancelled = true; };
   }, [apiOk]);
 
-  // Filtrar profesionales por especialidad derivada
+  // Reordenar profesionales por especialidad derivada
   const professionalsFiltrados = useMemo(() => {
     if (!derivacion?.especialidad || !professionals.length) return professionals;
     const esp = derivacion.especialidad.toLowerCase();
-    const match = professionals.filter((p) =>
-      p.name?.toLowerCase().includes(esp) ||
-      p.specialty?.toLowerCase().includes(esp)
+    const match = professionals.filter(
+      (p) => p.name?.toLowerCase().includes(esp) || p.specialty?.toLowerCase().includes(esp)
     );
-    // Si hay match, mostrarlos primero; si no, mostrar todos
-    if (match.length === 0) return professionals;
+    if (!match.length) return professionals;
     const resto = professionals.filter((p) => !match.includes(p));
     return [...match, ...resto];
   }, [professionals, derivacion]);
@@ -342,8 +323,8 @@ export default function BookingCerebro() {
 
       setAgendaReloadKey((k) => k + 1);
       setPatientOpen(false);
-      setLastPatient({ rut });
       setPendingSlot(null);
+      setLastPatient({ rut });
 
       // ← Punto 2: mostrar modal prediagnóstico
       setShowPrediag(true);
@@ -362,6 +343,8 @@ export default function BookingCerebro() {
 
   return (
     <PublicLayout>
+
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Reservas</div>
@@ -376,12 +359,13 @@ export default function BookingCerebro() {
         )}
       </div>
 
-      {loadError   && <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: 700 }}>{loadError}</div>}
+      {/* Errores */}
+      {loadError    && <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: 700 }}>{loadError}</div>}
       {reserveError && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: 700 }}>{reserveError}</div>}
 
       {!selectedDay ? (
         <>
-          {/* ── Punto 1: Banner derivación ── */}
+          {/* ── Punto 1: Banner síntomas ── */}
           {mostrarBanner && (
             <BannerDerivacion
               onDerivacion={(d) => { setDerivacion(d); setMostrarBanner(false); }}
@@ -401,10 +385,7 @@ export default function BookingCerebro() {
                   <button style={S.skipBtn} onClick={() => setDerivacion(null)}>ver todos</button>
                 </div>
               )}
-              <AgendaSummarySelector
-                professionals={professionalsFiltrados}
-                onSelectDay={setSelectedDay}
-              />
+              <AgendaSummarySelector professionals={professionalsFiltrados} onSelectDay={setSelectedDay} />
             </>
           )}
         </>
@@ -421,7 +402,7 @@ export default function BookingCerebro() {
             open={patientOpen}
             loading={reserving}
             onConfirm={(patient) => reserveSlot(patient?.rut)}
-            onCreate={(patient) => reserveSlot(patient?.rut)}
+            onCreate={(patient)  => reserveSlot(patient?.rut)}
             onCancel={() => {
               if (reserving) return;
               setPendingSlot(null); setPatientOpen(false); setReserveError("");
@@ -438,6 +419,7 @@ export default function BookingCerebro() {
           onClose={() => setShowPrediag(false)}
         />
       )}
+
     </PublicLayout>
   );
-        }
+}
