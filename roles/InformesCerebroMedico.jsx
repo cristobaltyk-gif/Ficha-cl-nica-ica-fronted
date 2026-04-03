@@ -104,10 +104,14 @@ export default function InformesCerebroMedico() {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
         body: JSON.stringify({
-          nombre: admin.nombre, apellido_paterno: admin.apellido_paterno,
-          apellido_materno: admin.apellido_materno, fecha_nacimiento: admin.fecha_nacimiento,
-          rut: admin.rut, diagnostico: "Resumen clínico integral",
-          indicaciones: resumen, professional
+          nombre:            admin.nombre,
+          apellido_paterno:  admin.apellido_paterno,
+          apellido_materno:  admin.apellido_materno,
+          fecha_nacimiento:  admin.fecha_nacimiento,
+          rut:               admin.rut,
+          diagnostico:       "Resumen clínico integral",
+          indicaciones:      resumen,
+          professional
         })
       });
       if (!res.ok) throw new Error("Error generando PDF");
@@ -169,95 +173,113 @@ export default function InformesCerebroMedico() {
           </div>
         )}
 
-        {/* SELECCIÓN DE ATENCIONES */}
-        {admin && eventos.length > 0 && (
+        {/* SELECCIÓN + RESUMEN — todo en una card */}
+        {admin && !showForm && (
           <div className="dp-card">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <p className="dp-label" style={{ margin: 0 }}>
-                Atenciones · {seleccionados.length}/{eventos.length} seleccionadas
-              </p>
-              <button className="dp-btn-secondary" onClick={toggleTodos}>
-                {seleccionados.length === eventos.length ? "Desmarcar todo" : "Marcar todo"}
-              </button>
-            </div>
 
-            {eventos.map((ev, i) => {
-              const sel = seleccionados.includes(ev.id);
-              return (
-                <div
-                  key={ev.id}
-                  className="dp-event-row"
-                  onClick={() => toggleEvento(ev.id)}
-                  style={{ borderBottomColor: i < eventos.length - 1 ? "#f1f5f9" : "transparent" }}
-                >
-                  {/* CHECKBOX */}
-                  <div style={{
-                    width: 18, height: 18, borderRadius: 4, flexShrink: 0,
-                    border: `2px solid ${sel ? "#2563eb" : "#cbd5e1"}`,
-                    background: sel ? "#2563eb" : "#fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {sel && (
-                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                        <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="dp-event-diag">{ev.diagnostico || "Sin diagnóstico"}</p>
-                    <p className="dp-event-meta">
-                      {ev.fecha} · {ev.hora}{ev.professional_name ? ` · ${ev.professional_name}` : ""}
-                    </p>
-                  </div>
+            {/* Selector de atenciones */}
+            {eventos.length > 0 && (
+              <>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                  <p className="dp-label" style={{ margin: 0 }}>
+                    {seleccionados.length}/{eventos.length} atenciones
+                  </p>
+                  <button className="dp-btn-secondary" onClick={toggleTodos}>
+                    {seleccionados.length === eventos.length ? "Desmarcar todo" : "Marcar todo"}
+                  </button>
                 </div>
-              );
-            })}
 
-            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
-              <button
-                className="dp-btn-primary"
-                onClick={handleGenerarResumen}
-                disabled={loadingResumen || seleccionados.length === 0}
-              >
-                {loadingResumen ? "Generando resumen…" : `Generar resumen (${seleccionados.length} atenciones)`}
-              </button>
+                <div style={{ maxHeight: 220, overflowY: "auto", marginBottom: 12 }}>
+                  {eventos.map((ev, i) => {
+                    const sel = seleccionados.includes(ev.id);
+                    return (
+                      <div
+                        key={ev.id}
+                        className="dp-event-row"
+                        onClick={() => toggleEvento(ev.id)}
+                        style={{ borderBottomColor: i < eventos.length - 1 ? "#f1f5f9" : "transparent" }}
+                      >
+                        <div style={{
+                          width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                          border: `2px solid ${sel ? "#2563eb" : "#cbd5e1"}`,
+                          background: sel ? "#2563eb" : "#fff",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {sel && (
+                            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                              <polyline points="2,6 5,9 10,3" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p className="dp-event-diag">{ev.diagnostico || "Sin diagnóstico"}</p>
+                          <p className="dp-event-meta">
+                            {ev.fecha} · {ev.hora}{ev.professional_name ? ` · ${ev.professional_name}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-              {resumen && (
                 <button
                   className="dp-btn-primary"
-                  onClick={handleImprimirInforme}
-                  disabled={loadingPdf}
-                  style={{ background: "#1e40af" }}
+                  onClick={handleGenerarResumen}
+                  disabled={loadingResumen || seleccionados.length === 0}
+                  style={{ marginBottom: resumen ? 16 : 0 }}
                 >
-                  {loadingPdf ? "Generando PDF…" : "Imprimir informe"}
+                  {loadingResumen ? "Generando resumen…" : `✦ Generar resumen (${seleccionados.length})`}
                 </button>
-              )}
-            </div>
-          </div>
-        )}
+              </>
+            )}
 
-        {/* SIN ATENCIONES */}
-        {admin && !loadingEventos && eventos.length === 0 && (
-          <div className="dp-card">
-            <p className="dp-empty">Sin atenciones registradas</p>
-          </div>
-        )}
+            {/* Sin atenciones */}
+            {!loadingEventos && eventos.length === 0 && (
+              <p className="dp-empty">Sin atenciones registradas</p>
+            )}
 
-        {/* ERROR RESUMEN */}
-        {resumenError && (
-          <div className="dp-card">
-            <p className="dp-error">{resumenError}</p>
-          </div>
-        )}
+            {/* Error resumen */}
+            {resumenError && (
+              <p className="dp-error" style={{ marginTop: 8 }}>{resumenError}</p>
+            )}
 
-        {/* RESUMEN */}
-        {resumen && (
-          <div className="dp-card">
-            <p className="dp-label">Resumen clínico integral</p>
-            <p style={{ margin: 0, fontSize: 14, lineHeight: 1.8, color: "#0f172a", whiteSpace: "pre-wrap", fontFamily: "Georgia, serif" }}>
-              {resumen}
-            </p>
+            {/* RESUMEN EDITABLE */}
+            {resumen && (
+              <>
+                <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 14, marginTop: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <p className="dp-label" style={{ margin: 0 }}>Resumen clínico — editable</p>
+                    <button
+                      className="dp-btn-primary"
+                      onClick={handleImprimirInforme}
+                      disabled={loadingPdf}
+                      style={{ background: "#1e40af", padding: "6px 14px", fontSize: 12 }}
+                    >
+                      {loadingPdf ? "Generando…" : "🖨 Imprimir"}
+                    </button>
+                  </div>
+                  <textarea
+                    value={resumen}
+                    onChange={e => setResumen(e.target.value)}
+                    rows={14}
+                    style={{
+                      width: "100%",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 8,
+                      padding: "12px 14px",
+                      fontSize: 13.5,
+                      lineHeight: 1.8,
+                      color: "#0f172a",
+                      fontFamily: "Georgia, serif",
+                      outline: "none",
+                      resize: "vertical",
+                      background: "#fafbfc",
+                    }}
+                  />
+                </div>
+              </>
+            )}
+
           </div>
         )}
 
