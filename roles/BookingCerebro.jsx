@@ -35,7 +35,7 @@ function BannerPrediagnostico() {
           🩺 ¿Quiere llegar preparado a su consulta?
         </div>
         <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
-          Nuestro asistente IA sugiere exámenes según sus síntomas,<br/>
+          Nuestro asistente IA sugiere exámenes según sus síntomas,<br />
           validados por su médico. Opcional y con costo.
         </div>
       </div>
@@ -57,7 +57,7 @@ function BannerPrediagnostico() {
   );
 }
 
-// ── Modal 3: publicitario post-reserva (con datos) ───────────
+// ── Modal 3: post-reserva con datos ─────────────────────────
 function ModalPrediagnostico({ nombre, rut, onClose }) {
   const url = prediagLink(nombre, rut);
 
@@ -143,7 +143,8 @@ export default function BookingCerebro() {
         return;
       }
       try {
-        const res  = await fetch(`${API_URL}/professionals`);
+        // ?public=true filtra profesionales ocultos como ia_prediagnostico
+        const res  = await fetch(`${API_URL}/professionals?public=true`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (!cancelled) {
@@ -245,7 +246,7 @@ export default function BookingCerebro() {
 
       {!selectedDay ? (
         <>
-          {/* ── Banner 1: publicitario estático ── */}
+          {/* ── Banner 1: publicitario estático sin datos ── */}
           <BannerPrediagnostico />
 
           {loading ? (
@@ -289,4 +290,4 @@ export default function BookingCerebro() {
 
     </PublicLayout>
   );
-        }
+          }
