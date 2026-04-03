@@ -5,68 +5,100 @@ import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
 import PublicLayout from "../pages/reservas/PublicBookingLayout";
 
-const API_URL      = import.meta.env.VITE_API_URL;
+const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
 
-// ── Modal publicitario post-reserva ─────────────────────────
-function ModalPrediagnostico({ rut, nombre, onClose }) {
-  const params = new URLSearchParams({
-    nombre: nombre || "",
-    rut:    rut    || "",
-    origen: "reserva",
-  });
-  const url = `${PREDIAG_FRONT}?${params.toString()}`;
+// ── Helpers ──────────────────────────────────────────────────
+function prediagLink(nombre, rut) {
+  if (!nombre && !rut) return PREDIAG_FRONT;
+  const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
+  return `${PREDIAG_FRONT}?${params.toString()}`;
+}
 
-  const S = {
-    back: {
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 200, padding: 16,
-    },
-    card: {
-      background: "#fff", borderRadius: 20, padding: 28,
-      maxWidth: 440, width: "100%",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-    },
-    title: { fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 8 },
-    sub:   { fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 20 },
-    list:  { listStyle: "none", padding: 0, marginBottom: 20 },
-    item:  { fontSize: 13, color: "#334155", padding: "6px 0", borderBottom: "1px solid #f1f5f9" },
-    btnP:  {
-      background: "#1d4ed8", color: "#fff", border: "none",
-      borderRadius: 12, padding: "12px 20px", fontSize: 14,
-      fontWeight: 700, cursor: "pointer", width: "100%", marginBottom: 10,
-    },
-    btnS:  {
-      background: "none", border: "1px solid #e2e8f0", borderRadius: 12,
-      padding: "11px 20px", fontSize: 14, fontWeight: 600,
-      cursor: "pointer", width: "100%", color: "#475569",
-    },
-  };
+// ── Banner 1: publicitario estático (sin datos) ──────────────
+function BannerPrediagnostico() {
+  return (
+    <div style={{
+      background: "linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%)",
+      border: "1px solid #bfdbfe",
+      borderRadius: 16,
+      padding: "18px 20px",
+      marginBottom: 20,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 16,
+      flexWrap: "wrap",
+    }}>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#1e3a5f", marginBottom: 4 }}>
+          🩺 ¿Quiere llegar preparado a su consulta?
+        </div>
+        <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+          Nuestro asistente IA sugiere exámenes según sus síntomas,<br/>
+          validados por su médico. Opcional y con costo.
+        </div>
+      </div>
+      <a
+        href={PREDIAG_FRONT}
+        target="_blank"
+        rel="noreferrer"
+        style={{
+          background: "#1d4ed8", color: "#fff",
+          padding: "10px 18px", borderRadius: 10,
+          fontSize: 13, fontWeight: 700,
+          textDecoration: "none", whiteSpace: "nowrap",
+          flexShrink: 0,
+        }}
+      >
+        Ver prediagnóstico IA →
+      </a>
+    </div>
+  );
+}
+
+// ── Modal 3: publicitario post-reserva (con datos) ───────────
+function ModalPrediagnostico({ nombre, rut, onClose }) {
+  const url = prediagLink(nombre, rut);
 
   return (
-    <div style={S.back} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={S.card}>
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: "#fff", borderRadius: 20, padding: 28, maxWidth: 440, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
         <div style={{ fontSize: 28, marginBottom: 8 }}>🩺</div>
-        <div style={S.title}>¿Quiere llegar preparado a su consulta?</div>
-        <div style={S.sub}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+          ¿Quiere llegar preparado a su consulta?
+        </div>
+        <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginBottom: 20 }}>
           Nuestro asistente IA puede sugerirle los exámenes que necesitará,
           validados por su médico. Ahorre tiempo y llegue listo.
         </div>
-        <ul style={S.list}>
+        <ul style={{ listStyle: "none", padding: 0, marginBottom: 20 }}>
           {[
             "✓ Diagnóstico presuntivo con IA",
             "✓ Orden de exámenes firmada digitalmente",
             "✓ Validada por su médico en la consulta",
             "✓ Ahorre tiempo el día de su cita",
           ].map((item) => (
-            <li key={item} style={S.item}>{item}</li>
+            <li key={item} style={{ fontSize: 13, color: "#334155", padding: "6px 0", borderBottom: "1px solid #f1f5f9" }}>
+              {item}
+            </li>
           ))}
         </ul>
-        <button style={S.btnP} onClick={() => { window.open(url, "_blank"); onClose(); }}>
+        <button
+          style={{ background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 700, cursor: "pointer", width: "100%", marginBottom: 10 }}
+          onClick={() => { window.open(url, "_blank"); onClose(); }}
+        >
           Iniciar prediagnóstico IA →
         </button>
-        <button style={S.btnS} onClick={onClose}>No por ahora</button>
+        <button
+          style={{ background: "none", border: "1px solid #e2e8f0", borderRadius: 12, padding: "11px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", width: "100%", color: "#475569" }}
+          onClick={onClose}
+        >
+          No por ahora
+        </button>
       </div>
     </div>
   );
@@ -86,7 +118,7 @@ export default function BookingCerebro() {
   const [reserving, setReserving]             = useState(false);
   const [reserveError, setReserveError]       = useState("");
 
-  // Modal prediagnóstico
+  // Modal post-reserva
   const [showPrediag, setShowPrediag] = useState(false);
   const [lastPatient, setLastPatient] = useState(null);
 
@@ -165,7 +197,7 @@ export default function BookingCerebro() {
       setPatientOpen(false);
       setPendingSlot(null);
 
-      // Guardar datos para el modal y mostrarlo
+      // Guardar datos y mostrar modal post-reserva (Banner 3)
       setLastPatient({ rut, nombre: patient?.nombre || "" });
       setShowPrediag(true);
 
@@ -212,13 +244,18 @@ export default function BookingCerebro() {
       )}
 
       {!selectedDay ? (
-        loading ? (
-          <div className="agenda-placeholder">Cargando agenda…</div>
-        ) : professionals.length === 0 ? (
-          <div className="agenda-placeholder">Sin profesionales disponibles.</div>
-        ) : (
-          <AgendaSummarySelector professionals={professionals} onSelectDay={setSelectedDay} />
-        )
+        <>
+          {/* ── Banner 1: publicitario estático ── */}
+          <BannerPrediagnostico />
+
+          {loading ? (
+            <div className="agenda-placeholder">Cargando agenda…</div>
+          ) : professionals.length === 0 ? (
+            <div className="agenda-placeholder">Sin profesionales disponibles.</div>
+          ) : (
+            <AgendaSummarySelector professionals={professionals} onSelectDay={setSelectedDay} />
+          )}
+        </>
       ) : (
         <>
           <AgendaDayController
@@ -241,15 +278,15 @@ export default function BookingCerebro() {
         </>
       )}
 
-      {/* Modal prediagnóstico post-reserva */}
+      {/* ── Banner 3: modal post-reserva con datos ── */}
       {showPrediag && (
         <ModalPrediagnostico
-          rut={lastPatient?.rut}
           nombre={lastPatient?.nombre}
+          rut={lastPatient?.rut}
           onClose={() => setShowPrediag(false)}
         />
       )}
 
     </PublicLayout>
   );
-}
+        }
