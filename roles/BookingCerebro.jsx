@@ -8,17 +8,6 @@ import PublicLayout from "../pages/reservas/PublicBookingLayout";
 const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
 
-// ── Calcula edad desde fecha_nacimiento ──────────────────────
-function calcularEdad(fechaNacimiento) {
-  if (!fechaNacimiento) return null;
-  const hoy    = new Date();
-  const nacido = new Date(fechaNacimiento);
-  let edad = hoy.getFullYear() - nacido.getFullYear();
-  const m  = hoy.getMonth() - nacido.getMonth();
-  if (m < 0 || (m === 0 && hoy.getDate() < nacido.getDate())) edad--;
-  return edad > 0 ? edad : null;
-}
-
 // ── Arma link al prediagnóstico con todos los datos ──────────
 function prediagLink(nombre, rut, edad, genero) {
   const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
@@ -177,50 +166,6 @@ export default function BookingCerebro() {
     return () => { cancelled = true; };
   }, [apiOk]);
 
-  // ← NUEVO: guarda o actualiza ficha admin con public_web
-  async function _guardarFichaAdmin(patient) {
-    if (!patient?.rut) return;
-
-    const payload = {
-      rut:              patient.rut,
-      nombre:           patient.nombre           || "",
-      apellido_paterno: patient.apellido_paterno || "",
-      apellido_materno: patient.apellido_materno || "",
-      fecha_nacimiento: patient.fecha_nacimiento || "",
-      sexo:             patient.sexo             || "",
-      direccion:        patient.direccion        || "",
-      telefono:         patient.telefono         || "",
-      email:            patient.email            || "",
-      prevision:        patient.prevision        || "",
-    };
-
-    try {
-      // Intentar crear primero
-      const res = await fetch(`${API_URL}/api/fichas/admin`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-User": "public_web",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      // 409 = ya existe → actualizar
-      if (res.status === 409) {
-        await fetch(`${API_URL}/api/fichas/admin/${patient.rut}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Internal-User": "public_web",
-          },
-          body: JSON.stringify(payload),
-        });
-      }
-    } catch {
-      // No bloqueamos la reserva si falla la ficha
-    }
-  }
-
   function handleAttend(slot) {
     if (reserving || !slot || slot.status !== "available") return;
     setReserveError("");
@@ -228,9 +173,8 @@ export default function BookingCerebro() {
     setPatientOpen(true);
   }
 
-  async function reserveSlot(patient) {
+  async function reserveSlot(rut) {
     if (!pendingSlot) return;
-    const rut = patient?.rut;
     if (!rut) { setReserveError("RUT inválido."); return; }
     if (!apiOk) { setReserveError("Backend no configurado (VITE_API_URL)."); return; }
 
@@ -238,9 +182,6 @@ export default function BookingCerebro() {
     setReserving(true); setReserveError("");
 
     try {
-      // ← NUEVO: guardar/actualizar ficha admin
-      await _guardarFichaAdmin(patient);
-
       const res = await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -257,14 +198,8 @@ export default function BookingCerebro() {
       setPatientOpen(false);
       setPendingSlot(null);
 
-      // ← nombre completo concatenado + edad calculada + genero
-      setLastPatient({
-        rut,
-        nombre: [patient?.nombre, patient?.apellido_paterno, patient?.apellido_materno]
-          .filter(Boolean).join(" "),
-        edad:   calcularEdad(patient?.fecha_nacimiento),
-        genero: patient?.sexo || "",
-      });
+      // Guardar solo rut — App.jsx del prediagnóstico consulta el resto desde admin.json
+      setLastPatient({ rut });
       setShowPrediag(true);
 
     } catch (e) {
@@ -334,8 +269,8 @@ export default function BookingCerebro() {
           <PatientForm
             open={patientOpen}
             loading={reserving}
-            onConfirm={(patient) => reserveSlot(patient)}
-            onCreate={(patient)  => reserveSlot(patient)}
+            onConfirm={(patient) => reserveSlot(patient.rut)}
+            onCreate={(patient)  => reserveSlot(patient.rut)}
             onCancel={() => {
               if (reserving) return;
               setPendingSlot(null); setPatientOpen(false); setReserveError("");
@@ -344,7 +279,7 @@ export default function BookingCerebro() {
         </>
       )}
 
-      {/* ── Banner 3: modal post-reserva con datos ── */}
+      {/* ── Banner 3: modal post-reserva con rut ── */}
       {showPrediag && (
         <ModalPrediagnostico
           nombre={lastPatient?.nombre}
@@ -357,5 +292,4 @@ export default function BookingCerebro() {
 
     </PublicLayout>
   );
-      }
-        
+}
