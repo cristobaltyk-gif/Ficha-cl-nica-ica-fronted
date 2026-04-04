@@ -8,10 +8,22 @@ import PublicLayout from "../pages/reservas/PublicBookingLayout";
 const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
 
-// ── Helpers ──────────────────────────────────────────────────
-function prediagLink(nombre, rut) {
-  if (!nombre && !rut) return PREDIAG_FRONT;
+// ── Calcula edad desde fecha_nacimiento ──────────────────────
+function calcularEdad(fechaNacimiento) {
+  if (!fechaNacimiento) return null;
+  const hoy    = new Date();
+  const nacido = new Date(fechaNacimiento);
+  let edad = hoy.getFullYear() - nacido.getFullYear();
+  const m  = hoy.getMonth() - nacido.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nacido.getDate())) edad--;
+  return edad > 0 ? edad : null;
+}
+
+// ── Arma link al prediagnóstico con todos los datos ──────────
+function prediagLink(nombre, rut, edad, genero) {
   const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
+  if (edad)   params.set("edad",   String(edad));
+  if (genero) params.set("genero", genero);
   return `${PREDIAG_FRONT}?${params.toString()}`;
 }
 
@@ -58,8 +70,8 @@ function BannerPrediagnostico() {
 }
 
 // ── Modal 3: post-reserva con datos ─────────────────────────
-function ModalPrediagnostico({ nombre, rut, onClose }) {
-  const url = prediagLink(nombre, rut);
+function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
+  const url = prediagLink(nombre, rut, edad, genero);
 
   return (
     <div
@@ -198,8 +210,13 @@ export default function BookingCerebro() {
       setPatientOpen(false);
       setPendingSlot(null);
 
-      // Guardar datos y mostrar modal post-reserva (Banner 3)
-      setLastPatient({ rut, nombre: patient?.nombre || "" });
+      // Guardar datos con edad calculada y genero para el modal
+      setLastPatient({
+        rut,
+        nombre: patient?.nombre || "",
+        edad:   calcularEdad(patient?.fecha_nacimiento),
+        genero: patient?.sexo   || "",
+      });
       setShowPrediag(true);
 
     } catch (e) {
@@ -284,10 +301,13 @@ export default function BookingCerebro() {
         <ModalPrediagnostico
           nombre={lastPatient?.nombre}
           rut={lastPatient?.rut}
+          edad={lastPatient?.edad}
+          genero={lastPatient?.genero}
           onClose={() => setShowPrediag(false)}
         />
       )}
 
     </PublicLayout>
   );
-          }
+  }
+        
