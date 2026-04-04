@@ -267,36 +267,15 @@ export default function PatientForm({
             />
 
             {/* ── NUEVO: Selector de sexo ── */}
-            <div style={{ marginTop: 8, marginBottom: 4 }}>
-              <label style={{ fontSize: 13, color: "#475569", display: "block", marginBottom: 6 }}>
-                Sexo
-              </label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {["MASCULINO", "FEMENINO"].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    disabled={!isEditing && mode === "edit"}
-                    onClick={() => update("sexo", s)}
-                    style={{
-                      flex: 1,
-                      padding: "8px 0",
-                      borderRadius: 8,
-                      border: "1px solid",
-                      cursor: (!isEditing && mode === "edit") ? "default" : "pointer",
-                      fontWeight: 600,
-                      fontSize: 13,
-                      background:  form.sexo === s ? "#0f172a" : "#fff",
-                      color:       form.sexo === s ? "#fff"    : "#0f172a",
-                      borderColor: form.sexo === s ? "#0f172a" : "#cbd5e1",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <select
+              value={form.sexo}
+              disabled={!isEditing && mode === "edit"}
+              onChange={e => update("sexo", e.target.value)}
+            >
+              <option value="">Sexo</option>
+              <option value="MASCULINO">Masculino</option>
+              <option value="FEMENINO">Femenino</option>
+            </select>
             {/* ── /Selector de sexo ── */}
 
             <input placeholder="Dirección" value={form.direccion}
@@ -349,4 +328,5 @@ export default function PatientForm({
       </div>
     </div>
   );
-}
+      }
+                
