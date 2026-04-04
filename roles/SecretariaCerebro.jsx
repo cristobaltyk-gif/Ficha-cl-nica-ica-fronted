@@ -12,11 +12,13 @@ import CajaResumenController from "../components/caja/CajaResumenController";
 import PacientesSecretaria from "./PacientesSecretaria.jsx";
 import MedicosSecretaria from "./MedicosSecretaria.jsx";
 import ConfiguracionSecretaria from "./ConfiguracionSecretaria.jsx";
+import { useAuth } from "../auth/AuthContext";  // ← NUEVO
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SecretariaCerebro() {
   const navigate = useNavigate();
+  const { session } = useAuth();  // ← NUEVO
 
   const [professionals,   setProfessionals]   = useState([]);
   const [loading,         setLoading]         = useState(true);
@@ -63,14 +65,61 @@ export default function SecretariaCerebro() {
     setModalOpen(true);
   }
 
-  async function reserveSlot(rut) {
+  // ← NUEVO: guarda o actualiza ficha admin
+  async function _guardarFichaAdmin(patient) {
+    const internalUser = session?.usuario;
+    if (!internalUser || !patient?.rut) return;
+
+    const payload = {
+      rut:              patient.rut,
+      nombre:           patient.nombre           || "",
+      apellido_paterno: patient.apellido_paterno || "",
+      apellido_materno: patient.apellido_materno || "",
+      fecha_nacimiento: patient.fecha_nacimiento || "",
+      sexo:             patient.sexo             || "",
+      direccion:        patient.direccion        || "",
+      telefono:         patient.telefono         || "",
+      email:            patient.email            || "",
+      prevision:        patient.prevision        || "",
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/api/fichas/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": internalUser,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // 409 = ya existe → actualizar
+      if (res.status === 409) {
+        await fetch(`${API_URL}/api/fichas/admin/${patient.rut}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Internal-User": internalUser,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+    } catch {
+      // No bloqueamos la reserva si falla la ficha
+    }
+  }
+
+  async function reserveSlot(patient) {  // ← NUEVO: recibe patient completo
     if (!pendingSlot) return;
     const { date, time, professional } = pendingSlot;
     try {
+      // ← NUEVO: guardar/actualizar ficha admin
+      await _guardarFichaAdmin(patient);
+
       await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, time, professional, rut })
+        body: JSON.stringify({ date, time, professional, rut: patient.rut })
       });
       setAgendaReloadKey(k => k + 1);
     } catch {
@@ -202,8 +251,8 @@ export default function SecretariaCerebro() {
 
       <PatientForm
         open={patientOpen}
-        onConfirm={patient => { reserveSlot(patient.rut); setPatientOpen(false); }}
-        onCreate={patient  => { reserveSlot(patient.rut); setPatientOpen(false); }}
+        onConfirm={patient => { reserveSlot(patient); setPatientOpen(false); }}
+        onCreate={patient  => { reserveSlot(patient); setPatientOpen(false); }}
         onCancel={() => { setPendingSlot(null); setPatientOpen(false); }}
       />
 
