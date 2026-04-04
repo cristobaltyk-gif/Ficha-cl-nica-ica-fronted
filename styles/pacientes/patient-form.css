@@ -77,7 +77,8 @@
    CAMPOS
    =============================== */
 
-.patient-form input {
+.patient-form input,
+.patient-form select {
   width: 100%;
   height: 40px;
   padding: 0 10px;
@@ -85,6 +86,15 @@
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-size: 14px;
+  background: #ffffff;
+  color: #111827;
+  appearance: auto;
+}
+
+.patient-form select:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: default;
 }
 
 /* ===============================
@@ -126,12 +136,13 @@
   padding: 0 14px;
   cursor: pointer;
 }
+
 /* ===============================
    BOTÓN PELIGROSO (MODIFICAR)
    =============================== */
 
 .patient-form-actions .danger {
-  background-color: #dc2626; /* rojo */
+  background-color: #dc2626;
   color: #ffffff;
   border: none;
 }
@@ -144,6 +155,7 @@
   background-color: #fca5a5;
   cursor: not-allowed;
 }
+
 .buscar-otro-btn {
   margin-bottom: 15px;
   padding: 8px 12px;
