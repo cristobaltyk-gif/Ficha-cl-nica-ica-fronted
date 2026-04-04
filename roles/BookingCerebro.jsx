@@ -177,6 +177,50 @@ export default function BookingCerebro() {
     return () => { cancelled = true; };
   }, [apiOk]);
 
+  // ← NUEVO: guarda o actualiza ficha admin con public_web
+  async function _guardarFichaAdmin(patient) {
+    if (!patient?.rut) return;
+
+    const payload = {
+      rut:              patient.rut,
+      nombre:           patient.nombre           || "",
+      apellido_paterno: patient.apellido_paterno || "",
+      apellido_materno: patient.apellido_materno || "",
+      fecha_nacimiento: patient.fecha_nacimiento || "",
+      sexo:             patient.sexo             || "",
+      direccion:        patient.direccion        || "",
+      telefono:         patient.telefono         || "",
+      email:            patient.email            || "",
+      prevision:        patient.prevision        || "",
+    };
+
+    try {
+      // Intentar crear primero
+      const res = await fetch(`${API_URL}/api/fichas/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": "public_web",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // 409 = ya existe → actualizar
+      if (res.status === 409) {
+        await fetch(`${API_URL}/api/fichas/admin/${patient.rut}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Internal-User": "public_web",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+    } catch {
+      // No bloqueamos la reserva si falla la ficha
+    }
+  }
+
   function handleAttend(slot) {
     if (reserving || !slot || slot.status !== "available") return;
     setReserveError("");
@@ -194,6 +238,9 @@ export default function BookingCerebro() {
     setReserving(true); setReserveError("");
 
     try {
+      // ← NUEVO: guardar/actualizar ficha admin
+      await _guardarFichaAdmin(patient);
+
       const res = await fetch(`${API_URL}/agenda/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -210,12 +257,13 @@ export default function BookingCerebro() {
       setPatientOpen(false);
       setPendingSlot(null);
 
-      // Guardar datos con edad calculada y genero para el modal
+      // ← nombre completo concatenado + edad calculada + genero
       setLastPatient({
         rut,
-        nombre: patient?.nombre || "",
+        nombre: [patient?.nombre, patient?.apellido_paterno, patient?.apellido_materno]
+          .filter(Boolean).join(" "),
         edad:   calcularEdad(patient?.fecha_nacimiento),
-        genero: patient?.sexo   || "",
+        genero: patient?.sexo || "",
       });
       setShowPrediag(true);
 
@@ -309,5 +357,5 @@ export default function BookingCerebro() {
 
     </PublicLayout>
   );
-  }
+      }
         
