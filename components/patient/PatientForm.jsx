@@ -32,7 +32,8 @@ export default function PatientForm({
     direccion: "",
     telefono: "",
     email: "",
-    prevision: ""
+    prevision: "",
+    sexo: "",        // ← NUEVO
   });
 
   function update(field, value) {
@@ -77,7 +78,8 @@ export default function PatientForm({
           direccion: data.direccion ?? "",
           telefono: data.telefono ?? "",
           email: data.email ?? "",
-          prevision: data.prevision ?? ""
+          prevision: data.prevision ?? "",
+          sexo: data.sexo ?? "",   // ← NUEVO
         });
 
         setMode("edit");
@@ -95,7 +97,8 @@ export default function PatientForm({
           direccion: "",
           telefono: "",
           email: "",
-          prevision: ""
+          prevision: "",
+          sexo: "",   // ← NUEVO
         });
 
         setMode("create");
@@ -124,7 +127,8 @@ export default function PatientForm({
       direccion: form.direccion,
       telefono: form.telefono,
       email: form.email,
-      prevision: form.prevision
+      prevision: form.prevision,
+      sexo: form.sexo,   // ← NUEVO
     };
 
     onConfirm?.(payload);
@@ -160,7 +164,8 @@ export default function PatientForm({
       direccion: form.direccion,
       telefono: form.telefono,
       email: form.email,
-      prevision: form.prevision
+      prevision: form.prevision,
+      sexo: form.sexo,   // ← NUEVO
     };
 
     if (mode === "edit") {
@@ -261,6 +266,39 @@ export default function PatientForm({
               onChange={e => update("fechaNacimiento", e.target.value)}
             />
 
+            {/* ── NUEVO: Selector de sexo ── */}
+            <div style={{ marginTop: 8, marginBottom: 4 }}>
+              <label style={{ fontSize: 13, color: "#475569", display: "block", marginBottom: 6 }}>
+                Sexo
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {["MASCULINO", "FEMENINO"].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={!isEditing && mode === "edit"}
+                    onClick={() => update("sexo", s)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: 8,
+                      border: "1px solid",
+                      cursor: (!isEditing && mode === "edit") ? "default" : "pointer",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      background:  form.sexo === s ? "#0f172a" : "#fff",
+                      color:       form.sexo === s ? "#fff"    : "#0f172a",
+                      borderColor: form.sexo === s ? "#0f172a" : "#cbd5e1",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* ── /Selector de sexo ── */}
+
             <input placeholder="Dirección" value={form.direccion}
               onChange={e => update("direccion", e.target.value)} />
 
@@ -311,4 +349,4 @@ export default function PatientForm({
       </div>
     </div>
   );
-                  }
+}
