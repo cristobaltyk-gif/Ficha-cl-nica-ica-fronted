@@ -8,15 +8,13 @@ const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 export default function AgendaSummarySelector({
   professionals = [],
   mode = "monthly",
-  startDate, // 🔒 no se elimina (no rompemos contrato)
-  onSelectDay
+  startDate,
+  onSelectDay,
+  preselectedId = null,  // ← NUEVO: preselecciona médico desde URL
 }) {
   const [loading, setLoading] = useState(false);
   const [daysByProfessional, setDaysByProfessional] = useState({});
 
-  /* =====================================================
-     ✅ BASE DATE = HOY LOCAL (SIN BUG UTC)
-  ===================================================== */
   function getLocalISODate() {
     const now = new Date();
     const offset = now.getTimezoneOffset();
@@ -26,28 +24,36 @@ export default function AgendaSummarySelector({
 
   const baseDate = getLocalISODate();
 
-  const isSingle = professionals.length === 1;
+  // ← Si viene preselectedId y existe en la lista, usarlo directamente
+  const preselectedProfessional = useMemo(() => {
+    if (!preselectedId) return null;
+    return professionals.find((p) => p.id === preselectedId) || null;
+  }, [professionals, preselectedId]);
 
-  /* ========= SELECTOR (SIN CAMBIOS) ========= */
-  const [selectedIds, setSelectedIds] = useState(
-    isSingle ? [professionals[0]?.id] : []
-  );
-  const [appliedIds, setAppliedIds] = useState(
-    isSingle ? [professionals[0]?.id] : []
-  );
+  const isSingle = professionals.length === 1 || !!preselectedProfessional;
+
+  const initialIds = useMemo(() => {
+    if (preselectedProfessional) return [preselectedProfessional.id];
+    if (professionals.length === 1) return [professionals[0]?.id];
+    return [];
+  }, [professionals, preselectedProfessional]);
+
+  const [selectedIds, setSelectedIds] = useState(initialIds);
+  const [appliedIds, setAppliedIds]   = useState(initialIds);
 
   useEffect(() => {
-    if (isSingle && professionals[0]?.id) {
+    if (preselectedProfessional) {
+      setSelectedIds([preselectedProfessional.id]);
+      setAppliedIds([preselectedProfessional.id]);
+    } else if (professionals.length === 1 && professionals[0]?.id) {
       setSelectedIds([professionals[0].id]);
       setAppliedIds([professionals[0].id]);
     }
-  }, [professionals, isSingle]);
+  }, [professionals, preselectedProfessional]);
 
   function toggleProfessional(id) {
     setSelectedIds((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((x) => x !== id);
-      }
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= 4) return prev;
       return [...prev, id];
     });
@@ -57,10 +63,6 @@ export default function AgendaSummarySelector({
     setAppliedIds(selectedIds);
   }
 
-  /* =====================================================
-     ✅ GRILLA RANGO MÓVIL (30 DÍAS DESDE HOY)
-     ALINEADO CON BACKEND
-  ===================================================== */
   const rangeCells = useMemo(() => {
     const start = new Date(baseDate);
     const days = [];
@@ -75,21 +77,13 @@ export default function AgendaSummarySelector({
     const offset = (firstDay.getDay() + 6) % 7;
 
     const cells = [];
-
-    for (let i = 0; i < offset; i++) {
-      cells.push(null);
-    }
-
+    for (let i = 0; i < offset; i++) cells.push(null);
     days.forEach((d) => cells.push(d));
-
-    while (cells.length % 7 !== 0) {
-      cells.push(null);
-    }
+    while (cells.length % 7 !== 0) cells.push(null);
 
     return cells;
   }, [baseDate]);
 
-  /* ========= BACKEND (SIN CAMBIOS) ========= */
   useEffect(() => {
     let cancelled = false;
 
@@ -130,37 +124,34 @@ export default function AgendaSummarySelector({
     }
 
     if (isSingle) {
-      loadMany([professionals[0].id]);
+      const id = preselectedProfessional?.id || professionals[0]?.id;
+      if (id) loadMany([id]);
     } else {
       loadMany(appliedIds);
     }
 
     return () => (cancelled = true);
-  }, [professionals, appliedIds, baseDate, mode, isSingle]);
+  }, [professionals, appliedIds, baseDate, mode, isSingle, preselectedProfessional]);
 
   const visibleProfessionals = isSingle
-    ? professionals
+    ? (preselectedProfessional ? [preselectedProfessional] : professionals.slice(0, 1))
     : professionals.filter((p) => appliedIds.includes(p.id));
 
-  /* =====================================================
-     RENDER
-  ===================================================== */
   return (
     <div className="agenda-summary-selector">
 
+      {/* ← Ocultar selector si viene preselectedId */}
       {!isSingle && (
         <>
           <div className="summary-professionals">
             {professionals.map((p) => {
-              const active = selectedIds.includes(p.id);
+              const active   = selectedIds.includes(p.id);
               const disabled = !active && selectedIds.length >= 4;
 
               return (
                 <label
                   key={p.id}
-                  className={`professional-item ${active ? "active" : ""} ${
-                    disabled ? "disabled" : ""
-                  }`}
+                  className={`professional-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -208,11 +199,10 @@ export default function AgendaSummarySelector({
                   return <div key={i} className="day-cell empty" />;
 
                 const yyyy = dateObj.getFullYear();
-                const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-                const dd = String(dateObj.getDate()).padStart(2, "0");
-
+                const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
+                const dd   = String(dateObj.getDate()).padStart(2, "0");
                 const dateISO = `${yyyy}-${mm}-${dd}`;
-                const status = backendDays[dateISO] || "empty";
+                const status  = backendDays[dateISO] || "empty";
 
                 return (
                   <button
