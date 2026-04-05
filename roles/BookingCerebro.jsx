@@ -8,6 +8,15 @@ import PublicLayout from "../pages/reservas/PublicBookingLayout";
 const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
 
+// ── Leer ?dr= de la URL ──────────────────────────────────────
+function getDrFromURL() {
+  try {
+    return new URLSearchParams(window.location.search).get("dr") || null;
+  } catch {
+    return null;
+  }
+}
+
 // ── Arma link al prediagnóstico con todos los datos ──────────
 function prediagLink(nombre, rut, edad, genero) {
   const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
@@ -123,6 +132,9 @@ export default function BookingCerebro() {
   const [showPrediag, setShowPrediag] = useState(false);
   const [lastPatient, setLastPatient] = useState(null);
 
+  // ← Leer ?dr= de URL para preseleccionar médico
+  const drFromURL = useMemo(() => getDrFromURL(), []);
+
   const apiOk = useMemo(() => typeof API_URL === "string" && API_URL.length > 5, []);
 
   useEffect(() => {
@@ -144,7 +156,6 @@ export default function BookingCerebro() {
         return;
       }
       try {
-        // ?public=true filtra profesionales ocultos como ia_prediagnostico
         const res  = await fetch(`${API_URL}/professionals?public=true`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
@@ -198,7 +209,6 @@ export default function BookingCerebro() {
       setPatientOpen(false);
       setPendingSlot(null);
 
-      // Guardar solo rut — App.jsx del prediagnóstico consulta el resto desde admin.json
       setLastPatient({ rut });
       setShowPrediag(true);
 
@@ -254,7 +264,11 @@ export default function BookingCerebro() {
           ) : professionals.length === 0 ? (
             <div className="agenda-placeholder">Sin profesionales disponibles.</div>
           ) : (
-            <AgendaSummarySelector professionals={professionals} onSelectDay={setSelectedDay} />
+            <AgendaSummarySelector
+              professionals={professionals}
+              onSelectDay={setSelectedDay}
+              preselectedId={drFromURL}  // ← NUEVO: preselecciona médico desde URL
+            />
           )}
         </>
       ) : (
