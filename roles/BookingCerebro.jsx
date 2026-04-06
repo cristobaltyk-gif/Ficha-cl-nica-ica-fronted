@@ -4,6 +4,7 @@ import AgendaDayController from "../components/agenda/AgendaDayController";
 import PatientForm from "../components/patient/PatientForm";
 import { useAuth } from "../auth/AuthContext";
 import PublicLayout from "../pages/reservas/PublicBookingLayout";
+import { resolverRegion } from "../utils/geo";
 
 const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
@@ -17,7 +18,7 @@ function getDrFromURL() {
   }
 }
 
-// ── Arma link al prediagnóstico con todos los datos ──────────
+// ── Arma link al prediagnóstico ──────────────────────────────
 function prediagLink(nombre, rut, edad, genero) {
   const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
   if (edad)   params.set("edad",   String(edad));
@@ -25,7 +26,7 @@ function prediagLink(nombre, rut, edad, genero) {
   return `${PREDIAG_FRONT}?${params.toString()}`;
 }
 
-// ── Banner 1: publicitario estático (sin datos) ──────────────
+// ── Banner 1: publicitario estático ─────────────────────────
 function BannerPrediagnostico() {
   return (
     <div style={{
@@ -67,7 +68,7 @@ function BannerPrediagnostico() {
   );
 }
 
-// ── Modal 3: post-reserva con datos ─────────────────────────
+// ── Modal post-reserva ───────────────────────────────────────
 function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
   const url = prediagLink(nombre, rut, edad, genero);
 
@@ -118,24 +119,23 @@ function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
 export default function BookingCerebro() {
   const { session, login } = useAuth();
 
-  const [professionals, setProfessionals]     = useState([]);
-  const [loading, setLoading]                 = useState(true);
-  const [loadError, setLoadError]             = useState("");
-  const [selectedDay, setSelectedDay]         = useState(null);
-  const [patientOpen, setPatientOpen]         = useState(false);
-  const [pendingSlot, setPendingSlot]         = useState(null);
+  const [professionals,   setProfessionals]   = useState([]);
+  const [loading,         setLoading]         = useState(true);
+  const [loadError,       setLoadError]       = useState("");
+  const [selectedDay,     setSelectedDay]     = useState(null);
+  const [patientOpen,     setPatientOpen]     = useState(false);
+  const [pendingSlot,     setPendingSlot]     = useState(null);
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
-  const [reserving, setReserving]             = useState(false);
-  const [reserveError, setReserveError]       = useState("");
+  const [reserving,       setReserving]       = useState(false);
+  const [reserveError,    setReserveError]    = useState("");
+  const [region,          setRegion]          = useState(undefined); // undefined = aún resolviendo
 
   // Modal post-reserva
   const [showPrediag, setShowPrediag] = useState(false);
   const [lastPatient, setLastPatient] = useState(null);
 
-  // ← Leer ?dr= de URL para preseleccionar médico
   const drFromURL = useMemo(() => getDrFromURL(), []);
-
-  const apiOk = useMemo(() => typeof API_URL === "string" && API_URL.length > 5, []);
+  const apiOk     = useMemo(() => typeof API_URL === "string" && API_URL.length > 5, []);
 
   useEffect(() => {
     if (!session) {
@@ -147,8 +147,19 @@ export default function BookingCerebro() {
     }
   }, [session, login]);
 
+  // ← Resolver región primero — GPS o IP
   useEffect(() => {
+    if (!apiOk) { setRegion(null); return; }
+    resolverRegion(API_URL).then(({ region }) => {
+      setRegion(region || null); // null = sin región (fallback → todos)
+    });
+  }, [apiOk]);
+
+  // ← Cargar professionals SOLO cuando región ya está resuelta
+  useEffect(() => {
+    if (region === undefined) return; // esperar
     let cancelled = false;
+
     async function loadProfessionals() {
       setLoading(true); setLoadError(""); setReserveError("");
       if (!apiOk) {
@@ -156,9 +167,14 @@ export default function BookingCerebro() {
         return;
       }
       try {
-        const res  = await fetch(`${API_URL}/professionals?public=true`);
+        // Pasar región al backend para filtrar
+        const params = new URLSearchParams({ public: "true" });
+        if (region) params.set("region", region);
+
+        const res  = await fetch(`${API_URL}/professionals?${params.toString()}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+
         if (!cancelled) {
           const list = Array.isArray(data)
             ? data
@@ -173,9 +189,10 @@ export default function BookingCerebro() {
         if (!cancelled) setLoading(false);
       }
     }
+
     loadProfessionals();
     return () => { cancelled = true; };
-  }, [apiOk]);
+  }, [apiOk, region]);
 
   function handleAttend(slot) {
     if (reserving || !slot || slot.status !== "available") return;
@@ -208,7 +225,6 @@ export default function BookingCerebro() {
       setAgendaReloadKey((k) => k + 1);
       setPatientOpen(false);
       setPendingSlot(null);
-
       setLastPatient({ rut });
       setShowPrediag(true);
 
@@ -256,18 +272,18 @@ export default function BookingCerebro() {
 
       {!selectedDay ? (
         <>
-          {/* ── Banner 1: publicitario estático sin datos ── */}
           <BannerPrediagnostico />
 
-          {loading ? (
+          {/* Esperar región antes de mostrar agenda */}
+          {region === undefined || loading ? (
             <div className="agenda-placeholder">Cargando agenda…</div>
           ) : professionals.length === 0 ? (
-            <div className="agenda-placeholder">Sin profesionales disponibles.</div>
+            <div className="agenda-placeholder">Sin profesionales disponibles en su área.</div>
           ) : (
             <AgendaSummarySelector
               professionals={professionals}
               onSelectDay={setSelectedDay}
-              preselectedId={drFromURL}  // ← NUEVO: preselecciona médico desde URL
+              preselectedId={drFromURL}
             />
           )}
         </>
@@ -293,7 +309,6 @@ export default function BookingCerebro() {
         </>
       )}
 
-      {/* ── Banner 3: modal post-reserva con rut ── */}
       {showPrediag && (
         <ModalPrediagnostico
           nombre={lastPatient?.nombre}
