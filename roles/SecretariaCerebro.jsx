@@ -12,11 +12,13 @@ import CajaResumenController from "../components/caja/CajaResumenController";
 import PacientesSecretaria from "./PacientesSecretaria.jsx";
 import MedicosSecretaria from "./MedicosSecretaria.jsx";
 import ConfiguracionSecretaria from "./ConfiguracionSecretaria.jsx";
+import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SecretariaCerebro() {
   const navigate = useNavigate();
+  const { session } = useAuth();
 
   const [professionals,   setProfessionals]   = useState([]);
   const [loading,         setLoading]         = useState(true);
@@ -31,22 +33,48 @@ export default function SecretariaCerebro() {
 
   useEffect(() => {
     let cancelled = false;
+
     async function loadProfessionals() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/professionals`);
+        // 1. Obtener región de la secretaria desde sedes.json
+        let region = null;
+        const usuario = session?.usuario;
+
+        if (usuario) {
+          try {
+            const sedeRes = await fetch(`${API_URL}/geo/sedes/${usuario}`);
+            if (sedeRes.ok) {
+              const sedeData = await sedeRes.json();
+              const regiones = sedeData?.regiones || {};
+              // Tomar la primera región configurada
+              const primeraRegion = Object.keys(regiones)[0];
+              if (primeraRegion) region = primeraRegion;
+            }
+          } catch {}
+        }
+
+        // 2. Cargar profesionales filtrando por región y excluyendo IA
+        const params = new URLSearchParams({ public: "true" });
+        if (region) params.set("region", region);
+
+        const res = await fetch(`${API_URL}/professionals?${params.toString()}`);
         if (!res.ok) throw new Error("professionals");
         const data = await res.json();
-        if (!cancelled) setProfessionals(data.map(p => ({ id: p.id, name: p.name })));
+
+        if (!cancelled) {
+          setProfessionals(data.map(p => ({ id: p.id, name: p.name })));
+        }
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
+
     loadProfessionals();
     return () => { cancelled = true; };
-  }, []);
+  }, [session]);
 
   function handleSelectDay(payload) {
     setSelectedDay(payload);
@@ -186,13 +214,11 @@ export default function SecretariaCerebro() {
           element={<PacientesSecretaria />}
         />
 
-        {/* Médicos — lista + editar horarios */}
         <Route
           path="medicos"
           element={<MedicosSecretaria />}
         />
 
-        {/* Administración — configuración personal de la secretaria */}
         <Route
           path="administracion"
           element={<ConfiguracionSecretaria />}
