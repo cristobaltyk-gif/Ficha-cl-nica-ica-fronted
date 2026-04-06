@@ -12,14 +12,14 @@ const ESPECIALIDADES = [
   "Kinesiología", "Traumatología", "Cirugía Articular"
 ];
 
-// ── Formulario de sedes por profesional ─────────────────────
-function SedesForm({ pid, onBack }) {
-  const [regiones,       setRegiones]       = useState([]);
-  const [sedesActuales,  setSedesActuales]  = useState({});
-  const [loading,        setLoading]        = useState(true);
-  const [saving,         setSaving]         = useState(false);
-  const [error,          setError]          = useState(null);
-  const [success,        setSuccess]        = useState(null);
+// ── Formulario de sedes — para cualquier miembro del equipo ──
+function SedesForm({ pid }) {
+  const [regiones,      setRegiones]      = useState([]);
+  const [sedesActuales, setSedesActuales] = useState({});
+  const [loading,       setLoading]       = useState(true);
+  const [saving,        setSaving]        = useState(false);
+  const [error,         setError]         = useState(null);
+  const [success,       setSuccess]       = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -44,11 +44,8 @@ function SedesForm({ pid, onBack }) {
   function toggleRegion(regionId) {
     setSedesActuales(prev => {
       const next = { ...prev };
-      if (next[regionId]) {
-        delete next[regionId];
-      } else {
-        next[regionId] = [{ centro: "", direccion: "" }];
-      }
+      if (next[regionId]) { delete next[regionId]; }
+      else { next[regionId] = [{ centro: "", direccion: "" }]; }
       return next;
     });
   }
@@ -74,9 +71,7 @@ function SedesForm({ pid, onBack }) {
     setSedesActuales(prev => {
       const lista = (prev[regionId] || []).filter((_, i) => i !== idx);
       if (lista.length === 0) {
-        const next = { ...prev };
-        delete next[regionId];
-        return next;
+        const next = { ...prev }; delete next[regionId]; return next;
       }
       return { ...prev, [regionId]: lista };
     });
@@ -108,7 +103,7 @@ function SedesForm({ pid, onBack }) {
       {success && <div className="ea-success">{success}</div>}
 
       <p style={{ fontSize: 13, color: "#64748b", marginBottom: 16 }}>
-        Selecciona las regiones donde atiende este profesional y completa los datos del centro.
+        Selecciona las regiones donde atiende este miembro y completa los datos del centro.
       </p>
 
       {regiones.map(r => {
@@ -134,9 +129,7 @@ function SedesForm({ pid, onBack }) {
                 {centros.map((c, idx) => (
                   <div key={idx} className="ea-centro-block">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>
-                        Centro {idx + 1}
-                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Centro {idx + 1}</span>
                       {centros.length > 1 && (
                         <button className="ea-btn-danger" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => removeCentro(r.id, idx)}>
                           Quitar
@@ -145,29 +138,17 @@ function SedesForm({ pid, onBack }) {
                     </div>
                     <div className="ea-field">
                       <p className="ea-field-label">Nombre del centro</p>
-                      <input
-                        className="ea-input"
-                        value={c.centro}
-                        placeholder="Ej: Instituto de Cirugía Articular"
-                        onChange={e => updateCentro(r.id, idx, "centro", e.target.value)}
-                      />
+                      <input className="ea-input" value={c.centro} placeholder="Ej: Instituto de Cirugía Articular"
+                        onChange={e => updateCentro(r.id, idx, "centro", e.target.value)} />
                     </div>
                     <div className="ea-field" style={{ marginBottom: 0 }}>
                       <p className="ea-field-label">Dirección</p>
-                      <input
-                        className="ea-input"
-                        value={c.direccion}
-                        placeholder="Ej: Avenida España 998, Curicó"
-                        onChange={e => updateCentro(r.id, idx, "direccion", e.target.value)}
-                      />
+                      <input className="ea-input" value={c.direccion} placeholder="Ej: Avenida España 998, Curicó"
+                        onChange={e => updateCentro(r.id, idx, "direccion", e.target.value)} />
                     </div>
                   </div>
                 ))}
-                <button
-                  className="ea-btn-secondary"
-                  style={{ marginTop: 8, fontSize: 12 }}
-                  onClick={() => addCentro(r.id)}
-                >
+                <button className="ea-btn-secondary" style={{ marginTop: 8, fontSize: 12 }} onClick={() => addCentro(r.id)}>
                   + Agregar otro centro en {r.nombre}
                 </button>
               </div>
@@ -176,28 +157,22 @@ function SedesForm({ pid, onBack }) {
         );
       })}
 
-      <button
-        className="ea-btn-primary"
-        onClick={handleGuardar}
-        disabled={saving}
-        style={{ width: "100%", marginTop: 8 }}
-      >
+      <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
         {saving ? "Guardando…" : "Guardar sedes"}
       </button>
     </div>
   );
-}
-
+                             }
 // ── Componente principal ─────────────────────────────────────
 export default function EquipoAdmin() {
-  const [vista,        setVista]        = useState("lista");
-  const [miembros,     setMiembros]     = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [tabDetalle,   setTabDetalle]   = useState("info"); // info | sedes
-  const [error,        setError]        = useState(null);
-  const [success,      setSuccess]      = useState(null);
-  const [saving,       setSaving]       = useState(false);
+  const [vista,         setVista]         = useState("lista");
+  const [miembros,      setMiembros]      = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [seleccionado,  setSeleccionado]  = useState(null);
+  const [tabDetalle,    setTabDetalle]    = useState("info");
+  const [error,         setError]         = useState(null);
+  const [success,       setSuccess]       = useState(null);
+  const [saving,        setSaving]        = useState(false);
   const [confirmBorrar, setConfirmBorrar] = useState(null);
 
   const [form, setForm] = useState({
@@ -258,30 +233,20 @@ export default function EquipoAdmin() {
 
       if (esProfesional) {
         const res = await fetch(`${API_URL}/professionals`, {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({
-            id:        form.username,
-            name:      `${form.nombre} ${form.apellido}`.trim(),
-            rut:       form.rut,
-            specialty: form.especialidad,
-            active:    true,
-            username:  form.username,
-            password:  form.password,
-            role:      form.rol,
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
+            rut: form.rut, specialty: form.especialidad,
+            active: true, username: form.username, password: form.password, role: form.rol,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       } else {
         const res = await fetch(`${API_URL}/admin/users`, {
-          method:  "POST",
-          headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({
-            username: form.username,
-            password: form.password,
-            nombre:   `${form.nombre} ${form.apellido}`.trim(),
-            role:     form.rol,
-            active:   true,
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: form.username, password: form.password,
+            nombre: `${form.nombre} ${form.apellido}`.trim(), role: form.rol, active: true,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
@@ -322,12 +287,18 @@ export default function EquipoAdmin() {
         await fetch(`${API_URL}/geo/sedes/${m.id}`, { method: "DELETE" }).catch(() => {});
       } else {
         await fetch(`${API_URL}/admin/users/${m.username}`, { method: "DELETE" });
+        await fetch(`${API_URL}/geo/sedes/${m.username}`, { method: "DELETE" }).catch(() => {});
       }
       setConfirmBorrar(null);
       setVista("lista");
       await loadMiembros();
     } catch {}
   }
+
+  // ID para sedes — profesional usa id, usuario usa username
+  const sedesPid = seleccionado
+    ? (seleccionado._tipo === "profesional" ? seleccionado.id : seleccionado.username)
+    : null;
 
   const esProf = ROLES_PROFESIONAL.includes(form.rol);
 
@@ -355,12 +326,8 @@ export default function EquipoAdmin() {
         <div className="ea-card">
           {loading && <p className="ea-empty">Cargando…</p>}
           {!loading && miembros.length === 0 && <p className="ea-empty">Sin miembros</p>}
-          {miembros.map((m, i) => (
-            <div
-              key={m.id || m.username}
-              className="ea-member-row"
-              onClick={() => abrirDetalle(m)}
-            >
+          {miembros.map((m) => (
+            <div key={m.id || m.username} className="ea-member-row" onClick={() => abrirDetalle(m)}>
               <div className={`ea-avatar ${m._tipo === "usuario" ? "usuario" : ""} ${m.active === false ? "inactivo" : ""}`}>
                 {(m.name || m.username || "?").charAt(0).toUpperCase()}
               </div>
@@ -388,16 +355,14 @@ export default function EquipoAdmin() {
       {/* DETALLE */}
       {vista === "detalle" && seleccionado && (
         <div>
-          {/* Tabs */}
           <div className="ea-tabs">
-            <button className={`ea-tab ${tabDetalle === "info" ? "active" : ""}`} onClick={() => setTabDetalle("info")}>
+            <button className={`ea-tab ${tabDetalle === "info"  ? "active" : ""}`} onClick={() => setTabDetalle("info")}>
               Información
             </button>
-            {seleccionado._tipo === "profesional" && (
-              <button className={`ea-tab ${tabDetalle === "sedes" ? "active" : ""}`} onClick={() => setTabDetalle("sedes")}>
-                Sedes
-              </button>
-            )}
+            {/* ← Tab Sedes para TODOS los roles */}
+            <button className={`ea-tab ${tabDetalle === "sedes" ? "active" : ""}`} onClick={() => setTabDetalle("sedes")}>
+              Sedes
+            </button>
           </div>
 
           <div className="ea-card" style={{ padding: 16 }}>
@@ -425,29 +390,21 @@ export default function EquipoAdmin() {
                     {seleccionado.active === false ? "Inactivo" : "Activo"}
                   </p>
                 </div>
-
                 <hr className="ea-divider" />
-
-                {/* Acciones */}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button
-                    className="ea-btn-secondary"
-                    onClick={() => handleToggleActivo(seleccionado, { stopPropagation: () => {} })}
-                  >
+                  <button className="ea-btn-secondary" onClick={() => handleToggleActivo(seleccionado, { stopPropagation: () => {} })}>
                     {seleccionado.active === false ? "Activar" : "Desactivar"}
                   </button>
-                  <button
-                    className="ea-btn-danger"
-                    onClick={() => setConfirmBorrar(seleccionado)}
-                  >
+                  <button className="ea-btn-danger" onClick={() => setConfirmBorrar(seleccionado)}>
                     Eliminar
                   </button>
                 </div>
               </div>
             )}
 
-            {tabDetalle === "sedes" && seleccionado._tipo === "profesional" && (
-              <SedesForm pid={seleccionado.id} onBack={() => setTabDetalle("info")} />
+            {/* ← SedesForm usa el ID correcto según tipo */}
+            {tabDetalle === "sedes" && sedesPid && (
+              <SedesForm pid={sedesPid} />
             )}
           </div>
         </div>
@@ -465,17 +422,14 @@ export default function EquipoAdmin() {
               {TODOS_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
             </select>
           </div>
-
           <div className="ea-field">
             <p className="ea-field-label">Nombre *</p>
             <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
           </div>
-
           <div className="ea-field">
             <p className="ea-field-label">Apellido</p>
             <input className="ea-input" value={form.apellido} onChange={e => setForm(p => ({ ...p, apellido: e.target.value }))} />
           </div>
-
           {esProf && (
             <>
               <div className="ea-field">
@@ -491,17 +445,14 @@ export default function EquipoAdmin() {
               </div>
             </>
           )}
-
           <div className="ea-field">
             <p className="ea-field-label">Usuario *</p>
             <input className="ea-input" value={form.username} placeholder="ej: jperez" onChange={e => setForm(p => ({ ...p, username: e.target.value }))} />
           </div>
-
           <div className="ea-field">
             <p className="ea-field-label">Contraseña inicial *</p>
             <input className="ea-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
           </div>
-
           <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
             {saving ? "Guardando…" : "Crear miembro"}
           </button>
@@ -530,4 +481,5 @@ export default function EquipoAdmin() {
 
     </div>
   );
-}
+            }
+                                           
