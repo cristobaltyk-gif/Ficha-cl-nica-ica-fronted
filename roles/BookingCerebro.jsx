@@ -68,6 +68,39 @@ function BannerPrediagnostico() {
   );
 }
 
+// ── Banner GPS requerido ─────────────────────────────────────
+function BannerGPS({ onReintentar }) {
+  return (
+    <div style={{
+      background: "#fffbeb",
+      border: "1px solid #fde68a",
+      borderRadius: 16,
+      padding: "20px 20px",
+      marginBottom: 20,
+      textAlign: "center",
+    }}>
+      <div style={{ fontSize: 28, marginBottom: 8 }}>📍</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#92400e", marginBottom: 6 }}>
+        Necesitamos tu ubicación
+      </div>
+      <div style={{ fontSize: 13, color: "#78350f", lineHeight: 1.6, marginBottom: 16 }}>
+        Para mostrarte los profesionales disponibles en tu área,
+        activa el acceso a tu ubicación en el navegador y vuelve a intentarlo.
+      </div>
+      <button
+        onClick={onReintentar}
+        style={{
+          background: "#d97706", color: "#fff", border: "none",
+          borderRadius: 10, padding: "10px 20px",
+          fontSize: 13, fontWeight: 700, cursor: "pointer",
+        }}
+      >
+        Reintentar
+      </button>
+    </div>
+  );
+}
+
 // ── Modal post-reserva ───────────────────────────────────────
 function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
   const url = prediagLink(nombre, rut, edad, genero);
@@ -128,9 +161,10 @@ export default function BookingCerebro() {
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
   const [reserving,       setReserving]       = useState(false);
   const [reserveError,    setReserveError]    = useState("");
-  const [region,          setRegion]          = useState(undefined); // undefined = aún resolviendo
+  const [region,          setRegion]          = useState(undefined); // undefined = resolviendo
+  const [gpsRequerido,    setGpsRequerido]    = useState(false);
+  const [geoKey,          setGeoKey]          = useState(0); // para reintentar
 
-  // Modal post-reserva
   const [showPrediag, setShowPrediag] = useState(false);
   const [lastPatient, setLastPatient] = useState(null);
 
@@ -147,17 +181,27 @@ export default function BookingCerebro() {
     }
   }, [session, login]);
 
-  // ← Resolver región primero — GPS o IP
+  // ← Resolver región — GPS o IP
   useEffect(() => {
     if (!apiOk) { setRegion(null); return; }
-    resolverRegion(API_URL).then(({ region }) => {
-      setRegion(region || null); // null = sin región (fallback → todos)
-    });
-  }, [apiOk]);
+    setRegion(undefined);
+    setGpsRequerido(false);
 
-  // ← Cargar professionals SOLO cuando región ya está resuelta
+    resolverRegion(API_URL).then(({ ok, region, gpsRequerido }) => {
+      if (ok) {
+        setRegion(region || null);
+        setGpsRequerido(false);
+      } else {
+        setRegion(null);
+        setGpsRequerido(gpsRequerido);
+      }
+    });
+  }, [apiOk, geoKey]);
+
+  // ← Cargar professionals solo cuando región resuelta
   useEffect(() => {
-    if (region === undefined) return; // esperar
+    if (region === undefined) return;
+    if (gpsRequerido) return; // esperar que el usuario active GPS
     let cancelled = false;
 
     async function loadProfessionals() {
@@ -167,7 +211,6 @@ export default function BookingCerebro() {
         return;
       }
       try {
-        // Pasar región al backend para filtrar
         const params = new URLSearchParams({ public: "true" });
         if (region) params.set("region", region);
 
@@ -176,11 +219,7 @@ export default function BookingCerebro() {
         const data = await res.json();
 
         if (!cancelled) {
-          const list = Array.isArray(data)
-            ? data
-            : Array.isArray(data?.professionals)
-              ? data.professionals
-              : [];
+          const list = Array.isArray(data) ? data : Array.isArray(data?.professionals) ? data.professionals : [];
           setProfessionals(list.map((p) => ({ id: p.id, name: p.name })));
         }
       } catch {
@@ -192,7 +231,7 @@ export default function BookingCerebro() {
 
     loadProfessionals();
     return () => { cancelled = true; };
-  }, [apiOk, region]);
+  }, [apiOk, region, gpsRequerido]);
 
   function handleAttend(slot) {
     if (reserving || !slot || slot.status !== "available") return;
@@ -243,7 +282,6 @@ export default function BookingCerebro() {
   return (
     <PublicLayout>
 
-      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Reservas</div>
@@ -258,7 +296,6 @@ export default function BookingCerebro() {
         )}
       </div>
 
-      {/* Errores */}
       {loadError && (
         <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412", padding: 12, borderRadius: 12, marginBottom: 12, fontWeight: 700 }}>
           {loadError}
@@ -274,8 +311,10 @@ export default function BookingCerebro() {
         <>
           <BannerPrediagnostico />
 
-          {/* Esperar región antes de mostrar agenda */}
-          {region === undefined || loading ? (
+          {/* GPS requerido */}
+          {gpsRequerido ? (
+            <BannerGPS onReintentar={() => setGeoKey(k => k + 1)} />
+          ) : region === undefined || loading ? (
             <div className="agenda-placeholder">Cargando agenda…</div>
           ) : professionals.length === 0 ? (
             <div className="agenda-placeholder">Sin profesionales disponibles en su área.</div>
@@ -321,4 +360,4 @@ export default function BookingCerebro() {
 
     </PublicLayout>
   );
-}
+            }
