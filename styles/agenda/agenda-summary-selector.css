@@ -7,93 +7,54 @@
   width: 100%;
   padding: 14px;
   margin-bottom: 16px;
-
   background: #ffffff;
   border: 2px solid #020617;
   border-radius: 12px;
-
   box-sizing: border-box;
 }
 
 /* ===============================
-   MODO (30 / 7 días)
+   GRUPOS DE PROFESIONALES
 =============================== */
-.summary-mode {
-  display: flex;
-  gap: 10px;
+.summary-groups {
+  margin-bottom: 4px;
+}
+
+.summary-group {
   margin-bottom: 12px;
 }
 
-.summary-mode button {
-  flex: 1;
-  padding: 10px 0;
-
+.summary-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
   border-radius: 8px;
-  border: 1.5px solid #020617;
-  background: #ffffff;
-
-  font-size: 14px;
-  font-weight: 600;
-  color: #020617;
-
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.summary-mode button:hover {
-  background: #f1f5f9;
-}
-
-.summary-mode button.active {
-  background: #020617;
-  color: #ffffff;
-  border-color: #020617;
+  border: 1.5px solid #cbd5e1;
+  margin-bottom: 8px;
 }
 
 /* ===============================
    PROFESIONALES (SELECTOR)
-   Checklist máx. 4
 =============================== */
 .summary-professionals {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-
-  padding: 12px;
-  margin-bottom: 14px;
-
-  border: 1.5px dashed #94a3b8;
-  border-radius: 10px;
-  background: #f8fafc;
-
+  gap: 8px;
+  padding: 0;
   box-sizing: border-box;
 }
 
-/* lista de médicos */
-.summary-professionals .professionals-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-}
-
-/* item médico */
 .professional-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  padding: 10px 12px;
-  border-radius: 8px;
+  gap: 10px;
+  padding: 11px 13px;
+  border-radius: 10px;
   border: 1.5px solid #cbd5e1;
   background: #ffffff;
-
-  font-size: 14px;
-  font-weight: 600;
-  color: #020617;
-
   cursor: pointer;
   transition: all 0.15s ease;
-
   box-sizing: border-box;
 }
 
@@ -101,24 +62,58 @@
   background: #f1f5f9;
 }
 
-.professional-item input {
-  accent-color: #020617;
-}
-
-.professional-item.selected {
+.professional-item.active {
   background: #020617;
   color: #ffffff;
   border-color: #020617;
 }
 
-/* footer selector */
+.professional-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.professional-item input {
+  accent-color: #fff;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.professional-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.professional-item-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.professional-item-specialty {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* ===============================
+   FOOTER SELECTOR
+=============================== */
 .summary-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   font-size: 13px;
   color: #334155;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
 }
 
 /* ===============================
@@ -126,21 +121,13 @@
 =============================== */
 .apply-btn {
   padding: 10px 22px;
-
   border-radius: 10px;
   border: none;
-
-  background: linear-gradient(
-    180deg,
-    #2563eb,
-    #1e40af
-  );
-
+  background: linear-gradient(180deg, #2563eb, #1e40af);
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.3px;
-
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -164,11 +151,47 @@
   padding: 0;
 }
 
-.month-calendar h4 {
-  margin-bottom: 8px;
+/* Header con nombre + badge especialidad */
+.month-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.month-calendar-prof {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-calendar-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.month-calendar-name {
   font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.month-calendar-specialty {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.month-calendar-badge {
+  font-size: 10px;
   font-weight: 700;
-  color: #020617;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 /* ===============================
@@ -179,12 +202,10 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
   margin: 0 0 6px 0;
-
   font-size: 12px;
   font-weight: 700;
   text-align: center;
   color: #334155;
-
   width: 100%;
   box-sizing: border-box;
 }
@@ -204,7 +225,6 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 6px;
-
   width: 100%;
   box-sizing: border-box;
 }
@@ -215,27 +235,29 @@
 .day-cell {
   width: 100%;
   height: 42px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 8px;
   border: 1.5px solid #cbd5e1;
   background: #ffffff;
-
   font-size: 14px;
   font-weight: 600;
   color: #020617;
-
   cursor: pointer;
   transition: all 0.15s ease;
-
   box-sizing: border-box;
+  position: relative;
 }
 
-.day-cell:hover {
+.day-cell:hover:not(:disabled) {
   background: #f1f5f9;
+}
+
+/* Today */
+.day-cell.today {
+  font-weight: 800;
+  border-width: 2px;
 }
 
 /* ===============================
@@ -244,7 +266,7 @@
 .day-cell.empty {
   background: #f8fafc;
   border-style: dashed;
-  color: #94a3b8;
+  color: #cbd5e1;
   cursor: not-allowed;
 }
 
@@ -264,6 +286,15 @@
   background: #fef2f2;
   border-color: #ef4444;
   color: #991b1b;
+}
+
+/* ===============================
+   LOADING
+=============================== */
+.agenda-loading {
+  font-size: 13px;
+  color: #64748b;
+  padding: 8px 0;
 }
 
 /* ===============================
