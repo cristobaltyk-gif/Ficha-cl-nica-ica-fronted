@@ -5,26 +5,52 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
+// ── Grupos de profesionales ──────────────────────────────────
+const GRUPOS = [
+  {
+    id:     "medico",
+    label:  "Traumatología · Cirugía Articular",
+    icon:   "🦴",
+    roles:  ["medico"],
+    color:  "#0f172a",
+    bg:     "#f8fafc",
+    border: "#cbd5e1",
+  },
+  {
+    id:     "kine",
+    label:  "Kinesiología · Rehabilitación",
+    icon:   "🏃",
+    roles:  ["kine"],
+    color:  "#1d4ed8",
+    bg:     "#eff6ff",
+    border: "#bfdbfe",
+  },
+];
+
+function getGrupo(professional) {
+  const role = (professional.role?.name || professional.role || "medico").toLowerCase();
+  return GRUPOS.find(g => g.roles.includes(role)) || GRUPOS[0];
+}
+
 export default function AgendaSummarySelector({
   professionals = [],
   mode = "monthly",
   startDate,
   onSelectDay,
-  preselectedId = null,  // ← NUEVO: preselecciona médico desde URL
+  preselectedId = null,
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loading,            setLoading]            = useState(false);
   const [daysByProfessional, setDaysByProfessional] = useState({});
 
   function getLocalISODate() {
-    const now = new Date();
+    const now    = new Date();
     const offset = now.getTimezoneOffset();
-    const local = new Date(now.getTime() - offset * 60000);
+    const local  = new Date(now.getTime() - offset * 60000);
     return local.toISOString().slice(0, 10);
   }
 
   const baseDate = getLocalISODate();
 
-  // ← Si viene preselectedId y existe en la lista, usarlo directamente
   const preselectedProfessional = useMemo(() => {
     if (!preselectedId) return null;
     return professionals.find((p) => p.id === preselectedId) || null;
@@ -39,7 +65,7 @@ export default function AgendaSummarySelector({
   }, [professionals, preselectedProfessional]);
 
   const [selectedIds, setSelectedIds] = useState(initialIds);
-  const [appliedIds, setAppliedIds]   = useState(initialIds);
+  const [appliedIds,  setAppliedIds]  = useState(initialIds);
 
   useEffect(() => {
     if (preselectedProfessional) {
@@ -65,22 +91,17 @@ export default function AgendaSummarySelector({
 
   const rangeCells = useMemo(() => {
     const start = new Date(baseDate);
-    const days = [];
-
+    const days  = [];
     for (let i = 0; i < 30; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
       days.push(d);
     }
-
-    const firstDay = days[0];
-    const offset = (firstDay.getDay() + 6) % 7;
-
-    const cells = [];
+    const offset = (days[0].getDay() + 6) % 7;
+    const cells  = [];
     for (let i = 0; i < offset; i++) cells.push(null);
     days.forEach((d) => cells.push(d));
     while (cells.length % 7 !== 0) cells.push(null);
-
     return cells;
   }, [baseDate]);
 
@@ -90,19 +111,12 @@ export default function AgendaSummarySelector({
     async function loadMany(ids) {
       if (!ids.length) return;
       setLoading(true);
-
-      const endpoint =
-        mode === "weekly"
-          ? "/agenda/summary/week"
-          : "/agenda/summary/month";
-
+      const endpoint = mode === "weekly" ? "/agenda/summary/week" : "/agenda/summary/month";
       try {
         const results = await Promise.all(
           ids.map(async (id) => {
             try {
-              const res = await fetch(
-                `${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`
-              );
+              const res  = await fetch(`${API_URL}${endpoint}?professional=${id}&start_date=${baseDate}`);
               const data = res.ok ? await res.json() : { days: {} };
               return [id, data.days || {}];
             } catch {
@@ -110,7 +124,6 @@ export default function AgendaSummarySelector({
             }
           })
         );
-
         if (!cancelled) {
           setDaysByProfessional((prev) => {
             const next = { ...prev };
@@ -137,33 +150,68 @@ export default function AgendaSummarySelector({
     ? (preselectedProfessional ? [preselectedProfessional] : professionals.slice(0, 1))
     : professionals.filter((p) => appliedIds.includes(p.id));
 
+  // Agrupar professionals por grupo para el selector
+  const gruposConProfesionales = useMemo(() => {
+    return GRUPOS
+      .map(g => ({
+        ...g,
+        members: professionals.filter(p => {
+          const role = (p.role?.name || p.role || "medico").toLowerCase();
+          return g.roles.includes(role);
+        })
+      }))
+      .filter(g => g.members.length > 0);
+  }, [professionals]);
+
   return (
     <div className="agenda-summary-selector">
 
-      {/* ← Ocultar selector si viene preselectedId */}
+      {/* ── Selector por grupos ── */}
       {!isSingle && (
-        <>
-          <div className="summary-professionals">
-            {professionals.map((p) => {
-              const active   = selectedIds.includes(p.id);
-              const disabled = !active && selectedIds.length >= 4;
+        <div className="summary-groups">
+          {gruposConProfesionales.map(grupo => (
+            <div key={grupo.id} className="summary-group">
+              <div
+                className="summary-group-header"
+                style={{ borderColor: grupo.border, background: grupo.bg }}
+              >
+                <span style={{ fontSize: 16 }}>{grupo.icon}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: grupo.color }}>{grupo.label}</span>
+              </div>
 
-              return (
-                <label
-                  key={p.id}
-                  className={`professional-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    disabled={disabled}
-                    onChange={() => toggleProfessional(p.id)}
-                  />
-                  {p.name}
-                </label>
-              );
-            })}
-          </div>
+              <div className="summary-professionals">
+                {grupo.members.map((p) => {
+                  const active   = selectedIds.includes(p.id);
+                  const disabled = !active && selectedIds.length >= 4;
+                  return (
+                    <label
+                      key={p.id}
+                      className={`professional-item ${active ? "active" : ""} ${disabled ? "disabled" : ""}`}
+                      style={active ? { borderColor: grupo.color, background: grupo.color } : {}}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        disabled={disabled}
+                        onChange={() => toggleProfessional(p.id)}
+                      />
+                      <div className="professional-item-info">
+                        <span className="professional-item-name">{p.name}</span>
+                        {p.specialty && (
+                          <span
+                            className="professional-item-specialty"
+                            style={{ color: active ? "rgba(255,255,255,0.75)" : "#64748b" }}
+                          >
+                            {p.specialty}
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
 
           <div className="summary-footer">
             <span>{selectedIds.length} / 4 seleccionados</span>
@@ -175,43 +223,61 @@ export default function AgendaSummarySelector({
               Aplicar
             </button>
           </div>
-        </>
+        </div>
       )}
 
-      {loading && <p>Cargando agenda…</p>}
+      {loading && <p className="agenda-loading">Cargando agenda…</p>}
 
+      {/* ── Calendarios ── */}
       {visibleProfessionals.map((p) => {
         const backendDays = daysByProfessional[p.id] || {};
+        const grupo       = getGrupo(p);
 
         return (
           <div key={p.id} className="month-calendar">
-            <h4>{p.name}</h4>
+            {/* Header profesional con badge de especialidad */}
+            <div className="month-calendar-header">
+              <div className="month-calendar-prof">
+                <span className="month-calendar-icon">{grupo.icon}</span>
+                <div>
+                  <div className="month-calendar-name">{p.name}</div>
+                  {p.specialty && (
+                    <div className="month-calendar-specialty" style={{ color: grupo.color }}>
+                      {p.specialty}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <span
+                className="month-calendar-badge"
+                style={{ background: grupo.bg, color: grupo.color, border: `1px solid ${grupo.border}` }}
+              >
+                {grupo.label}
+              </span>
+            </div>
 
             <div className="month-weekdays">
-              {WEEKDAYS.map((d) => (
-                <div key={d}>{d}</div>
-              ))}
+              {WEEKDAYS.map((d) => <div key={d}>{d}</div>)}
             </div>
 
             <div className="month-grid">
               {rangeCells.map((dateObj, i) => {
-                if (!dateObj)
-                  return <div key={i} className="day-cell empty" />;
+                if (!dateObj) return <div key={i} className="day-cell empty" />;
 
-                const yyyy = dateObj.getFullYear();
-                const mm   = String(dateObj.getMonth() + 1).padStart(2, "0");
-                const dd   = String(dateObj.getDate()).padStart(2, "0");
+                const yyyy    = dateObj.getFullYear();
+                const mm      = String(dateObj.getMonth() + 1).padStart(2, "0");
+                const dd      = String(dateObj.getDate()).padStart(2, "0");
                 const dateISO = `${yyyy}-${mm}-${dd}`;
                 const status  = backendDays[dateISO] || "empty";
+                const isToday = dateISO === baseDate;
 
                 return (
                   <button
                     key={dateISO}
-                    className={`day-cell ${status}`}
+                    className={`day-cell ${status} ${isToday ? "today" : ""}`}
                     disabled={status === "empty"}
-                    onClick={() =>
-                      onSelectDay({ professional: p.id, date: dateISO })
-                    }
+                    onClick={() => onSelectDay({ professional: p.id, date: dateISO })}
+                    style={status !== "empty" && isToday ? { boxShadow: `0 0 0 2px ${grupo.color}` } : {}}
                   >
                     {dd}
                   </button>
@@ -223,4 +289,4 @@ export default function AgendaSummarySelector({
       })}
     </div>
   );
-}
+                                                                      }
