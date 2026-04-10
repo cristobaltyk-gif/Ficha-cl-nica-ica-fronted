@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,6 +13,9 @@ const API_URL = import.meta.env.VITE_API_URL;
  *   onSuccess    — fn() — recarga agenda
  */
 export default function SobrecupoModal({ open, professional, date, onClose, onSuccess }) {
+  const { session } = useAuth();
+  const internalUser = session?.usuario;
+
   const [rut,      setRut]      = useState("");
   const [fecha,    setFecha]    = useState(date || "");
   const [hora,     setHora]     = useState("");
@@ -39,7 +43,10 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
     try {
       const res = await fetch(`${API_URL}/api/sobrecupo`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type":    "application/json",
+          "X-Internal-User": internalUser || "",
+        },
         body: JSON.stringify({
           rut:          rut.trim(),
           date:         fecha.trim(),
