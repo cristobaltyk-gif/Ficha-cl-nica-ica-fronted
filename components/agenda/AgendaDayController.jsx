@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Agenda from "./Agenda";
+import SobrecupoModal from "./SobrecupoModal";
 import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,10 +17,11 @@ export default function AgendaDayController({
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
-  const [loading, setLoading] = useState(false);
-  const [agendaData, setAgendaData] = useState(null);
+  const [loading,          setLoading]          = useState(false);
+  const [agendaData,       setAgendaData]       = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
-  const [patientsCache, setPatientsCache] = useState({});
+  const [patientsCache,    setPatientsCache]    = useState({});
+  const [sobrecupoOpen,    setSobrecupoOpen]    = useState(false); // ← NUEVO
 
   useEffect(() => {
     async function loadProfessionals() {
@@ -128,19 +130,24 @@ export default function AgendaDayController({
 
         baseSlots[time] = {
           time,
-          status:              slot.status,
-          rut:                 slot.rut || null,
-          patient:             slot.rut ? patientsCache[slot.rut] || null : null,
+          status:               slot.status,
+          rut:                  slot.rut || null,
+          patient:              slot.rut ? patientsCache[slot.rut] || null : null,
           professional,
-          professionalName:    professionalsMap[professional]?.name || professional,
-          cajaStatus:          cajaSlot?.arrival_status    ?? null,
-          tipoCaja:            cajaSlot?.tipo_atencion     ?? null,
-          pagado:              cajaSlot?.pagado            ?? false,
-          monto:               cajaSlot?.monto             ?? null,
-          // 🔥 campos gratuito desde agenda
-          gratuito:            slot.gratuito              ?? false,
-          gratuito_confirmado: slot.gratuito_confirmado   ?? false,
-          gratuito_aceptado:   slot.gratuito_aceptado     ?? false,
+          professionalName:     professionalsMap[professional]?.name || professional,
+          cajaStatus:           cajaSlot?.arrival_status    ?? null,
+          tipoCaja:             cajaSlot?.tipo_atencion     ?? null,
+          pagado:               cajaSlot?.pagado            ?? false,
+          monto:                cajaSlot?.monto             ?? null,
+          // campos gratuito
+          gratuito:             slot.gratuito              ?? false,
+          gratuito_confirmado:  slot.gratuito_confirmado   ?? false,
+          gratuito_aceptado:    slot.gratuito_aceptado     ?? false,
+          // campos sobrecupo
+          sobrecupo:            slot.sobrecupo             ?? false,
+          sobrecupo_gratuito:   slot.sobrecupo_gratuito    ?? false,
+          sobrecupo_confirmado: slot.sobrecupo_confirmado  ?? false,
+          sobrecupo_aceptado:   slot.sobrecupo_aceptado    ?? false,
           date,
         };
       });
@@ -188,21 +195,70 @@ export default function AgendaDayController({
     onAttend?.({ ...slot, professional, date });
   }
 
+  // ← Botón sobre cupo visible para SECRETARIA y MEDICO
+  const canSobrecupo = role === "SECRETARIA" || role === "MEDICO";
+
   if (!professional || !date) {
     return <div className="agenda-placeholder">Selecciona un profesional y un día</div>;
   }
 
   return (
-    <Agenda
-      loading={loading}
-      date={date}
-      professionals={[{
-        id:   professional,
-        name: professionalsMap[professional]?.name || professional
-      }]}
-      agendaData={agendaData}
-      onSelectSlot={handleSelectSlot}
-      onVerPagos={onVerPagos}
-    />
+    <>
+      <Agenda
+        loading={loading}
+        date={date}
+        professionals={[{
+          id:   professional,
+          name: professionalsMap[professional]?.name || professional
+        }]}
+        agendaData={agendaData}
+        onSelectSlot={handleSelectSlot}
+        onVerPagos={onVerPagos}
+      />
+
+      {/* ── Botón + Sobre cupo al final de los slots ── */}
+      {canSobrecupo && !loading && (
+        <div style={{ padding: "12px 0 4px" }}>
+          <button
+            onClick={() => setSobrecupoOpen(true)}
+            style={{
+              width: "100%",
+              background: "#fff",
+              border: "2px dashed #cbd5e1",
+              borderRadius: 12,
+              padding: "13px 0",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#475569",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all 0.15s",
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.borderColor = "#0f172a";
+              e.currentTarget.style.color = "#0f172a";
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.borderColor = "#cbd5e1";
+              e.currentTarget.style.color = "#475569";
+            }}
+          >
+            + Sobre cupo
+          </button>
+        </div>
+      )}
+
+      {/* ── Modal sobre cupo ── */}
+      <SobrecupoModal
+        open={sobrecupoOpen}
+        professional={professional}
+        date={date}
+        onClose={() => setSobrecupoOpen(false)}
+        onSuccess={() => {
+          setSobrecupoOpen(false);
+          loadAgenda();
+        }}
+      />
+    </>
   );
 }
