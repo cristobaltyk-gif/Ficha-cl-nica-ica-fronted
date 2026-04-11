@@ -161,9 +161,9 @@ export default function BookingCerebro() {
   const [agendaReloadKey, setAgendaReloadKey] = useState(0);
   const [reserving,       setReserving]       = useState(false);
   const [reserveError,    setReserveError]    = useState("");
-  const [region,          setRegion]          = useState(undefined); // undefined = resolviendo
+  const [region,          setRegion]          = useState(undefined);
   const [gpsRequerido,    setGpsRequerido]    = useState(false);
-  const [geoKey,          setGeoKey]          = useState(0); // para reintentar
+  const [geoKey,          setGeoKey]          = useState(0);
 
   const [showPrediag, setShowPrediag] = useState(false);
   const [lastPatient, setLastPatient] = useState(null);
@@ -181,12 +181,10 @@ export default function BookingCerebro() {
     }
   }, [session, login]);
 
-  // ← Resolver región — GPS o IP
   useEffect(() => {
     if (!apiOk) { setRegion(null); return; }
     setRegion(undefined);
     setGpsRequerido(false);
-
     resolverRegion(API_URL).then(({ ok, region, gpsRequerido }) => {
       if (ok) {
         setRegion(region || null);
@@ -198,10 +196,9 @@ export default function BookingCerebro() {
     });
   }, [apiOk, geoKey]);
 
-  // ← Cargar professionals solo cuando región resuelta
   useEffect(() => {
     if (region === undefined) return;
-    if (gpsRequerido) return; // esperar que el usuario active GPS
+    if (gpsRequerido) return;
     let cancelled = false;
 
     async function loadProfessionals() {
@@ -220,7 +217,13 @@ export default function BookingCerebro() {
 
         if (!cancelled) {
           const list = Array.isArray(data) ? data : Array.isArray(data?.professionals) ? data.professionals : [];
-          setProfessionals(list.map((p) => ({ id: p.id, name: p.name })));
+          // ← Incluir role y specialty para agrupación en selector
+          setProfessionals(list.map((p) => ({
+            id:        p.id,
+            name:      p.name,
+            role:      p.role,
+            specialty: p.specialty,
+          })));
         }
       } catch {
         if (!cancelled) { setProfessionals([]); setLoadError("No se pudo cargar la lista de profesionales."); }
@@ -311,7 +314,6 @@ export default function BookingCerebro() {
         <>
           <BannerPrediagnostico />
 
-          {/* GPS requerido */}
           {gpsRequerido ? (
             <BannerGPS onReintentar={() => setGeoKey(k => k + 1)} />
           ) : region === undefined || loading ? (
@@ -360,4 +362,4 @@ export default function BookingCerebro() {
 
     </PublicLayout>
   );
-            }
+      }
