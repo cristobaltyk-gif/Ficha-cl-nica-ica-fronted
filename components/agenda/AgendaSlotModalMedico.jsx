@@ -10,6 +10,7 @@ AgendaSlotModalMedico — PRODUCCIÓN REAL
 ✔ SOLO médico
 ✔ Atender / Anular
 ✔ Aceptar control gratuito si paciente confirmó
+✔ Aceptar sobre cupo si paciente confirmó
 ✔ UI pura
 */
 
@@ -30,9 +31,16 @@ export default function AgendaSlotModalMedico({
 
   const { professional, professionalName, time, patient, status } = slot;
 
+  // ── Control gratuito ─────────────────────────────────────
   const esGratuito         = slot.gratuito === true;
   const gratuitoConfirmado = slot.gratuito_confirmado === true;
   const gratuitoAceptado   = slot.gratuito_aceptado === true;
+
+  // ── Sobre cupo ───────────────────────────────────────────
+  const esSobrecupo          = slot.sobrecupo === true;
+  const sobrecupoGratuito    = slot.sobrecupo_gratuito === true;
+  const sobrecupoConfirmado  = slot.sobrecupo_confirmado === true;
+  const sobrecupoAceptado    = slot.sobrecupo_aceptado === true;
 
   const pacienteNombreCompleto = patient
     ? [patient.nombre, patient.apellido_paterno, patient.apellido_materno]
@@ -67,6 +75,34 @@ export default function AgendaSlotModalMedico({
     }
   }
 
+  async function handleAceptarSobrecupo() {
+    setAceptando(true);
+    setAceptadoMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/api/sobrecupo/aceptar`, {
+        method:  "POST",
+        headers: {
+          "Content-Type":    "application/json",
+          "X-Internal-User": session?.usuario
+        },
+        body: JSON.stringify({
+          date:         slot.date,
+          time:         slot.time,
+          professional: slot.professional
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "Error");
+      }
+      setAceptadoMsg("✅ Sobre cupo aceptado");
+    } catch (e) {
+      setAceptadoMsg(`❌ ${e.message}`);
+    } finally {
+      setAceptando(false);
+    }
+  }
+
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -80,7 +116,7 @@ export default function AgendaSlotModalMedico({
 
         <p><strong>Estado:</strong> {status}</p>
 
-        {/* CONTROL GRATUITO */}
+        {/* ── CONTROL GRATUITO ── */}
         {esGratuito && (
           <div style={{
             background: "#f0fdf4", border: "1px solid #86efac",
@@ -94,7 +130,6 @@ export default function AgendaSlotModalMedico({
           </div>
         )}
 
-        {/* BOTÓN ACEPTAR — solo si paciente confirmó y médico no ha aceptado */}
         {esGratuito && gratuitoConfirmado && !gratuitoAceptado && (
           <div className="modal-actions">
             <button
@@ -103,6 +138,36 @@ export default function AgendaSlotModalMedico({
               onClick={handleAceptarGratuito}
             >
               {aceptando ? "Aceptando…" : "✓ Aceptar control gratuito"}
+            </button>
+          </div>
+        )}
+
+        {/* ── SOBRE CUPO ── */}
+        {esSobrecupo && (
+          <div style={{
+            background: sobrecupoGratuito ? "#f0fdf4" : "#eff6ff",
+            border: `1px solid ${sobrecupoGratuito ? "#86efac" : "#bfdbfe"}`,
+            borderRadius: 8, padding: "10px 14px", margin: "12px 0", fontSize: 13
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>
+              ➕ Sobre cupo {sobrecupoGratuito ? "· Sin costo" : "· Con costo"}
+            </div>
+            {sobrecupoAceptado
+              ? "✅ Sobre cupo aceptado"
+              : sobrecupoConfirmado
+              ? "⏳ Paciente confirmó — pendiente su aceptación"
+              : "📧 Sobre cupo — esperando confirmación del paciente"}
+          </div>
+        )}
+
+        {esSobrecupo && sobrecupoConfirmado && !sobrecupoAceptado && (
+          <div className="modal-actions">
+            <button
+              className="primary"
+              disabled={aceptando}
+              onClick={handleAceptarSobrecupo}
+            >
+              {aceptando ? "Aceptando…" : "✓ Aceptar sobre cupo"}
             </button>
           </div>
         )}
