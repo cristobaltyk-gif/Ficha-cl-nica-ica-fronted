@@ -8,21 +8,20 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
-  const [step,     setStep]     = useState("paciente"); // paciente | horario | confirmado
+  const [step,     setStep]     = useState("paciente");
   const [paciente, setPaciente] = useState(null);
   const [fecha,    setFecha]    = useState(date || "");
   const [hora,     setHora]     = useState("");
   const [gratuito, setGratuito] = useState(false);
   const [saving,   setSaving]   = useState(false);
   const [error,    setError]    = useState("");
-  const [linkPago, setLinkPago] = useState(null);
 
   if (!open) return null;
 
   function handleClose() {
     setStep("paciente"); setPaciente(null);
     setFecha(date || ""); setHora("");
-    setGratuito(false); setError(""); setLinkPago(null);
+    setGratuito(false); setError("");
     onClose();
   }
 
@@ -33,8 +32,8 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
 
   async function handleGuardar() {
     setError("");
-    if (!fecha.trim()) { setError("Ingrese la fecha");  return; }
-    if (!hora.trim())  { setError("Ingrese la hora");   return; }
+    if (!fecha.trim()) { setError("Ingrese la fecha"); return; }
+    if (!hora.trim())  { setError("Ingrese la hora");  return; }
 
     setSaving(true);
     try {
@@ -42,11 +41,8 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
         method:  "POST",
         headers: { "Content-Type": "application/json", "X-Internal-User": internalUser || "" },
         body: JSON.stringify({
-          rut:          paciente.rut,
-          date:         fecha.trim(),
-          time:         hora.trim(),
-          professional,
-          gratuito,
+          rut: paciente.rut, date: fecha.trim(),
+          time: hora.trim(), professional, gratuito,
         }),
       });
 
@@ -55,15 +51,8 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
         throw new Error(j?.detail || "Error al crear sobre cupo");
       }
 
-      const data = await res.json();
-
-      // Si tiene link de pago lo mostramos
-      if (!gratuito && data.payment_url) {
-        setLinkPago(data.payment_url);
-      }
-
       setStep("confirmado");
-      setTimeout(() => { if (gratuito) { onSuccess?.(); handleClose(); } }, gratuito ? 1800 : 0);
+      setTimeout(() => { onSuccess?.(); handleClose(); }, 1800);
 
     } catch (e) { setError(e.message); }
     finally     { setSaving(false); }
@@ -90,7 +79,6 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
       >
         <div style={{ background: "#fff", borderRadius: 18, padding: 24, maxWidth: 400, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
 
-          {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>+ Sobre cupo</div>
@@ -122,7 +110,7 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
             display: "flex", alignItems: "center", gap: 10, padding: "12px 14px",
             background: gratuito ? "#f0fdf4" : "#f8fafc",
             border: `1px solid ${gratuito ? "#86efac" : "#e2e8f0"}`,
-            borderRadius: 10, cursor: "pointer", marginBottom: 18, transition: "all 0.15s",
+            borderRadius: 10, cursor: "pointer", marginBottom: 20, transition: "all 0.15s",
           }}>
             <div style={{
               width: 20, height: 20, borderRadius: 4,
@@ -132,24 +120,27 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
             }}>
               {gratuito && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</span>}
             </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: gratuito ? "#16a34a" : "#0f172a" }}>
-                Atención gratuita
-              </div>
-              <div style={{ fontSize: 11, color: "#64748b" }}>
-                {gratuito ? "Sin costo para el paciente" : "Se enviará link de pago al paciente"}
-              </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: gratuito ? "#16a34a" : "#0f172a" }}>
+              {gratuito ? "Atención gratuita" : "Con valor de consulta"}
             </div>
           </div>
 
           {/* Botones */}
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => setStep("paciente")}
-              style={{ background: "#fff", color: "#0f172a", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => setStep("paciente")} style={{
+              width: 90, flexShrink: 0,
+              background: "#fff", color: "#0f172a", border: "1px solid #e2e8f0",
+              borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>
               ← Volver
             </button>
-            <button onClick={handleGuardar} disabled={saving}
-              style={{ flex: 1, background: "#0f172a", color: "#fff", border: "none", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, fontFamily: "inherit" }}>
+            <button onClick={handleGuardar} disabled={saving} style={{
+              flex: 1, background: "#0f172a", color: "#fff", border: "none",
+              borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700,
+              cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1,
+              fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>
               {saving ? "Creando…" : "Crear sobre cupo"}
             </button>
           </div>
@@ -164,36 +155,20 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
         <div style={{ background: "#fff", borderRadius: 18, padding: 24, maxWidth: 400, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", textAlign: "center" }}>
-
-          <div style={{ fontSize: 48, marginBottom: 12 }}>{gratuito ? "✅" : "💳"}</div>
-
+          <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
           <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
-            {gratuito ? "Sobre cupo creado" : "Sobre cupo creado — pago pendiente"}
+            Sobre cupo creado
           </div>
-
-          {gratuito ? (
-            <p style={{ fontSize: 13, color: "#475569", marginBottom: 20 }}>
-              Se envió un email de confirmación a {paciente.email || "el paciente"}.
-            </p>
-          ) : (
-            <>
-              <p style={{ fontSize: 13, color: "#475569", marginBottom: 16 }}>
-                Se envió el link de pago a {paciente.email || "el paciente"}. El sobre cupo se confirmará automáticamente al completar el pago.
-              </p>
-              {linkPago && (
-                <a href={linkPago} target="_blank" rel="noreferrer"
-                  style={{ display: "block", background: "#0f172a", color: "#fff", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 12 }}>
-                  Ver link de pago →
-                </a>
-              )}
-            </>
-          )}
-
-          <button onClick={() => { onSuccess?.(); handleClose(); }}
-            style={{ width: "100%", background: "#f8fafc", color: "#0f172a", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+          <p style={{ fontSize: 13, color: "#475569", marginBottom: 20 }}>
+            Se envió email de confirmación a {paciente?.email || "el paciente"}.
+          </p>
+          <button onClick={() => { onSuccess?.(); handleClose(); }} style={{
+            width: "100%", background: "#f8fafc", color: "#0f172a",
+            border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 0",
+            fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+          }}>
             Cerrar
           </button>
-
         </div>
       </div>
     );
