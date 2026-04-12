@@ -4,16 +4,6 @@ import { useAuth } from "../../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/*
-AgendaSlotModalMedico — PRODUCCIÓN REAL
-
-✔ SOLO médico
-✔ Atender / Anular
-✔ Aceptar control gratuito si paciente confirmó
-✔ Aceptar sobre cupo si paciente confirmó
-✔ UI pura
-*/
-
 export default function AgendaSlotModalMedico({
   open,
   slot,
@@ -21,7 +11,8 @@ export default function AgendaSlotModalMedico({
   onClose,
   onAttend,
   onNoShow,
-  onCancel
+  onCancel,
+  onRefresh,  // ← llama esto para recargar la agenda
 }) {
   const { session } = useAuth();
   const [aceptando,   setAceptando]   = useState(false);
@@ -31,76 +22,47 @@ export default function AgendaSlotModalMedico({
 
   const { professional, professionalName, time, patient, status } = slot;
 
-  // ── Control gratuito ─────────────────────────────────────
   const esGratuito         = slot.gratuito === true;
   const gratuitoConfirmado = slot.gratuito_confirmado === true;
   const gratuitoAceptado   = slot.gratuito_aceptado === true;
 
-  // ── Sobre cupo ───────────────────────────────────────────
-  const esSobrecupo          = slot.sobrecupo === true;
-  const sobrecupoGratuito    = slot.sobrecupo_gratuito === true;
-  const sobrecupoConfirmado  = slot.sobrecupo_confirmado === true;
-  const sobrecupoAceptado    = slot.sobrecupo_aceptado === true;
+  const esSobrecupo         = slot.sobrecupo === true;
+  const sobrecupoGratuito   = slot.sobrecupo_gratuito === true;
+  const sobrecupoConfirmado = slot.sobrecupo_confirmado === true;
+  const sobrecupoAceptado   = slot.sobrecupo_aceptado === true;
 
   const pacienteNombreCompleto = patient
-    ? [patient.nombre, patient.apellido_paterno, patient.apellido_materno]
-        .filter(Boolean).join(" ")
+    ? [patient.nombre, patient.apellido_paterno, patient.apellido_materno].filter(Boolean).join(" ")
     : null;
 
   async function handleAceptarGratuito() {
-    setAceptando(true);
-    setAceptadoMsg(null);
+    setAceptando(true); setAceptadoMsg(null);
     try {
       const res = await fetch(`${API_URL}/api/control/aceptar`, {
         method:  "POST",
-        headers: {
-          "Content-Type":    "application/json",
-          "X-Internal-User": session?.usuario
-        },
-        body: JSON.stringify({
-          date:         slot.date,
-          time:         slot.time,
-          professional: slot.professional
-        })
+        headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
+        body: JSON.stringify({ date: slot.date, time: slot.time, professional: slot.professional }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error");
-      }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       setAceptadoMsg("✅ Control gratuito aceptado");
-    } catch (e) {
-      setAceptadoMsg(`❌ ${e.message}`);
-    } finally {
-      setAceptando(false);
-    }
+      setTimeout(() => { onRefresh?.(); onClose(); }, 1200);
+    } catch (e) { setAceptadoMsg(`❌ ${e.message}`); }
+    finally     { setAceptando(false); }
   }
 
   async function handleAceptarSobrecupo() {
-    setAceptando(true);
-    setAceptadoMsg(null);
+    setAceptando(true); setAceptadoMsg(null);
     try {
       const res = await fetch(`${API_URL}/api/sobrecupo/aceptar`, {
         method:  "POST",
-        headers: {
-          "Content-Type":    "application/json",
-          "X-Internal-User": session?.usuario
-        },
-        body: JSON.stringify({
-          date:         slot.date,
-          time:         slot.time,
-          professional: slot.professional
-        })
+        headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
+        body: JSON.stringify({ date: slot.date, time: slot.time, professional: slot.professional }),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error");
-      }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       setAceptadoMsg("✅ Sobre cupo aceptado");
-    } catch (e) {
-      setAceptadoMsg(`❌ ${e.message}`);
-    } finally {
-      setAceptando(false);
-    }
+      setTimeout(() => { onRefresh?.(); onClose(); }, 1200);
+    } catch (e) { setAceptadoMsg(`❌ ${e.message}`); }
+    finally     { setAceptando(false); }
   }
 
   return (
@@ -120,7 +82,7 @@ export default function AgendaSlotModalMedico({
         {esGratuito && (
           <div style={{
             background: "#f0fdf4", border: "1px solid #86efac",
-            borderRadius: 8, padding: "10px 14px", margin: "12px 0", fontSize: 13
+            borderRadius: 8, padding: "10px 14px", margin: "12px 0", fontSize: 13,
           }}>
             {gratuitoAceptado
               ? "✅ Control gratuito — ya aceptado"
@@ -132,11 +94,7 @@ export default function AgendaSlotModalMedico({
 
         {esGratuito && gratuitoConfirmado && !gratuitoAceptado && (
           <div className="modal-actions">
-            <button
-              className="primary"
-              disabled={aceptando}
-              onClick={handleAceptarGratuito}
-            >
+            <button className="primary" disabled={aceptando} onClick={handleAceptarGratuito}>
               {aceptando ? "Aceptando…" : "✓ Aceptar control gratuito"}
             </button>
           </div>
@@ -147,7 +105,7 @@ export default function AgendaSlotModalMedico({
           <div style={{
             background: sobrecupoGratuito ? "#f0fdf4" : "#eff6ff",
             border: `1px solid ${sobrecupoGratuito ? "#86efac" : "#bfdbfe"}`,
-            borderRadius: 8, padding: "10px 14px", margin: "12px 0", fontSize: 13
+            borderRadius: 8, padding: "10px 14px", margin: "12px 0", fontSize: 13,
           }}>
             <div style={{ fontWeight: 700, marginBottom: 4 }}>
               ➕ Sobre cupo {sobrecupoGratuito ? "· Sin costo" : "· Con costo"}
@@ -162,11 +120,7 @@ export default function AgendaSlotModalMedico({
 
         {esSobrecupo && sobrecupoConfirmado && !sobrecupoAceptado && (
           <div className="modal-actions">
-            <button
-              className="primary"
-              disabled={aceptando}
-              onClick={handleAceptarSobrecupo}
-            >
+            <button className="primary" disabled={aceptando} onClick={handleAceptarSobrecupo}>
               {aceptando ? "Aceptando…" : "✓ Aceptar sobre cupo"}
             </button>
           </div>
@@ -177,12 +131,8 @@ export default function AgendaSlotModalMedico({
         )}
 
         <div className="modal-actions">
-          <button className="primary" disabled={loading} onClick={() => onAttend?.(slot)}>
-            Atender
-          </button>
-          <button className="danger" disabled={loading} onClick={() => onCancel?.(slot)}>
-            Anular cita
-          </button>
+          <button className="primary" disabled={loading} onClick={() => onAttend?.(slot)}>Atender</button>
+          <button className="danger"  disabled={loading} onClick={() => onCancel?.(slot)}>Anular cita</button>
         </div>
 
         <div className="modal-footer">
