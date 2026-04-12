@@ -1,54 +1,48 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
+import PatientForm from "../pacientes/PatientForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/**
- * SobrecupoModal
- * Props:
- *   open         — boolean
- *   professional — id del profesional
- *   date         — fecha inicial sugerida (YYYY-MM-DD)
- *   onClose      — fn()
- *   onSuccess    — fn() — recarga agenda
- */
 export default function SobrecupoModal({ open, professional, date, onClose, onSuccess }) {
   const { session } = useAuth();
   const internalUser = session?.usuario;
 
-  const [rut,      setRut]      = useState("");
+  const [step,     setStep]     = useState("paciente"); // paciente | horario | confirmado
+  const [paciente, setPaciente] = useState(null);
   const [fecha,    setFecha]    = useState(date || "");
   const [hora,     setHora]     = useState("");
   const [gratuito, setGratuito] = useState(false);
   const [saving,   setSaving]   = useState(false);
   const [error,    setError]    = useState("");
-  const [success,  setSuccess]  = useState("");
+  const [linkPago, setLinkPago] = useState(null);
 
   if (!open) return null;
 
   function handleClose() {
-    setRut(""); setFecha(date || ""); setHora("");
-    setGratuito(false); setError(""); setSuccess("");
+    setStep("paciente"); setPaciente(null);
+    setFecha(date || ""); setHora("");
+    setGratuito(false); setError(""); setLinkPago(null);
     onClose();
   }
 
-  async function handleGuardar() {
-    setError(""); setSuccess("");
+  function handlePacienteConfirmado(p) {
+    setPaciente(p);
+    setStep("horario");
+  }
 
-    if (!rut.trim())   { setError("Ingrese el RUT del paciente"); return; }
-    if (!fecha.trim()) { setError("Ingrese la fecha");            return; }
-    if (!hora.trim())  { setError("Ingrese la hora");             return; }
+  async function handleGuardar() {
+    setError("");
+    if (!fecha.trim()) { setError("Ingrese la fecha");  return; }
+    if (!hora.trim())  { setError("Ingrese la hora");   return; }
 
     setSaving(true);
     try {
       const res = await fetch(`${API_URL}/api/sobrecupo`, {
         method:  "POST",
-        headers: {
-          "Content-Type":    "application/json",
-          "X-Internal-User": internalUser || "",
-        },
+        headers: { "Content-Type": "application/json", "X-Internal-User": internalUser || "" },
         body: JSON.stringify({
-          rut:          rut.trim(),
+          rut:          paciente.rut,
           date:         fecha.trim(),
           time:         hora.trim(),
           professional,
@@ -61,135 +55,149 @@ export default function SobrecupoModal({ open, professional, date, onClose, onSu
         throw new Error(j?.detail || "Error al crear sobre cupo");
       }
 
-      setSuccess("✓ Sobre cupo creado. Email enviado al paciente.");
-      setTimeout(() => { onSuccess?.(); handleClose(); }, 1800);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(false);
-    }
+      const data = await res.json();
+
+      // Si tiene link de pago lo mostramos
+      if (!gratuito && data.payment_url) {
+        setLinkPago(data.payment_url);
+      }
+
+      setStep("confirmado");
+      setTimeout(() => { if (gratuito) { onSuccess?.(); handleClose(); } }, gratuito ? 1800 : 0);
+
+    } catch (e) { setError(e.message); }
+    finally     { setSaving(false); }
   }
 
-  return (
-    <div
-      style={{
-        position: "fixed", inset: 0,
-        background: "rgba(0,0,0,0.5)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        zIndex: 300, padding: 16,
-      }}
-      onClick={e => e.target === e.currentTarget && handleClose()}
-    >
-      <div style={{
-        background: "#fff", borderRadius: 18, padding: 24,
-        maxWidth: 400, width: "100%",
-        boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-      }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>+ Sobre cupo</div>
-            <div style={{ fontSize: 12, color: "#64748b" }}>Slot adicional fuera de horario</div>
+  // ── PASO 1: PatientForm ──────────────────────────────────
+  if (step === "paciente") {
+    return (
+      <PatientForm
+        open={true}
+        onConfirm={handlePacienteConfirmado}
+        onCreate={handlePacienteConfirmado}
+        onCancel={handleClose}
+      />
+    );
+  }
+
+  // ── PASO 2: Fecha, hora, gratuito ────────────────────────
+  if (step === "horario") {
+    return (
+      <div
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}
+        onClick={e => e.target === e.currentTarget && handleClose()}
+      >
+        <div style={{ background: "#fff", borderRadius: 18, padding: 24, maxWidth: 400, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>+ Sobre cupo</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>
+                {paciente.nombre} {paciente.apellido_paterno} · {paciente.rut}
+              </div>
+            </div>
+            <button onClick={handleClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#94a3b8" }}>✕</button>
           </div>
-          <button
-            onClick={handleClose}
-            style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#94a3b8" }}
-          >✕</button>
-        </div>
 
-        {error   && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "10px 12px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{error}</div>}
-        {success && <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#16a34a", padding: "10px 12px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{success}</div>}
+          {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "10px 12px", borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{error}</div>}
 
-        {/* RUT */}
-        <div style={{ marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>RUT Paciente *</p>
-          <input
-            value={rut}
-            onChange={e => setRut(e.target.value)}
-            placeholder="12345678-9"
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
+          {/* Fecha */}
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Fecha *</p>
+            <input type="date" value={fecha} onChange={e => setFecha(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+          </div>
 
-        {/* Fecha */}
-        <div style={{ marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Fecha *</p>
-          <input
-            type="date"
-            value={fecha}
-            onChange={e => setFecha(e.target.value)}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
+          {/* Hora */}
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Hora *</p>
+            <input type="time" value={hora} onChange={e => setHora(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
+          </div>
 
-        {/* Hora */}
-        <div style={{ marginBottom: 12 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: "#475569", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Hora *</p>
-          <input
-            type="time"
-            value={hora}
-            onChange={e => setHora(e.target.value)}
-            style={{ width: "100%", padding: "10px 12px", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 14, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
-          />
-        </div>
-
-        {/* Gratuito toggle */}
-        <div
-          onClick={() => setGratuito(g => !g)}
-          style={{
-            display: "flex", alignItems: "center", gap: 10,
-            padding: "12px 14px",
+          {/* Gratuito toggle */}
+          <div onClick={() => setGratuito(g => !g)} style={{
+            display: "flex", alignItems: "center", gap: 10, padding: "12px 14px",
             background: gratuito ? "#f0fdf4" : "#f8fafc",
             border: `1px solid ${gratuito ? "#86efac" : "#e2e8f0"}`,
-            borderRadius: 10, cursor: "pointer", marginBottom: 18,
-            transition: "all 0.15s",
-          }}
-        >
-          <div style={{
-            width: 20, height: 20, borderRadius: 4,
-            background: gratuito ? "#16a34a" : "#fff",
-            border: `2px solid ${gratuito ? "#16a34a" : "#cbd5e1"}`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
+            borderRadius: 10, cursor: "pointer", marginBottom: 18, transition: "all 0.15s",
           }}>
-            {gratuito && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</span>}
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: gratuito ? "#16a34a" : "#0f172a" }}>
-              Atención gratuita
+            <div style={{
+              width: 20, height: 20, borderRadius: 4,
+              background: gratuito ? "#16a34a" : "#fff",
+              border: `2px solid ${gratuito ? "#16a34a" : "#cbd5e1"}`,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+            }}>
+              {gratuito && <span style={{ color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</span>}
             </div>
-            <div style={{ fontSize: 11, color: "#64748b" }}>
-              {gratuito ? "Sin costo para el paciente" : "Con valor normal de consulta"}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: gratuito ? "#16a34a" : "#0f172a" }}>
+                Atención gratuita
+              </div>
+              <div style={{ fontSize: 11, color: "#64748b" }}>
+                {gratuito ? "Sin costo para el paciente" : "Se enviará link de pago al paciente"}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Botones */}
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={handleGuardar}
-            disabled={saving}
-            style={{
-              flex: 1, background: "#0f172a", color: "#fff",
-              border: "none", borderRadius: 10, padding: "12px 0",
-              fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer",
-              opacity: saving ? 0.6 : 1, fontFamily: "inherit",
-            }}
-          >
-            {saving ? "Creando…" : "Crear sobre cupo"}
-          </button>
-          <button
-            onClick={handleClose}
-            style={{
-              flex: 1, background: "#fff", color: "#0f172a",
-              border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 0",
-              fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            Cancelar
-          </button>
+          {/* Botones */}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setStep("paciente")}
+              style={{ background: "#fff", color: "#0f172a", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              ← Volver
+            </button>
+            <button onClick={handleGuardar} disabled={saving}
+              style={{ flex: 1, background: "#0f172a", color: "#fff", border: "none", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, fontFamily: "inherit" }}>
+              {saving ? "Creando…" : "Crear sobre cupo"}
+            </button>
+          </div>
+
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  // ── PASO 3: Confirmado ───────────────────────────────────
+  if (step === "confirmado") {
+    return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
+        <div style={{ background: "#fff", borderRadius: 18, padding: 24, maxWidth: 400, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", textAlign: "center" }}>
+
+          <div style={{ fontSize: 48, marginBottom: 12 }}>{gratuito ? "✅" : "💳"}</div>
+
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+            {gratuito ? "Sobre cupo creado" : "Sobre cupo creado — pago pendiente"}
+          </div>
+
+          {gratuito ? (
+            <p style={{ fontSize: 13, color: "#475569", marginBottom: 20 }}>
+              Se envió un email de confirmación a {paciente.email || "el paciente"}.
+            </p>
+          ) : (
+            <>
+              <p style={{ fontSize: 13, color: "#475569", marginBottom: 16 }}>
+                Se envió el link de pago a {paciente.email || "el paciente"}. El sobre cupo se confirmará automáticamente al completar el pago.
+              </p>
+              {linkPago && (
+                <a href={linkPago} target="_blank" rel="noreferrer"
+                  style={{ display: "block", background: "#0f172a", color: "#fff", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 700, textDecoration: "none", marginBottom: 12 }}>
+                  Ver link de pago →
+                </a>
+              )}
+            </>
+          )}
+
+          <button onClick={() => { onSuccess?.(); handleClose(); }}
+            style={{ width: "100%", background: "#f8fafc", color: "#0f172a", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 0", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+            Cerrar
+          </button>
+
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
