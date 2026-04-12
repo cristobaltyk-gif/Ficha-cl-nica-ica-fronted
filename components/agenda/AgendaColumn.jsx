@@ -49,6 +49,9 @@ export default function AgendaColumn({
               gratuito={slot.gratuito}
               gratuito_confirmado={slot.gratuito_confirmado}
               gratuito_aceptado={slot.gratuito_aceptado}
+              sobrecupo={slot.sobrecupo}
+              sobrecupo_confirmado={slot.sobrecupo_confirmado}
+              sobrecupo_aceptado={slot.sobrecupo_aceptado}
               onSelect={() => onSelectSlot?.(slot, time)}
             />
           );
