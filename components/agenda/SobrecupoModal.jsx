@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../../auth/AuthContext";
-import PatientForm from "../pacientes/PatientForm";
+import PatientForm from "../patient/PatientForm";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
