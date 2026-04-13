@@ -13,15 +13,20 @@ const DIAS = [
   { key: "sunday",    label: "Domingo" },
 ];
 
-export default function HorariosAdmin() {
+export default function HorariosAdmin({ professional: propProfessional } = {}) {
   const [professionals, setProfessionals] = useState([]);
-  const [selected,      setSelected]      = useState(null); // profesional seleccionado
+  const [selected,      setSelected]      = useState(propProfessional || null);
   const [horarios,      setHorarios]      = useState({});
-  const [loading,       setLoading]       = useState(true);
+  const [loading,       setLoading]       = useState(!propProfessional);
   const [horSuccess,    setHorSuccess]    = useState(null);
   const [horError,      setHorError]      = useState(null);
 
+  // Si viene como prop, inicializar horarios directamente
   useEffect(() => {
+    if (propProfessional) {
+      initHorarios(propProfessional);
+      return;
+    }
     async function load() {
       try {
         const res = await fetch(`${API_URL}/professionals`);
@@ -34,13 +39,9 @@ export default function HorariosAdmin() {
       }
     }
     load();
-  }, []);
+  }, [propProfessional?.id]);
 
-  function handleSelectProfessional(prof) {
-    setSelected(prof);
-    setHorSuccess(null);
-    setHorError(null);
-
+  function initHorarios(prof) {
     const dias = prof.schedule?.days || {};
     const init = {};
     DIAS.forEach(d => {
@@ -53,6 +54,13 @@ export default function HorariosAdmin() {
       }
     });
     setHorarios(init);
+  }
+
+  function handleSelectProfessional(prof) {
+    setSelected(prof);
+    setHorSuccess(null);
+    setHorError(null);
+    initHorarios(prof);
   }
 
   function addBloque(dia) {
@@ -75,7 +83,6 @@ export default function HorariosAdmin() {
     setHorError(null);
     setHorSuccess(null);
     const bloques = horarios[dia] || [];
-
     try {
       if (bloques.length === 0) {
         await fetch(`${API_URL}/admin/professionals/${selected.id}/day/${dia}`, {
@@ -83,9 +90,9 @@ export default function HorariosAdmin() {
         });
       } else {
         await fetch(`${API_URL}/admin/professionals/${selected.id}/day`, {
-          method: "POST",
+          method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ weekday: dia, blocks: bloques, slotMinutes: 15 })
+          body:    JSON.stringify({ weekday: dia, blocks: bloques, slotMinutes: 15 }),
         });
       }
       setHorSuccess(dia);
@@ -95,6 +102,44 @@ export default function HorariosAdmin() {
     }
   }
 
+  // ── Modo embebido (viene professional como prop) ──────────
+  if (propProfessional) {
+    return (
+      <div>
+        {DIAS.map(({ key, label }) => (
+          <div key={key} className="cfg-card" style={{ marginBottom: 12 }}>
+            <div className="cfg-dia-header">
+              <p className="cfg-dia-label">{label}</p>
+              <div className="cfg-dia-actions">
+                <button className="cfg-btn-secondary" onClick={() => addBloque(key)}>+ Bloque</button>
+                <button
+                  className={`cfg-btn-save${horSuccess === key ? " success" : ""}`}
+                  onClick={() => handleGuardarHorario(key)}
+                >
+                  {horSuccess === key ? "✓ Guardado" : "Guardar"}
+                </button>
+              </div>
+            </div>
+            {(horarios[key] || []).length === 0 && (
+              <p className="cfg-empty">Sin horario — día libre</p>
+            )}
+            {(horarios[key] || []).map((b, idx) => (
+              <div key={idx} className="cfg-bloque-row">
+                <input type="time" className="cfg-input-time" value={b.start}
+                  onChange={e => updateBloque(key, idx, "start", e.target.value)} />
+                <span className="cfg-bloque-sep">—</span>
+                <input type="time" className="cfg-input-time" value={b.end}
+                  onChange={e => updateBloque(key, idx, "end", e.target.value)} />
+                <button className="cfg-btn-remove" onClick={() => removeBloque(key, idx)}>×</button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ── Modo standalone (ruta /agenda) ────────────────────────
   if (loading) return (
     <div className="cfg-root">
       <div className="cfg-header"><h1>Horarios</h1></div>
@@ -104,37 +149,25 @@ export default function HorariosAdmin() {
 
   return (
     <div className="cfg-root">
-
       <div className="cfg-header">
         <h1>Horarios</h1>
         <p>{selected ? selected.name : "Selecciona un profesional"}</p>
       </div>
-
       <div className="cfg-content">
 
-        {/* LISTA DE PROFESIONALES */}
         {!selected && (
           <div className="cfg-card">
             <p className="cfg-field-label" style={{ marginBottom: 12 }}>Profesionales</p>
             {professionals.length === 0 && <p className="cfg-empty">Sin profesionales</p>}
             {professionals.map((p, i) => (
-              <div
-                key={p.id}
-                onClick={() => handleSelectProfessional(p)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "12px 0",
-                  borderBottom: i < professionals.length - 1 ? "1px solid #f1f5f9" : "none",
-                  cursor: "pointer",
-                }}
-              >
+              <div key={p.id} onClick={() => handleSelectProfessional(p)} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "12px 0", cursor: "pointer",
+                borderBottom: i < professionals.length - 1 ? "1px solid #f1f5f9" : "none",
+              }}>
                 <div style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  background: "#0f172a", color: "#fff",
+                  width: 36, height: 36, borderRadius: "50%", background: "#0f172a", color: "#fff",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 14, fontWeight: 700, flexShrink: 0
+                  fontSize: 14, fontWeight: 700, flexShrink: 0,
                 }}>
                   {p.name.charAt(0).toUpperCase()}
                 </div>
@@ -150,21 +183,17 @@ export default function HorariosAdmin() {
           </div>
         )}
 
-        {/* HORARIOS DEL PROFESIONAL SELECCIONADO */}
         {selected && (
           <>
             <button className="cfg-btn-secondary" onClick={() => setSelected(null)}>
               ← Volver a profesionales
             </button>
-
             {DIAS.map(({ key, label }) => (
               <div key={key} className="cfg-card">
                 <div className="cfg-dia-header">
                   <p className="cfg-dia-label">{label}</p>
                   <div className="cfg-dia-actions">
-                    <button className="cfg-btn-secondary" onClick={() => addBloque(key)}>
-                      + Bloque
-                    </button>
+                    <button className="cfg-btn-secondary" onClick={() => addBloque(key)}>+ Bloque</button>
                     <button
                       className={`cfg-btn-save${horSuccess === key ? " success" : ""}`}
                       onClick={() => handleGuardarHorario(key)}
@@ -173,29 +202,17 @@ export default function HorariosAdmin() {
                     </button>
                   </div>
                 </div>
-
                 {(horarios[key] || []).length === 0 && (
                   <p className="cfg-empty">Sin horario — día libre</p>
                 )}
-
                 {(horarios[key] || []).map((b, idx) => (
                   <div key={idx} className="cfg-bloque-row">
-                    <input
-                      type="time"
-                      className="cfg-input-time"
-                      value={b.start}
-                      onChange={e => updateBloque(key, idx, "start", e.target.value)}
-                    />
+                    <input type="time" className="cfg-input-time" value={b.start}
+                      onChange={e => updateBloque(key, idx, "start", e.target.value)} />
                     <span className="cfg-bloque-sep">—</span>
-                    <input
-                      type="time"
-                      className="cfg-input-time"
-                      value={b.end}
-                      onChange={e => updateBloque(key, idx, "end", e.target.value)}
-                    />
-                    <button className="cfg-btn-remove" onClick={() => removeBloque(key, idx)}>
-                      ×
-                    </button>
+                    <input type="time" className="cfg-input-time" value={b.end}
+                      onChange={e => updateBloque(key, idx, "end", e.target.value)} />
+                    <button className="cfg-btn-remove" onClick={() => removeBloque(key, idx)}>×</button>
                   </div>
                 ))}
               </div>
@@ -206,4 +223,4 @@ export default function HorariosAdmin() {
       </div>
     </div>
   );
-}
+              }
