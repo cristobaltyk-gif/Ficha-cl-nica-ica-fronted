@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import HomeAdmin from "../pages/home/HomeAdmin";
 import ContableController from "../components/caja/ContableController";
 import CajaResumenController from "../components/caja/CajaResumenController";
-import HorariosAdmin from "./HorariosAdmin.jsx";
 import EquipoAdmin from "./EquipoAdmin.jsx";
 import RRHHController from "../components/rrhh/RRHHController.jsx";
 
@@ -52,11 +51,6 @@ export default function AdminCerebro() {
       <Route
         path="rrhh"
         element={<RRHHController />}
-      />
-
-      <Route
-        path="agenda"
-        element={<HorariosAdmin />}
       />
 
       <Route
