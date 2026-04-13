@@ -124,7 +124,6 @@ export default function MedicoCerebro() {
           element={<MedicoAtencionCerebro />}
         />
 
-        {/* Pagos desde agenda — fecha y profesional fijos */}
         <Route
           path="pagos-dia"
           element={
@@ -136,7 +135,6 @@ export default function MedicoCerebro() {
           }
         />
 
-        {/* Pagos desde home — selector día/semana/mes, profesional fijo */}
         <Route
           path="pagos"
           element={
@@ -157,7 +155,7 @@ export default function MedicoCerebro() {
         open={modalOpen}
         slot={modalSlot}
         onClose={() => { setModalOpen(false); setModalSlot(null); }}
-
+        onRefresh={() => setAgendaReloadKey(k => k + 1)}
         onAttend={(slot) => {
           setModalOpen(false);
           setModalSlot(null);
@@ -171,9 +169,7 @@ export default function MedicoCerebro() {
             }
           });
         }}
-
         onNoShow={() => { setModalOpen(false); setModalSlot(null); }}
-
         onCancel={() => {
           cancelSlot(modalSlot);
           setModalOpen(false);
