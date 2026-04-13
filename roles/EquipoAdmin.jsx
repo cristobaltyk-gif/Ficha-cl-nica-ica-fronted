@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../styles/admin/equipo-admin.css";
-import HorariosForm from "./HorariosForm.jsx";
+import HorariosAdmin from "./HorariosAdmin.jsx";
 import ValoresProfesionalForm from "./ValoresProfesionalForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -417,7 +417,7 @@ export default function EquipoAdmin() {
 
             {/* HORARIOS — solo profesionales */}
             {tabDetalle === "horarios" && seleccionado._tipo === "profesional" && (
-              <HorariosForm professional={seleccionado} />
+              <HorariosAdmin professional={seleccionado} />
             )}
 
             {/* VALORES — solo profesionales */}
@@ -486,4 +486,4 @@ export default function EquipoAdmin() {
               Esta acción no se puede deshacer. Se eliminará <strong>{confirmBorrar.name || confirmBorrar.username}</strong> del sistema.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="ea-btn-danger"   
+              <button className="ea-btn-danger"
