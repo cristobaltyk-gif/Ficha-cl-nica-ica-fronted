@@ -14,7 +14,6 @@ const ESPECIALIDADES = [
   "Kinesiología", "Traumatología", "Cirugía Articular"
 ];
 
-// ── Tabs disponibles según tipo ──────────────────────────────
 function getTabsForMiembro(m) {
   const base = [{ key: "info", label: "Información" }, { key: "sedes", label: "Sedes" }];
   if (m._tipo === "profesional") {
@@ -24,7 +23,6 @@ function getTabsForMiembro(m) {
   return base;
 }
 
-// ── SedesForm ────────────────────────────────────────────────
 function SedesForm({ pid }) {
   const [regiones,      setRegiones]      = useState([]);
   const [sedesActuales, setSedesActuales] = useState({});
@@ -170,7 +168,6 @@ function SedesForm({ pid }) {
     </div>
   );
 }
-
 // ── Componente principal ─────────────────────────────────────
 export default function EquipoAdmin() {
   const [vista,         setVista]         = useState("lista");
@@ -309,7 +306,6 @@ export default function EquipoAdmin() {
   return (
     <div className="ea-root">
 
-      {/* HEADER */}
       <div className="ea-header">
         <div>
           <h1>
@@ -370,10 +366,8 @@ export default function EquipoAdmin() {
               </button>
             ))}
           </div>
-
           <div className="ea-card" style={{ padding: 16 }}>
 
-            {/* INFO */}
             {tabDetalle === "info" && (
               <div>
                 <div className="ea-field">
@@ -412,18 +406,9 @@ export default function EquipoAdmin() {
               </div>
             )}
 
-            {/* SEDES */}
-            {tabDetalle === "sedes" && sedesPid && <SedesForm pid={sedesPid} />}
-
-            {/* HORARIOS — solo profesionales */}
-            {tabDetalle === "horarios" && seleccionado._tipo === "profesional" && (
-              <HorariosAdmin professional={seleccionado} />
-            )}
-
-            {/* VALORES — solo profesionales */}
-            {tabDetalle === "valores" && seleccionado._tipo === "profesional" && (
-              <ValoresProfesionalForm professional={seleccionado} />
-            )}
+            {tabDetalle === "sedes"    && sedesPid && <SedesForm pid={sedesPid} />}
+            {tabDetalle === "horarios" && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
+            {tabDetalle === "valores"  && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
 
           </div>
         </div>
@@ -486,4 +471,14 @@ export default function EquipoAdmin() {
               Esta acción no se puede deshacer. Se eliminará <strong>{confirmBorrar.name || confirmBorrar.username}</strong> del sistema.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="ea-btn-danger"
+              <button className="ea-btn-danger"    style={{ flex: 1 }} onClick={() => handleEliminar(confirmBorrar)}>Sí, eliminar</button>
+              <button className="ea-btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmBorrar(null)}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+              }
+          
