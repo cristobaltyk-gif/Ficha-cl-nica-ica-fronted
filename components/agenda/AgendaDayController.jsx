@@ -21,7 +21,7 @@ export default function AgendaDayController({
   const [agendaData,       setAgendaData]       = useState(null);
   const [professionalsMap, setProfessionalsMap] = useState({});
   const [patientsCache,    setPatientsCache]    = useState({});
-  const [sobrecupoOpen,    setSobrecupoOpen]    = useState(false); // ← NUEVO
+  const [sobrecupoOpen,    setSobrecupoOpen]    = useState(false);
 
   useEffect(() => {
     async function loadProfessionals() {
@@ -128,6 +128,11 @@ export default function AgendaDayController({
 
         const cajaSlot = cajaMap[time] || null;
 
+        // Si el slot tiene pagado:true en agenda (ej: pago Flow directo),
+        // usar "paid" como cajaStatus aunque no esté en caja todavía
+        const cajaStatus = cajaSlot?.arrival_status
+          ?? (slot.pagado ? "paid" : null);
+
         baseSlots[time] = {
           time,
           status:               slot.status,
@@ -135,9 +140,9 @@ export default function AgendaDayController({
           patient:              slot.rut ? patientsCache[slot.rut] || null : null,
           professional,
           professionalName:     professionalsMap[professional]?.name || professional,
-          cajaStatus:           cajaSlot?.arrival_status    ?? null,
+          cajaStatus,
           tipoCaja:             cajaSlot?.tipo_atencion     ?? null,
-          pagado:               cajaSlot?.pagado            ?? false,
+          pagado:               cajaSlot?.pagado            ?? slot.pagado ?? false,
           monto:                cajaSlot?.monto             ?? null,
           // campos gratuito
           gratuito:             slot.gratuito              ?? false,
@@ -195,7 +200,6 @@ export default function AgendaDayController({
     onAttend?.({ ...slot, professional, date });
   }
 
-  // ← Botón sobre cupo visible para SECRETARIA y MEDICO
   const canSobrecupo = role === "SECRETARIA" || role === "MEDICO";
 
   if (!professional || !date) {
@@ -216,7 +220,6 @@ export default function AgendaDayController({
         onVerPagos={onVerPagos}
       />
 
-      {/* ── Botón + Sobre cupo al final de los slots ── */}
       {canSobrecupo && !loading && (
         <div style={{ padding: "12px 0 4px" }}>
           <button
@@ -248,7 +251,6 @@ export default function AgendaDayController({
         </div>
       )}
 
-      {/* ── Modal sobre cupo ── */}
       <SobrecupoModal
         open={sobrecupoOpen}
         professional={professional}
@@ -261,4 +263,5 @@ export default function AgendaDayController({
       />
     </>
   );
-}
+  }
+      
