@@ -37,7 +37,6 @@ export default function SecretariaCerebro() {
     async function loadProfessionals() {
       setLoading(true);
       try {
-        // 1. Obtener región de la secretaria desde sedes.json
         let region = null;
         const usuario = session?.usuario;
 
@@ -47,14 +46,12 @@ export default function SecretariaCerebro() {
             if (sedeRes.ok) {
               const sedeData = await sedeRes.json();
               const regiones = sedeData?.regiones || {};
-              // Tomar la primera región configurada
               const primeraRegion = Object.keys(regiones)[0];
               if (primeraRegion) region = primeraRegion;
             }
           } catch {}
         }
 
-        // 2. Cargar profesionales filtrando por región y excluyendo IA
         const params = new URLSearchParams({ public: "true" });
         if (region) params.set("region", region);
 
@@ -209,20 +206,9 @@ export default function SecretariaCerebro() {
           element={<CajaResumenController professionals={professionals} />}
         />
 
-        <Route
-          path="pacientes"
-          element={<PacientesSecretaria />}
-        />
-
-        <Route
-          path="medicos"
-          element={<MedicosSecretaria />}
-        />
-
-        <Route
-          path="administracion"
-          element={<ConfiguracionSecretaria />}
-        />
+        <Route path="pacientes"     element={<PacientesSecretaria />} />
+        <Route path="medicos"       element={<MedicosSecretaria />} />
+        <Route path="administracion" element={<ConfiguracionSecretaria />} />
 
       </Routes>
 
@@ -240,6 +226,7 @@ export default function SecretariaCerebro() {
         onConfirm={confirmSlot}
         onCancel={handleCancelRequest}
         onReschedule={closeModal}
+        onRefresh={() => setAgendaReloadKey(k => k + 1)}
         onConfirmarLlegada={() => setPagoOpen(true)}
       />
 
