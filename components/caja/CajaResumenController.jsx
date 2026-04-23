@@ -12,6 +12,12 @@ Modos:
 3. Sin fijos                   → secretaria/admin (todo editable)
 */
 
+// FIX: helper para construir headers con token
+function authHeaders() {
+  const token = localStorage.getItem("token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function CajaResumenController({
   professionals   = [],
   fechaFija       = null,
@@ -34,8 +40,6 @@ export default function CajaResumenController({
     }
 
     if (periodo === "semana") {
-      // Calcula los 7 días desde date y llama resumen-dia para cada uno
-      // Se maneja en loadResumen
       return null;
     }
 
@@ -54,7 +58,6 @@ export default function CajaResumenController({
 
     try {
       if (periodo === "semana") {
-        // Cargar 7 días y consolidar
         const [y, m, d] = date.split("-").map(Number);
         const start = new Date(y, m - 1, d);
         const dias = Array.from({ length: 7 }, (_, i) => {
@@ -69,11 +72,13 @@ export default function CajaResumenController({
             const url = prof
               ? `${API_URL}/api/caja/resumen-dia?date=${d}&professional=${prof}`
               : `${API_URL}/api/caja/resumen-dia?date=${d}`;
-            return fetch(url).then(r => r.ok ? r.json() : null).catch(() => null);
+            // FIX: token en cada fetch de semana
+            return fetch(url, { headers: authHeaders() })
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null);
           })
         );
 
-        // Consolidar semana
         let monto_total = 0;
         const por_tipo    = {};
         const por_metodo  = {};
@@ -95,7 +100,8 @@ export default function CajaResumenController({
 
       const url = buildUrl();
       if (!url) return;
-      const res = await fetch(url);
+      // FIX: token en fetch principal
+      const res = await fetch(url, { headers: authHeaders() });
       if (!res.ok) throw new Error("resumen");
       const data = await res.json();
       setResumen({ ...data, periodo });
