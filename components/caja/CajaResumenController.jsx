@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import CajaResumenView from "./CajaResumenView";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { apiFetch } from "../../utils/api";
 
 /*
 CajaResumenController — CEREBRO módulo caja resumen
@@ -11,12 +10,6 @@ Modos:
 2. profesionalFijo solo        → desde HomeMedico (selector día/semana/mes, profesional fijo)
 3. Sin fijos                   → secretaria/admin (todo editable)
 */
-
-// FIX: helper para construir headers con token
-function authHeaders() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export default function CajaResumenController({
   professionals   = [],
@@ -31,11 +24,11 @@ export default function CajaResumenController({
   const [resumen,      setResumen]      = useState(null);
   const [loading,      setLoading]      = useState(false);
 
-  const buildUrl = useCallback(() => {
+  const buildPath = useCallback(() => {
     const prof = professional === "todos" ? null : professional;
 
     if (periodo === "dia") {
-      const base = `${API_URL}/api/caja/resumen-dia?date=${date}`;
+      const base = `/api/caja/resumen-dia?date=${date}`;
       return prof ? `${base}&professional=${prof}` : base;
     }
 
@@ -45,7 +38,7 @@ export default function CajaResumenController({
 
     if (periodo === "mes") {
       const month = date.slice(0, 7);
-      return `${API_URL}/api/caja/resumen-mes?month=${month}`;
+      return `/api/caja/resumen-mes?month=${month}`;
     }
 
     return null;
@@ -69,21 +62,20 @@ export default function CajaResumenController({
         const prof = professional === "todos" ? null : professional;
         const results = await Promise.all(
           dias.map(d => {
-            const url = prof
-              ? `${API_URL}/api/caja/resumen-dia?date=${d}&professional=${prof}`
-              : `${API_URL}/api/caja/resumen-dia?date=${d}`;
-            // FIX: token en cada fetch de semana
-            return fetch(url, { headers: authHeaders() })
+            const path = prof
+              ? `/api/caja/resumen-dia?date=${d}&professional=${prof}`
+              : `/api/caja/resumen-dia?date=${d}`;
+            return apiFetch(path)
               .then(r => r.ok ? r.json() : null)
               .catch(() => null);
           })
         );
 
         let monto_total = 0;
-        const por_tipo    = {};
-        const por_metodo  = {};
-        const pacientes   = [];
-        const por_dia     = [];
+        const por_tipo   = {};
+        const por_metodo = {};
+        const pacientes  = [];
+        const por_dia    = [];
 
         results.forEach((r, i) => {
           if (!r) return;
@@ -98,10 +90,9 @@ export default function CajaResumenController({
         return;
       }
 
-      const url = buildUrl();
-      if (!url) return;
-      // FIX: token en fetch principal
-      const res = await fetch(url, { headers: authHeaders() });
+      const path = buildPath();
+      if (!path) return;
+      const res = await apiFetch(path);
       if (!res.ok) throw new Error("resumen");
       const data = await res.json();
       setResumen({ ...data, periodo });
@@ -111,7 +102,7 @@ export default function CajaResumenController({
     } finally {
       setLoading(false);
     }
-  }, [date, professional, periodo, buildUrl]);
+  }, [date, professional, periodo, buildPath]);
 
   useEffect(() => { loadResumen(); }, [loadResumen]);
 
