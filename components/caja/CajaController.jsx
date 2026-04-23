@@ -10,12 +10,12 @@ CajaController — CEREBRO módulo caja
 ✔ Se une al slot clínico por rut + date + time + professional
 */
 
-// FIX: helper para construir headers con token
 function authHeaders(extra = {}) {
-  const token = localStorage.getItem("token");
+  const session = sessionStorage.getItem("session");
+  const usuario = session ? JSON.parse(session).usuario : null;
   return {
     ...extra,
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(usuario ? { "X-Internal-User": usuario } : {}),
   };
 }
 
@@ -32,7 +32,6 @@ export default function CajaController({ date, professional }) {
     setLoading(true);
     try {
       const [dayRes, sumRes] = await Promise.all([
-        // FIX: token en ambos fetch
         fetch(`${API_URL}/api/caja/day?date=${date}&professional=${professional}`,     { headers: authHeaders() }),
         fetch(`${API_URL}/api/caja/summary?date=${date}&professional=${professional}`, { headers: authHeaders() }),
       ]);
@@ -78,7 +77,6 @@ export default function CajaController({ date, professional }) {
     try {
       await fetch(`${API_URL}/api/caja/slot`, {
         method: "PATCH",
-        // FIX: token junto con Content-Type
         headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ date, professional, ...fields }),
       });
