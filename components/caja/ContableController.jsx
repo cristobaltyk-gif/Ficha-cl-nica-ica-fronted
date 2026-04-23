@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import ContableView from "./ContableView";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { apiFetch } from "../../utils/api"; // FIX: importar helper centralizado
 
 export default function ContableController() {
   const hoy = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -22,7 +21,7 @@ export default function ContableController() {
 
   const loadConfig = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/contable/gastos/config`);
+      const res = await apiFetch("/api/contable/gastos/config");
       if (res.ok) setConfig(await res.json());
     } catch {}
   }, []);
@@ -30,7 +29,7 @@ export default function ContableController() {
   const loadResumen = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/contable/resumen/${mes}`);
+      const res = await apiFetch(`/api/contable/resumen/${mes}`);
       if (res.ok) setResumen(await res.json());
       else setResumen(null);
     } catch {
@@ -46,16 +45,16 @@ export default function ContableController() {
   async function handleGuardarGasto(data) {
     try {
       if (gastoEditing) {
-        await fetch(`${API_URL}/api/contable/gastos/${gastoEditing.id}`, {
+        await apiFetch(`/api/contable/gastos/${gastoEditing.id}`, {
           method:  "PUT",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ descripcion: data.descripcion, monto: data.monto })
+          body:    JSON.stringify({ descripcion: data.descripcion, monto: data.monto }),
         });
       } else {
-        await fetch(`${API_URL}/api/contable/gastos`, {
+        await apiFetch("/api/contable/gastos", {
           method:  "POST",
           headers: { "Content-Type": "application/json" },
-          body:    JSON.stringify({ ...data, mes })
+          body:    JSON.stringify({ ...data, mes }),
         });
       }
       setGastoOpen(false);
@@ -66,17 +65,17 @@ export default function ContableController() {
 
   async function handleEliminarGasto(id) {
     try {
-      await fetch(`${API_URL}/api/contable/gastos/${id}`, { method: "DELETE" });
+      await apiFetch(`/api/contable/gastos/${id}`, { method: "DELETE" });
       await loadResumen();
     } catch {}
   }
 
   async function handleAgregarCategoria(categoria) {
     try {
-      await fetch(`${API_URL}/api/contable/gastos/config/categoria`, {
+      await apiFetch("/api/contable/gastos/config/categoria", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ grupo: catGrupo, categoria })
+        body:    JSON.stringify({ grupo: catGrupo, categoria }),
       });
       setCatOpen(false);
       await loadConfig();
@@ -86,7 +85,7 @@ export default function ContableController() {
   async function handleExportar() {
     setExporting(true);
     try {
-      const res = await fetch(`${API_URL}/api/contable/exportar/${mes}`);
+      const res = await apiFetch(`/api/contable/exportar/${mes}`);
       if (!res.ok) throw new Error();
       const blob = await res.blob();
       const url  = window.URL.createObjectURL(blob);
