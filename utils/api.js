@@ -1,15 +1,16 @@
 // utils/api.js
 // Helper centralizado para todos los fetch del proyecto.
-// Agrega automáticamente el token JWT desde localStorage.
+// Agrega automáticamente X-Internal-User desde sessionStorage.
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem("token");
+  const session = sessionStorage.getItem("session");
+  const usuario = session ? JSON.parse(session).usuario : null;
 
   const headers = {
     ...(options.headers || {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(usuario ? { "X-Internal-User": usuario } : {}),
   };
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
