@@ -5,11 +5,19 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 /*
 CajaController — CEREBRO módulo caja
-
 ✔ Toda la lógica aquí
 ✔ CajaDayView solo pinta
 ✔ Se une al slot clínico por rut + date + time + professional
 */
+
+// FIX: helper para construir headers con token
+function authHeaders(extra = {}) {
+  const token = localStorage.getItem("token");
+  return {
+    ...extra,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 export default function CajaController({ date, professional }) {
   const [slots,   setSlots]   = useState([]);
@@ -24,8 +32,9 @@ export default function CajaController({ date, professional }) {
     setLoading(true);
     try {
       const [dayRes, sumRes] = await Promise.all([
-        fetch(`${API_URL}/api/caja/day?date=${date}&professional=${professional}`),
-        fetch(`${API_URL}/api/caja/summary?date=${date}&professional=${professional}`)
+        // FIX: token en ambos fetch
+        fetch(`${API_URL}/api/caja/day?date=${date}&professional=${professional}`,     { headers: authHeaders() }),
+        fetch(`${API_URL}/api/caja/summary?date=${date}&professional=${professional}`, { headers: authHeaders() }),
       ]);
       const day = await dayRes.json();
       const sum = await sumRes.json();
@@ -69,8 +78,9 @@ export default function CajaController({ date, professional }) {
     try {
       await fetch(`${API_URL}/api/caja/slot`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date, professional, ...fields })
+        // FIX: token junto con Content-Type
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ date, professional, ...fields }),
       });
       await loadDay();
     } catch {
