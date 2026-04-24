@@ -18,8 +18,9 @@ const ESPECIALIDADES = [
 function getTabsForMiembro(m) {
   const base = [{ key: "info", label: "Información" }, { key: "sedes", label: "Sedes" }];
   if (m._tipo === "profesional") {
-    base.push({ key: "horarios", label: "Horarios" });
-    base.push({ key: "valores",  label: "Valores" });
+    base.push({ key: "horarios",   label: "Horarios" });
+    base.push({ key: "valores",    label: "Valores" });
+    base.push({ key: "comisiones", label: "Comisión" });
   }
   return base;
 }
@@ -169,6 +170,7 @@ function SedesForm({ pid }) {
     </div>
   );
 }
+
 // ── Componente principal ─────────────────────────────────────
 export default function EquipoAdmin() {
   const [vista,         setVista]         = useState("lista");
@@ -407,9 +409,10 @@ export default function EquipoAdmin() {
               </div>
             )}
 
-            {tabDetalle === "sedes"    && sedesPid && <SedesForm pid={sedesPid} />}
-            {tabDetalle === "horarios" && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
-            {tabDetalle === "valores"  && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "sedes"      && sedesPid && <SedesForm pid={sedesPid} />}
+            {tabDetalle === "horarios"   && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
+            {tabDetalle === "valores"    && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "comisiones" && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
 
           </div>
         </div>
@@ -481,5 +484,4 @@ export default function EquipoAdmin() {
 
     </div>
   );
-              }
-          
+}
