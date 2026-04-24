@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "../styles/admin/equipo-admin.css";
 import HorariosAdmin from "./HorariosAdmin.jsx";
 import ValoresProfesionalForm from "./ValoresProfesionalForm.jsx";
+import ComisionProfesionalForm from "./ComisionProfesionalForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
