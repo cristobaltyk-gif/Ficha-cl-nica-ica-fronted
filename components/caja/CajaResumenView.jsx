@@ -45,6 +45,14 @@ export default function CajaResumenView({
 }) {
   const modoFijo = fechaFija && profesionalFijo;
 
+  // Determina si hay datos de comisión disponibles
+  const tieneComision = resumen && (
+    resumen.retencion != null || resumen.retencion_total != null
+  );
+  const retencion = resumen?.retencion ?? resumen?.retencion_total ?? 0;
+  const neto      = resumen?.neto      ?? resumen?.neto_total      ?? 0;
+  const porcentaje = resumen?.porcentaje_comision ?? null;
+
   return (
     <div style={s.root}>
 
@@ -72,7 +80,6 @@ export default function CajaResumenView({
       {!modoFijo && (
         <div style={s.filters}>
 
-          {/* PERIODO */}
           {onPeriodoChange && (
             <div style={s.filterGroup}>
               <label style={s.filterLabel}>Período</label>
@@ -83,8 +90,8 @@ export default function CajaResumenView({
                     onClick={() => onPeriodoChange(p)}
                     style={{
                       ...s.periodoBtn,
-                      background: periodo === p ? "#0f172a" : "#fff",
-                      color:      periodo === p ? "#fff" : "#64748b",
+                      background:  periodo === p ? "#0f172a" : "#fff",
+                      color:       periodo === p ? "#fff"    : "#64748b",
                       borderColor: periodo === p ? "#0f172a" : "#e2e8f0",
                     }}
                   >
@@ -95,7 +102,6 @@ export default function CajaResumenView({
             </div>
           )}
 
-          {/* FECHA */}
           {onDateChange && (
             <div style={s.filterGroup}>
               <label style={s.filterLabel}>
@@ -113,7 +119,6 @@ export default function CajaResumenView({
             </div>
           )}
 
-          {/* PROFESIONAL — solo si no está fijo */}
           {onProfessionalChange && (
             <div style={s.filterGroup}>
               <label style={s.filterLabel}>Profesional</label>
@@ -153,7 +158,7 @@ export default function CajaResumenView({
       {!loading && resumen && (
         <div style={s.content}>
 
-          {/* KPIs */}
+          {/* KPIs principales */}
           <div style={s.kpiGrid}>
             <div style={{ ...s.kpi, ...s.kpiBlue }}>
               <span style={s.kpiValue}>{formatMonto(resumen.monto_total)}</span>
@@ -164,6 +169,29 @@ export default function CajaResumenView({
               <span style={s.kpiLabel}>Atenciones</span>
             </div>
           </div>
+
+          {/* KPIs comisión — solo si hay datos */}
+          {tieneComision && (
+            <div style={s.comisionBox}>
+              <div style={s.comisionRow}>
+                <span style={s.comisionLabel}>
+                  Retención centro{porcentaje != null ? ` (${porcentaje}%)` : ""}
+                </span>
+                <span style={{ ...s.comisionValor, color: "#dc2626" }}>
+                  − {formatMonto(retencion)}
+                </span>
+              </div>
+              <div style={s.comisionDivider} />
+              <div style={s.comisionRow}>
+                <span style={{ ...s.comisionLabel, fontWeight: 700, color: "#0f172a" }}>
+                  Neto a pagar profesional
+                </span>
+                <span style={{ ...s.comisionValor, color: "#16a34a", fontSize: 17 }}>
+                  {formatMonto(neto)}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Por tipo */}
           {resumen.por_tipo && Object.keys(resumen.por_tipo).length > 0 && (
@@ -227,7 +255,14 @@ export default function CajaResumenView({
                       <span style={s.profName}>{p.professional}</span>
                       <span style={s.profMeta}>{p.pagados} pagados</span>
                     </div>
-                    <span style={s.profMonto}>{formatMonto(p.monto_total)}</span>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                      <span style={s.profMonto}>{formatMonto(p.monto_total)}</span>
+                      {p.retencion != null && (
+                        <span style={{ fontSize: 11, color: "#dc2626" }}>
+                          − {formatMonto(p.retencion)} · neto {formatMonto(p.neto)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -261,44 +296,49 @@ export default function CajaResumenView({
 }
 
 const s = {
-  root:       { fontFamily: "'DM Sans', system-ui, sans-serif", background: "#f1f5f9", minHeight: "100vh", padding: "24px" },
-  header:     { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 },
-  title:      { fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.02em", margin: 0 },
-  subtitle:   { fontSize: 13, color: "#64748b", marginTop: 4 },
-  refreshBtn: { display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", color: "#64748b" },
-  filters:    { display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" },
+  root:        { fontFamily: "'DM Sans', system-ui, sans-serif", background: "#f1f5f9", minHeight: "100vh", padding: "24px" },
+  header:      { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 },
+  title:       { fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.02em", margin: 0 },
+  subtitle:    { fontSize: 13, color: "#64748b", marginTop: 4 },
+  refreshBtn:  { display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", color: "#64748b" },
+  filters:     { display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" },
   filterGroup: { display: "flex", flexDirection: "column", gap: 4 },
   filterLabel: { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" },
   filterInput: { border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", fontSize: 13, fontFamily: "'DM Sans', system-ui, sans-serif", background: "#fff", color: "#0f172a", outline: "none" },
   periodoRow:  { display: "flex", gap: 4 },
   periodoBtn:  { padding: "7px 12px", border: "1px solid", borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', system-ui, sans-serif", cursor: "pointer" },
-  centered:   { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: "30vh" },
-  spinner:    { width: 24, height: 24, border: "2.5px solid #e2e8f0", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.7s linear infinite" },
+  centered:    { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: "30vh" },
+  spinner:     { width: 24, height: 24, border: "2.5px solid #e2e8f0", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.7s linear infinite" },
   loadingText: { fontSize: 14, color: "#64748b" },
-  emptyText:  { fontSize: 14, color: "#94a3b8" },
-  content:    { display: "flex", flexDirection: "column", gap: 20, maxWidth: 860 },
-  kpiGrid:    { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-  kpi:        { display: "flex", flexDirection: "column", gap: 4, padding: "18px 20px", borderRadius: 12, border: "1px solid" },
-  kpiBlue:    { background: "#eff6ff", borderColor: "#bfdbfe" },
-  kpiGreen:   { background: "#f0fdf4", borderColor: "#bbf7d0" },
-  kpiValue:   { fontSize: 24, fontWeight: 700, color: "#0f172a" },
-  kpiLabel:   { fontSize: 12, color: "#64748b", fontWeight: 500 },
-  section:    { display: "flex", flexDirection: "column", gap: 10 },
+  emptyText:   { fontSize: 14, color: "#94a3b8" },
+  content:     { display: "flex", flexDirection: "column", gap: 20, maxWidth: 860 },
+  kpiGrid:     { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
+  kpi:         { display: "flex", flexDirection: "column", gap: 4, padding: "18px 20px", borderRadius: 12, border: "1px solid" },
+  kpiBlue:     { background: "#eff6ff", borderColor: "#bfdbfe" },
+  kpiGreen:    { background: "#f0fdf4", borderColor: "#bbf7d0" },
+  kpiValue:    { fontSize: 24, fontWeight: 700, color: "#0f172a" },
+  kpiLabel:    { fontSize: 12, color: "#64748b", fontWeight: 500 },
+  comisionBox: { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 },
+  comisionRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  comisionLabel: { fontSize: 13, color: "#64748b", fontWeight: 500 },
+  comisionValor: { fontSize: 15, fontWeight: 700 },
+  comisionDivider: { height: 1, background: "#e2e8f0" },
+  section:     { display: "flex", flexDirection: "column", gap: 10 },
   sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b", margin: 0 },
-  tagGrid:    { display: "flex", gap: 8, flexWrap: "wrap" },
-  tag:        { display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: "1px solid #e2e8f0", background: "#f8fafc" },
-  tagLabel:   { fontSize: 12, fontWeight: 600, color: "#374151" },
-  tagCount:   { fontSize: 13, fontWeight: 700, color: "#0f172a" },
-  diaRow:     { display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13 },
-  diaDate:    { color: "#64748b", fontFamily: "monospace" },
-  diaMonto:   { fontWeight: 700, color: "#0f172a" },
-  profList:   { display: "flex", flexDirection: "column", gap: 8 },
-  profRow:    { display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px" },
-  profAvatar: { width: 36, height: 36, borderRadius: "50%", background: "#0f172a", color: "#fff", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  profInfo:   { display: "flex", flexDirection: "column", gap: 2, flex: 1 },
-  profName:   { fontSize: 13.5, fontWeight: 600, color: "#0f172a" },
-  profMeta:   { fontSize: 11.5, color: "#94a3b8" },
-  profMonto:  { fontSize: 15, fontWeight: 700, color: "#0f172a" },
+  tagGrid:     { display: "flex", gap: 8, flexWrap: "wrap" },
+  tag:         { display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: "1px solid #e2e8f0", background: "#f8fafc" },
+  tagLabel:    { fontSize: 12, fontWeight: 600, color: "#374151" },
+  tagCount:    { fontSize: 13, fontWeight: 700, color: "#0f172a" },
+  diaRow:      { display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13 },
+  diaDate:     { color: "#64748b", fontFamily: "monospace" },
+  diaMonto:    { fontWeight: 700, color: "#0f172a" },
+  profList:    { display: "flex", flexDirection: "column", gap: 8 },
+  profRow:     { display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px" },
+  profAvatar:  { width: 36, height: 36, borderRadius: "50%", background: "#0f172a", color: "#fff", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  profInfo:    { display: "flex", flexDirection: "column", gap: 2, flex: 1 },
+  profName:    { fontSize: 13.5, fontWeight: 600, color: "#0f172a" },
+  profMeta:    { fontSize: 11.5, color: "#94a3b8" },
+  profMonto:   { fontSize: 15, fontWeight: 700, color: "#0f172a" },
   pacienteList: { display: "flex", flexDirection: "column", gap: 6 },
   pacienteRow:  { display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 90px", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 12 },
   pacienteTime:   { fontFamily: "monospace", fontWeight: 600, color: "#0f172a" },
