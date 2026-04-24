@@ -38,9 +38,9 @@ export default function CajaResumenController({
 
     if (periodo === "mes") {
       const month = date.slice(0, 7);
-      return `/api/caja/resumen-mes?month=${month}`;
+      const base = `/api/caja/resumen-mes?month=${month}`;
+      return prof ? `${base}&professional=${prof}` : base;
     }
-
     return null;
   }, [date, professional, periodo]);
 
