@@ -10,6 +10,8 @@ Modos:
 - Sin fijos                   → todo editable (secretaria/admin)
 */
 
+import { apiFetch } from "../../utils/api";
+
 const METODO_LABELS = {
   efectivo:      "Efectivo",
   transferencia: "Transferencia",
@@ -45,13 +47,25 @@ export default function CajaResumenView({
 }) {
   const modoFijo = fechaFija && profesionalFijo;
 
-  // Determina si hay datos de comisión disponibles
   const tieneComision = resumen && (
     resumen.retencion != null || resumen.retencion_total != null
   );
-  const retencion = resumen?.retencion ?? resumen?.retencion_total ?? 0;
-  const neto      = resumen?.neto      ?? resumen?.neto_total      ?? 0;
+  const retencion  = resumen?.retencion  ?? resumen?.retencion_total ?? 0;
+  const neto       = resumen?.neto       ?? resumen?.neto_total      ?? 0;
   const porcentaje = resumen?.porcentaje_comision ?? null;
+
+  async function handleDescargarPDF() {
+    const prof = professional && professional !== "todos" ? `&professional=${professional}` : "";
+    const res  = await apiFetch(`/api/caja/pdf-mes?month=${date.slice(0, 7)}${prof}`);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const url  = window.URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `caja_${date.slice(0, 7)}${professional && professional !== "todos" ? `_${professional}` : ""}.pdf`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
 
   return (
     <div style={s.root}>
@@ -68,12 +82,19 @@ export default function CajaResumenView({
               : "Pagos registrados"}
           </p>
         </div>
-        <button style={s.refreshBtn} onClick={onRefresh} title="Actualizar">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-          </svg>
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          {periodo === "mes" && !modoFijo && (
+            <button style={s.pdfBtn} onClick={handleDescargarPDF}>
+              PDF
+            </button>
+          )}
+          <button style={s.refreshBtn} onClick={onRefresh} title="Actualizar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* FILTROS — solo si no es modo fijo */}
@@ -170,7 +191,7 @@ export default function CajaResumenView({
             </div>
           </div>
 
-          {/* KPIs comisión — solo si hay datos */}
+          {/* KPIs comisión */}
           {tieneComision && (
             <div style={s.comisionBox}>
               <div style={s.comisionRow}>
@@ -296,54 +317,55 @@ export default function CajaResumenView({
 }
 
 const s = {
-  root:        { fontFamily: "'DM Sans', system-ui, sans-serif", background: "#f1f5f9", minHeight: "100vh", padding: "24px" },
-  header:      { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 },
-  title:       { fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.02em", margin: 0 },
-  subtitle:    { fontSize: 13, color: "#64748b", marginTop: 4 },
-  refreshBtn:  { display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", color: "#64748b" },
-  filters:     { display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" },
-  filterGroup: { display: "flex", flexDirection: "column", gap: 4 },
-  filterLabel: { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" },
-  filterInput: { border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", fontSize: 13, fontFamily: "'DM Sans', system-ui, sans-serif", background: "#fff", color: "#0f172a", outline: "none" },
-  periodoRow:  { display: "flex", gap: 4 },
-  periodoBtn:  { padding: "7px 12px", border: "1px solid", borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', system-ui, sans-serif", cursor: "pointer" },
-  centered:    { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: "30vh" },
-  spinner:     { width: 24, height: 24, border: "2.5px solid #e2e8f0", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.7s linear infinite" },
-  loadingText: { fontSize: 14, color: "#64748b" },
-  emptyText:   { fontSize: 14, color: "#94a3b8" },
-  content:     { display: "flex", flexDirection: "column", gap: 20, maxWidth: 860 },
-  kpiGrid:     { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-  kpi:         { display: "flex", flexDirection: "column", gap: 4, padding: "18px 20px", borderRadius: 12, border: "1px solid" },
-  kpiBlue:     { background: "#eff6ff", borderColor: "#bfdbfe" },
-  kpiGreen:    { background: "#f0fdf4", borderColor: "#bbf7d0" },
-  kpiValue:    { fontSize: 24, fontWeight: 700, color: "#0f172a" },
-  kpiLabel:    { fontSize: 12, color: "#64748b", fontWeight: 500 },
-  comisionBox: { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 },
-  comisionRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
+  root:          { fontFamily: "'DM Sans', system-ui, sans-serif", background: "#f1f5f9", minHeight: "100vh", padding: "24px" },
+  header:        { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 },
+  title:         { fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.02em", margin: 0 },
+  subtitle:      { fontSize: 13, color: "#64748b", marginTop: 4 },
+  refreshBtn:    { display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", color: "#64748b" },
+  pdfBtn:        { display: "flex", alignItems: "center", justifyContent: "center", height: 36, padding: "0 14px", border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", color: "#64748b", fontSize: 12, fontWeight: 600 },
+  filters:       { display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" },
+  filterGroup:   { display: "flex", flexDirection: "column", gap: 4 },
+  filterLabel:   { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" },
+  filterInput:   { border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", fontSize: 13, fontFamily: "'DM Sans', system-ui, sans-serif", background: "#fff", color: "#0f172a", outline: "none" },
+  periodoRow:    { display: "flex", gap: 4 },
+  periodoBtn:    { padding: "7px 12px", border: "1px solid", borderRadius: 7, fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', system-ui, sans-serif", cursor: "pointer" },
+  centered:      { display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: "30vh" },
+  spinner:       { width: 24, height: 24, border: "2.5px solid #e2e8f0", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.7s linear infinite" },
+  loadingText:   { fontSize: 14, color: "#64748b" },
+  emptyText:     { fontSize: 14, color: "#94a3b8" },
+  content:       { display: "flex", flexDirection: "column", gap: 20, maxWidth: 860 },
+  kpiGrid:       { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
+  kpi:           { display: "flex", flexDirection: "column", gap: 4, padding: "18px 20px", borderRadius: 12, border: "1px solid" },
+  kpiBlue:       { background: "#eff6ff", borderColor: "#bfdbfe" },
+  kpiGreen:      { background: "#f0fdf4", borderColor: "#bbf7d0" },
+  kpiValue:      { fontSize: 24, fontWeight: 700, color: "#0f172a" },
+  kpiLabel:      { fontSize: 12, color: "#64748b", fontWeight: 500 },
+  comisionBox:   { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 12, padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 },
+  comisionRow:   { display: "flex", justifyContent: "space-between", alignItems: "center" },
   comisionLabel: { fontSize: 13, color: "#64748b", fontWeight: 500 },
   comisionValor: { fontSize: 15, fontWeight: 700 },
   comisionDivider: { height: 1, background: "#e2e8f0" },
-  section:     { display: "flex", flexDirection: "column", gap: 10 },
-  sectionTitle: { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b", margin: 0 },
-  tagGrid:     { display: "flex", gap: 8, flexWrap: "wrap" },
-  tag:         { display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: "1px solid #e2e8f0", background: "#f8fafc" },
-  tagLabel:    { fontSize: 12, fontWeight: 600, color: "#374151" },
-  tagCount:    { fontSize: 13, fontWeight: 700, color: "#0f172a" },
-  diaRow:      { display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13 },
-  diaDate:     { color: "#64748b", fontFamily: "monospace" },
-  diaMonto:    { fontWeight: 700, color: "#0f172a" },
-  profList:    { display: "flex", flexDirection: "column", gap: 8 },
-  profRow:     { display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px" },
-  profAvatar:  { width: 36, height: 36, borderRadius: "50%", background: "#0f172a", color: "#fff", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  profInfo:    { display: "flex", flexDirection: "column", gap: 2, flex: 1 },
-  profName:    { fontSize: 13.5, fontWeight: 600, color: "#0f172a" },
-  profMeta:    { fontSize: 11.5, color: "#94a3b8" },
-  profMonto:   { fontSize: 15, fontWeight: 700, color: "#0f172a" },
-  pacienteList: { display: "flex", flexDirection: "column", gap: 6 },
-  pacienteRow:  { display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 90px", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 12 },
-  pacienteTime:   { fontFamily: "monospace", fontWeight: 600, color: "#0f172a" },
-  pacienteRut:    { fontFamily: "monospace", fontSize: 11, color: "#64748b" },
-  pacienteTipo:   { color: "#374151", fontWeight: 500 },
-  pacienteMonto:  { fontWeight: 700, textAlign: "right" },
-  pacienteMetodo: { color: "#64748b" },
+  section:       { display: "flex", flexDirection: "column", gap: 10 },
+  sectionTitle:  { fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#64748b", margin: 0 },
+  tagGrid:       { display: "flex", gap: 8, flexWrap: "wrap" },
+  tag:           { display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 999, border: "1px solid #e2e8f0", background: "#f8fafc" },
+  tagLabel:      { fontSize: 12, fontWeight: 600, color: "#374151" },
+  tagCount:      { fontSize: 13, fontWeight: 700, color: "#0f172a" },
+  diaRow:        { display: "flex", justifyContent: "space-between", padding: "8px 12px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, fontSize: 13 },
+  diaDate:       { color: "#64748b", fontFamily: "monospace" },
+  diaMonto:      { fontWeight: 700, color: "#0f172a" },
+  profList:      { display: "flex", flexDirection: "column", gap: 8 },
+  profRow:       { display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 16px" },
+  profAvatar:    { width: 36, height: 36, borderRadius: "50%", background: "#0f172a", color: "#fff", fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  profInfo:      { display: "flex", flexDirection: "column", gap: 2, flex: 1 },
+  profName:      { fontSize: 13.5, fontWeight: 600, color: "#0f172a" },
+  profMeta:      { fontSize: 11.5, color: "#94a3b8" },
+  profMonto:     { fontSize: 15, fontWeight: 700, color: "#0f172a" },
+  pacienteList:  { display: "flex", flexDirection: "column", gap: 6 },
+  pacienteRow:   { display: "grid", gridTemplateColumns: "60px 100px 1fr 80px 90px", alignItems: "center", gap: 10, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 12 },
+  pacienteTime:  { fontFamily: "monospace", fontWeight: 600, color: "#0f172a" },
+  pacienteRut:   { fontFamily: "monospace", fontSize: 11, color: "#64748b" },
+  pacienteTipo:  { color: "#374151", fontWeight: 500 },
+  pacienteMonto: { fontWeight: 700, textAlign: "right" },
+  pacienteMetodo:{ color: "#64748b" },
 };
