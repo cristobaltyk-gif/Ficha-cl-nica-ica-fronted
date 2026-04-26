@@ -448,4 +448,46 @@ function HistorialDrawer({ eventos, loading, onClose }) {
 
               {/* Info header */}
               <div style={{ padding:"16px 20px 12px", borderBottom:"1px solid #f1f5f9" }}>
-                <div style={{ display:"flex", gap:8, marginBottom:6 }
+                <div style={{ display:"flex", gap:8, marginBottom:6 }}>
+                  <span style={{
+                    fontSize:12, fontWeight:700, background:"#0f172a", color:"#fff",
+                    borderRadius:4, padding:"3px 8px"
+                  }}>{detalle.fecha}</span>
+                  <span style={{
+                    fontSize:12, color:"#475569", background:"#f1f5f9",
+                    borderRadius:4, padding:"3px 8px"
+                  }}>{detalle.hora}</span>
+                </div>
+                {detalle.professional_name && (
+                  <p style={{ margin:0, fontSize:12, color:"#94a3b8" }}>
+                    Dr. {detalle.professional_name}
+                  </p>
+                )}
+              </div>
+
+              {/* Campos */}
+              <div style={{ padding:"0 20px" }}>
+                {CAMPOS.filter(f => detalle[f.key]?.trim()).map((f, i) => (
+                  <div key={i} style={{
+                    padding:"14px 0",
+                    borderBottom: i < CAMPOS.filter(cf => detalle[cf.key]?.trim()).length - 1
+                      ? "1px solid #f1f5f9" : "none"
+                  }}>
+                    <p style={{
+                      margin:"0 0 5px", fontSize:10, fontWeight:700,
+                      textTransform:"uppercase", letterSpacing:"0.12em", color:"#94a3b8"
+                    }}>{f.label}</p>
+                    <p style={{
+                      margin:0, fontSize:13, color:"#0f172a",
+                      lineHeight:1.7, whiteSpace:"pre-wrap"
+                    }}>{detalle[f.key]}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
