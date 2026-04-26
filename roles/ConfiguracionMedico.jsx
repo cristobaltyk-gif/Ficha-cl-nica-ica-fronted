@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import "../styles/configuracion-medico.css";
+import BloqueoAgendaModal from "../components/agenda/BloqueoAgendaModal.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -34,7 +35,10 @@ export default function ConfiguracionMedico() {
   const [horSuccess, setHorSuccess] = useState(null);
   const [horError,   setHorError]   = useState(null);
 
-  useEffect(() => {
+  // BLOQUEOS
+  const [showBloqueo, setShowBloqueo] = useState(false);
+
+  useState(() => {
     async function load() {
       try {
         const res = await fetch(`${API_URL}/professionals`);
@@ -65,17 +69,11 @@ export default function ConfiguracionMedico() {
     load();
   }, [professional]);
 
-  // =========================
-  // CONTRASEÑA
-  // =========================
   async function handleChangePassword() {
-    setPwError(null);
-    setPwSuccess(false);
-
+    setPwError(null); setPwSuccess(false);
     if (!pwActual || !pwNueva || !pwConfirm) { setPwError("Completa todos los campos"); return; }
     if (pwNueva !== pwConfirm) { setPwError("Las contraseñas no coinciden"); return; }
     if (pwNueva.length < 6) { setPwError("Mínimo 6 caracteres"); return; }
-
     setPwLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/change-password`, {
@@ -83,22 +81,13 @@ export default function ConfiguracionMedico() {
         headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
         body: JSON.stringify({ password_actual: pwActual, password_nuevo: pwNueva })
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || "Error al cambiar contraseña");
-      }
+      if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Error al cambiar contraseña"); }
       setPwSuccess(true);
       setPwActual(""); setPwNueva(""); setPwConfirm("");
-    } catch (e) {
-      setPwError(e.message);
-    } finally {
-      setPwLoading(false);
-    }
+    } catch (e) { setPwError(e.message); }
+    finally { setPwLoading(false); }
   }
 
-  // =========================
-  // HORARIOS
-  // =========================
   function addBloque(dia) {
     setHorarios(prev => ({ ...prev, [dia]: [...(prev[dia] || []), { start: "09:00", end: "13:00" }] }));
   }
@@ -116,15 +105,12 @@ export default function ConfiguracionMedico() {
   }
 
   async function handleGuardarHorario(dia) {
-    setHorError(null);
-    setHorSuccess(null);
+    setHorError(null); setHorSuccess(null);
     const bloques = horarios[dia] || [];
-
     try {
       if (bloques.length === 0) {
         await fetch(`${API_URL}/admin/professionals/${professional}/day/${dia}`, {
-          method: "DELETE",
-          headers: { "X-Internal-User": session?.usuario }
+          method: "DELETE", headers: { "X-Internal-User": session?.usuario }
         });
       } else {
         await fetch(`${API_URL}/admin/professionals/${professional}/day`, {
@@ -135,14 +121,9 @@ export default function ConfiguracionMedico() {
       }
       setHorSuccess(dia);
       setTimeout(() => setHorSuccess(null), 2000);
-    } catch {
-      setHorError(dia);
-    }
+    } catch { setHorError(dia); }
   }
 
-  // =========================
-  // RENDER
-  // =========================
   if (loading) return (
     <div className="cfg-root">
       <div className="cfg-header"><h1>Configuración</h1></div>
@@ -165,9 +146,10 @@ export default function ConfiguracionMedico() {
         {/* TABS */}
         <div className="cfg-tabs">
           {[
-            { key: "perfil",   label: "Perfil" },
-            { key: "password", label: "Contraseña" },
-            { key: "horarios", label: "Horarios" },
+            { key: "perfil",    label: "Perfil" },
+            { key: "password",  label: "Contraseña" },
+            { key: "horarios",  label: "Horarios" },
+            { key: "bloqueos",  label: "Bloqueos" },
           ].map(t => (
             <button
               key={t.key}
@@ -192,28 +174,18 @@ export default function ConfiguracionMedico() {
                 <p className="cfg-field-value">{f.value}</p>
               </div>
             ))}
-
             {perfil.firma && (
               <div className="cfg-field">
                 <p className="cfg-field-label">Firma</p>
-                <img
-                  className="cfg-img"
-                  src={`${API_URL}/assets/${perfil.firma}`}
-                  alt="Firma"
-                  onError={e => e.target.style.display = "none"}
-                />
+                <img className="cfg-img" src={`${API_URL}/assets/${perfil.firma}`} alt="Firma"
+                  onError={e => e.target.style.display = "none"} />
               </div>
             )}
-
             {perfil.timbre && (
               <div className="cfg-field">
                 <p className="cfg-field-label">Timbre</p>
-                <img
-                  className="cfg-img"
-                  src={`${API_URL}/assets/${perfil.timbre}`}
-                  alt="Timbre"
-                  onError={e => e.target.style.display = "none"}
-                />
+                <img className="cfg-img" src={`${API_URL}/assets/${perfil.timbre}`} alt="Timbre"
+                  onError={e => e.target.style.display = "none"} />
               </div>
             )}
           </div>
@@ -224,7 +196,6 @@ export default function ConfiguracionMedico() {
           <div className="cfg-card">
             {pwError   && <p className="cfg-error">{pwError}</p>}
             {pwSuccess && <p className="cfg-success">✓ Contraseña actualizada</p>}
-
             {[
               { label: "Contraseña actual",    val: pwActual,  set: setPwActual },
               { label: "Nueva contraseña",     val: pwNueva,   set: setPwNueva },
@@ -232,20 +203,11 @@ export default function ConfiguracionMedico() {
             ].map((f, i) => (
               <div key={i} className="cfg-field">
                 <p className="cfg-field-label">{f.label}</p>
-                <input
-                  type="password"
-                  className="cfg-input"
-                  value={f.val}
-                  onChange={e => f.set(e.target.value)}
-                />
+                <input type="password" className="cfg-input" value={f.val}
+                  onChange={e => f.set(e.target.value)} />
               </div>
             ))}
-
-            <button
-              className="cfg-btn-primary"
-              onClick={handleChangePassword}
-              disabled={pwLoading}
-            >
+            <button className="cfg-btn-primary" onClick={handleChangePassword} disabled={pwLoading}>
               {pwLoading ? "Guardando…" : "Cambiar contraseña"}
             </button>
           </div>
@@ -257,9 +219,7 @@ export default function ConfiguracionMedico() {
             <div className="cfg-dia-header">
               <p className="cfg-dia-label">{label}</p>
               <div className="cfg-dia-actions">
-                <button className="cfg-btn-secondary" onClick={() => addBloque(key)}>
-                  + Bloque
-                </button>
+                <button className="cfg-btn-secondary" onClick={() => addBloque(key)}>+ Bloque</button>
                 <button
                   className={`cfg-btn-save${horSuccess === key ? " success" : ""}`}
                   onClick={() => handleGuardarHorario(key)}
@@ -268,35 +228,47 @@ export default function ConfiguracionMedico() {
                 </button>
               </div>
             </div>
-
             {(horarios[key] || []).length === 0 && (
               <p className="cfg-empty">Sin horario — día libre</p>
             )}
-
             {(horarios[key] || []).map((b, idx) => (
               <div key={idx} className="cfg-bloque-row">
-                <input
-                  type="time"
-                  className="cfg-input-time"
-                  value={b.start}
-                  onChange={e => updateBloque(key, idx, "start", e.target.value)}
-                />
+                <input type="time" className="cfg-input-time" value={b.start}
+                  onChange={e => updateBloque(key, idx, "start", e.target.value)} />
                 <span className="cfg-bloque-sep">—</span>
-                <input
-                  type="time"
-                  className="cfg-input-time"
-                  value={b.end}
-                  onChange={e => updateBloque(key, idx, "end", e.target.value)}
-                />
-                <button className="cfg-btn-remove" onClick={() => removeBloque(key, idx)}>
-                  ×
-                </button>
+                <input type="time" className="cfg-input-time" value={b.end}
+                  onChange={e => updateBloque(key, idx, "end", e.target.value)} />
+                <button className="cfg-btn-remove" onClick={() => removeBloque(key, idx)}>×</button>
               </div>
             ))}
           </div>
         ))}
 
+        {/* ── BLOQUEOS ── */}
+        {seccion === "bloqueos" && (
+          <div className="cfg-card">
+            <div className="cfg-field">
+              <p className="cfg-field-label">Bloqueo de agenda</p>
+              <p className="cfg-field-value" style={{ fontSize: 13, color: "#64748b", marginBottom: 14 }}>
+                Bloquea días completos o slots específicos para que no aparezcan disponibles en la agenda.
+              </p>
+              <button className="cfg-btn-primary" onClick={() => setShowBloqueo(true)}>
+                🔒 Gestionar bloqueos
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
+
+      <BloqueoAgendaModal
+        open={showBloqueo}
+        professional={professional}
+        internalUser={session?.usuario}
+        onClose={() => setShowBloqueo(false)}
+        onSuccess={() => setShowBloqueo(false)}
+      />
+
     </div>
   );
 }
