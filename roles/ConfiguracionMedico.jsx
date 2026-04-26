@@ -38,7 +38,7 @@ export default function ConfiguracionMedico() {
   // BLOQUEOS
   const [showBloqueo, setShowBloqueo] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     async function load() {
       try {
         const res = await fetch(`${API_URL}/professionals`);
