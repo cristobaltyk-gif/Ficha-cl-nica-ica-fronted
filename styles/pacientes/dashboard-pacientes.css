@@ -193,3 +193,16 @@
   flex-shrink: 0;
   color: #cbd5e1;
 }
+
+/* Agregar al final de dashboard-atencion.css */
+
+.da-tool-btn--historial {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.da-tool-btn--historial:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
