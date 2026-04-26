@@ -1,45 +1,17 @@
 import "../styles/atencion/dashboard-atencion.css";
 
 export default function DashboardAtencion({
-  rut,
-  nombre,
-  edad,
-  sexo,
-  direccion,
-  telefono,
-  email,
-  prevision,
-  date,
-  time,
-  professional,
-
-  atencion,
-  diagnostico,
-  receta,
-  examenes,
-  indicaciones,
-  ordenKinesiologia,
-  indicacionQuirurgica,
-
-  onChangeAtencion,
-  onChangeDiagnostico,
-  onChangeReceta,
-  onChangeExamenes,
-  onChangeIndicaciones,
-  onChangeOrdenKinesiologia,
-  onChangeIndicacionQuirurgica,
-
-  onDictado,
-  dictando,
-  puedeDictar,
-
-  onOrdenarClinicamente,
-  puedeOrdenar,
-
-  onImprimir,
-  onGuardar,
-  onModificar,
-  onCancelar
+  rut, nombre, edad, sexo, direccion, telefono, email, prevision,
+  date, time, professional,
+  atencion, diagnostico, receta, examenes, indicaciones,
+  ordenKinesiologia, indicacionQuirurgica,
+  onChangeAtencion, onChangeDiagnostico, onChangeReceta,
+  onChangeExamenes, onChangeIndicaciones,
+  onChangeOrdenKinesiologia, onChangeIndicacionQuirurgica,
+  onDictado, dictando, puedeDictar,
+  onOrdenarClinicamente, puedeOrdenar,
+  onAbrirHistorial,
+  onImprimir, onGuardar, onModificar, onCancelar
 }) {
 
   const autoResize = (e) => {
@@ -103,6 +75,25 @@ export default function DashboardAtencion({
         <div className="da-tools">
           <p className="da-tools-label">Herramientas</p>
 
+          {/* HISTORIAL */}
+          <button
+            className="da-tool-btn da-tool-btn--historial"
+            onClick={onAbrirHistorial}
+            title="Ver historial clínico"
+          >
+            <span className="da-tool-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </span>
+            Ver historial
+          </button>
+
+          {/* DICTADO */}
           <button
             className={`da-tool-btn ${dictando ? "da-tool-btn--recording" : ""}`}
             onClick={onDictado}
@@ -119,6 +110,7 @@ export default function DashboardAtencion({
             {dictando && <span className="da-recording-dot"/>}
           </button>
 
+          {/* CLAUDE */}
           <button
             className="da-tool-btn da-tool-btn--claude"
             onClick={onOrdenarClinicamente}
@@ -137,12 +129,8 @@ export default function DashboardAtencion({
 
         {/* ── FOOTER ACTIONS ── */}
         <div className="da-sidebar-actions">
-          <button className="da-btn-cancel" onClick={onCancelar}>
-            Cancelar
-          </button>
-          <button className="da-btn-modify" onClick={onModificar}>
-            Modificar
-          </button>
+          <button className="da-btn-cancel" onClick={onCancelar}>Cancelar</button>
+          <button className="da-btn-modify" onClick={onModificar}>Modificar</button>
           <button className="da-btn-save" onClick={onGuardar}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
@@ -157,94 +145,49 @@ export default function DashboardAtencion({
 
       {/* ── MAIN ── */}
       <main className="da-main">
-
         <div className="da-main-header">
           <h1 className="da-title">Registro clínico</h1>
           <span className="da-badge">Sesión activa</span>
         </div>
 
         <div className="da-grid">
-
           <Section title="Atención" onImprimir={null}>
-            <textarea
-              className="da-textarea"
-              value={atencion}
-              rows={6}
-              onChange={(e) => onChangeAtencion(e.target.value)}
-              onInput={autoResize}
-              placeholder="Anamnesis, motivo de consulta, evolución…"
-            />
+            <textarea className="da-textarea" value={atencion} rows={6}
+              onChange={(e) => onChangeAtencion(e.target.value)} onInput={autoResize}
+              placeholder="Anamnesis, motivo de consulta, evolución…"/>
           </Section>
-
           <Section title="Diagnóstico" onImprimir={null}>
-            <textarea
-              className="da-textarea"
-              value={diagnostico}
-              rows={2}
-              onChange={(e) => onChangeDiagnostico(e.target.value)}
-              onInput={autoResize}
-              placeholder="Diagnóstico médico con lateralidad si corresponde…"
-            />
+            <textarea className="da-textarea" value={diagnostico} rows={2}
+              onChange={(e) => onChangeDiagnostico(e.target.value)} onInput={autoResize}
+              placeholder="Diagnóstico médico con lateralidad si corresponde…"/>
           </Section>
-
           <Section title="Receta" print="receta" onImprimir={onImprimir}>
-            <textarea
-              className="da-textarea"
-              value={receta}
-              rows={4}
-              onChange={(e) => onChangeReceta(e.target.value)}
-              onInput={autoResize}
-              placeholder="Medicamentos, dosis, posología…"
-            />
+            <textarea className="da-textarea" value={receta} rows={4}
+              onChange={(e) => onChangeReceta(e.target.value)} onInput={autoResize}
+              placeholder="Medicamentos, dosis, posología…"/>
           </Section>
-
           <Section title="Exámenes" print="examenes" onImprimir={onImprimir}>
-            <textarea
-              className="da-textarea"
-              value={examenes}
-              rows={2}
-              onChange={(e) => onChangeExamenes(e.target.value)}
-              onInput={autoResize}
-              placeholder="Imágenes o laboratorio con región y lateralidad…"
-            />
+            <textarea className="da-textarea" value={examenes} rows={2}
+              onChange={(e) => onChangeExamenes(e.target.value)} onInput={autoResize}
+              placeholder="Imágenes o laboratorio con región y lateralidad…"/>
           </Section>
-
           <Section title="Indicaciones" print="indicaciones" onImprimir={onImprimir}>
-            <textarea
-              className="da-textarea"
-              value={indicaciones}
-              rows={3}
-              onChange={(e) => onChangeIndicaciones(e.target.value)}
-              onInput={autoResize}
-              placeholder="Indicaciones post-consulta…"
-            />
+            <textarea className="da-textarea" value={indicaciones} rows={3}
+              onChange={(e) => onChangeIndicaciones(e.target.value)} onInput={autoResize}
+              placeholder="Indicaciones post-consulta…"/>
           </Section>
-
           <Section title="Orden kinésica" print="kinesiologia" onImprimir={onImprimir}>
-            <textarea
-              className="da-textarea"
-              value={ordenKinesiologia}
-              rows={3}
-              onChange={(e) => onChangeOrdenKinesiologia(e.target.value)}
-              onInput={autoResize}
-              placeholder="Objetivos, técnicas, frecuencia…"
-            />
+            <textarea className="da-textarea" value={ordenKinesiologia} rows={3}
+              onChange={(e) => onChangeOrdenKinesiologia(e.target.value)} onInput={autoResize}
+              placeholder="Objetivos, técnicas, frecuencia…"/>
           </Section>
-
           <Section title="Indicación quirúrgica" print="quirurgica" onImprimir={onImprimir}>
-            <textarea
-              className="da-textarea"
-              value={indicacionQuirurgica}
-              rows={3}
-              onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)}
-              onInput={autoResize}
-              placeholder="Indicación quirúrgica si aplica…"
-            />
+            <textarea className="da-textarea" value={indicacionQuirurgica} rows={3}
+              onChange={(e) => onChangeIndicacionQuirurgica(e.target.value)} onInput={autoResize}
+              placeholder="Indicación quirúrgica si aplica…"/>
           </Section>
-
         </div>
       </main>
-
     </div>
   );
 }
@@ -255,11 +198,7 @@ function Section({ title, children, print, onImprimir }) {
       <div className="da-panel-header">
         <span className="da-panel-title">{title}</span>
         {print && onImprimir && (
-          <button
-            className="da-print-btn"
-            onClick={() => onImprimir(print)}
-            title={`Imprimir ${title}`}
-          >
+          <button className="da-print-btn" onClick={() => onImprimir(print)} title={`Imprimir ${title}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="6 9 6 2 18 2 18 9"/>
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
@@ -272,4 +211,4 @@ function Section({ title, children, print, onImprimir }) {
       {children}
     </section>
   );
-        }
+                                                }
