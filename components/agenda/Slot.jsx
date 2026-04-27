@@ -39,6 +39,11 @@ export default function Slot({
     sobrecupo, sobrecupo_confirmado, sobrecupo_aceptado
   );
 
+  const paymentIcon = resolvePaymentIcon(
+    status, cajaStatus,
+    gratuito, sobrecupo, sobrecupo_confirmado, sobrecupo_aceptado
+  );
+
   return (
     <div
       className={`slot ${slotClass}`}
@@ -73,8 +78,33 @@ export default function Slot({
           </span>
         )
       )}
+
+      {/* Ícono de pago */}
+      {paymentIcon && (
+        <span className={`slot-payment-icon slot-payment-icon--${paymentIcon.type}`}
+          title={paymentIcon.label}>
+          {paymentIcon.symbol}
+        </span>
+      )}
     </div>
   );
+}
+
+function resolvePaymentIcon(status, cajaStatus, gratuito, sobrecupo, sobrecupoConfirmado, sobrecupoAceptado) {
+  if (status !== "reserved" && status !== "confirmed") return null;
+
+  // Gratuito
+  if (gratuito && !sobrecupo) return { type: "gratuito", symbol: "★", label: "Gratuito" };
+  if (sobrecupo) {
+    const esGratuito = /* sobrecupo_gratuito */ false; // se puede extender
+    if (esGratuito) return { type: "gratuito", symbol: "★", label: "Sobre cupo gratuito" };
+  }
+
+  // Pago
+  if (cajaStatus === "paid")    return { type: "paid",    symbol: "$", label: "Pagado" };
+  if (cajaStatus === "waiting") return { type: "waiting", symbol: "$", label: "Pendiente de pago" };
+
+  return null;
 }
 
 function resolveSlotClass(
@@ -84,28 +114,22 @@ function resolveSlotClass(
 ) {
   if (status === "available") return "slot-available";
   if (status === "blocked")   return "slot-blocked";
-  if (status === "cancelled") return "slot-cancelled";
+  if (status === "cancelled") return "slot-available";
+  if (status === "evaluated") return "slot-evaluated";
 
   if (status === "reserved" || status === "confirmed") {
-
-    // ── Gratuito normal ──
     if (gratuito && !sobrecupo) {
       if (gratuitoAceptado)   return "slot-gratuito-aceptado";
       if (gratuitoConfirmado) return "slot-gratuito-confirmado";
       return "slot-gratuito";
     }
-
-    // ── Sobre cupo ──
     if (sobrecupo) {
       if (sobrecupoAceptado)   return "slot-gratuito-aceptado";
       if (sobrecupoConfirmado) return "slot-gratuito-confirmado";
       return "slot-gratuito";
     }
-
-    // ── Caja ──
     if (cajaStatus === "paid")    return "slot-caja-paid";
     if (cajaStatus === "waiting") return "slot-caja-waiting";
-
     return `slot-${status}`;
   }
 
@@ -119,28 +143,22 @@ function resolveLabel(
 ) {
   if (status === "available") return "Disponible";
   if (status === "blocked")   return "Bloqueada";
-  if (status === "cancelled") return "Cancelada";
+  if (status === "cancelled") return "Disponible";
+  if (status === "evaluated") return "Atendido";
 
   if (status === "reserved" || status === "confirmed") {
-
-    // ── Gratuito normal ──
     if (gratuito && !sobrecupo) {
       if (gratuitoAceptado)   return "Gratuito ✓";
       if (gratuitoConfirmado) return "Gratuito — pendiente médico";
       return "Gratuito — pendiente paciente";
     }
-
-    // ── Sobre cupo ──
     if (sobrecupo) {
       if (sobrecupoAceptado)   return "Sobre cupo ✓";
       if (sobrecupoConfirmado) return "Sobre cupo — pendiente médico";
       return "Sobre cupo — pendiente paciente";
     }
-
-    // ── Caja ──
     if (cajaStatus === "paid")    return "Pagado ✓";
     if (cajaStatus === "waiting") return "En espera";
-
     return status === "confirmed" ? "Confirmada" : "Reservada";
   }
 
