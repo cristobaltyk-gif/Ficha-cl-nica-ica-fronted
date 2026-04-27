@@ -1,18 +1,6 @@
 import "../../styles/agenda/agenda.css";
 import AgendaColumn from "./AgendaColumn";
 
-/*
-Agenda — CEREBRO UI AGENDA DIARIA (PRODUCCIÓN REAL)
-
-✔ SOLO UI
-✔ NO backend
-✔ NO estado local
-✔ NO modal
-✔ NO validaciones
-✔ NO decisiones
-✔ SOLO pinta lo que el Controller entrega
-*/
-
 export default function Agenda({
   loading = false,
   date,
@@ -47,7 +35,7 @@ export default function Agenda({
 
         <div className="agenda-grid">
           {professionals.map((prof) => {
-            const profId = prof.id;
+            const profId   = prof.id;
             const calendar = agendaData?.calendar?.[profId];
 
             return (
@@ -55,6 +43,7 @@ export default function Agenda({
                 key={profId}
                 professional={prof}
                 slots={calendar?.slots || {}}
+                date={date}
                 onSelectSlot={(slot, time) =>
                   onSelectSlot?.({
                     professional: profId,
