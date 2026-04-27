@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import "../styles/configuracion-medico.css";
 import BloqueoAgendaModal from "../components/agenda/BloqueoAgendaModal.jsx";
