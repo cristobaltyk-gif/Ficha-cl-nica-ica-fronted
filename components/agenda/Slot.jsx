@@ -13,6 +13,7 @@ export default function Slot({
   sobrecupo,
   sobrecupo_confirmado,
   sobrecupo_aceptado,
+  sobrecupo_gratuito,
 }) {
   const isClickable =
     status === "available" ||
@@ -58,15 +59,36 @@ export default function Slot({
       </div>
 
       {showPatient ? (
-        <div className="slot-patient">
-          {patient?.nombre && (
-            <span className="slot-patient-name">
-              {patient.nombre} {patient?.apellido_paterno ?? ""}
-            </span>
-          )}
-          {(patient?.rut || rut) && (
-            <span className="slot-patient-rut">{patient?.rut || rut}</span>
-          )}
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+          <div className="slot-patient">
+            {patient?.nombre && (
+              <span className="slot-patient-name">
+                {patient.nombre} {patient?.apellido_paterno ?? ""}
+              </span>
+            )}
+            {(patient?.rut || rut) && (
+              <span className="slot-patient-rut">{patient?.rut || rut}</span>
+            )}
+          </div>
+          {/* Ícono de pago */}
+          <span
+            className={`slot-payment-icon slot-payment-icon--${
+              (gratuito || sobrecupo_gratuito)
+                ? "gratuito"
+                : cajaStatus === "paid"
+                ? "paid"
+                : "waiting"
+            }`}
+            title={
+              (gratuito || sobrecupo_gratuito)
+                ? "Gratuito"
+                : cajaStatus === "paid"
+                ? "Pagado"
+                : "Pendiente de pago"
+            }
+          >
+            {(gratuito || sobrecupo_gratuito) ? "★" : "$"}
+          </span>
         </div>
       ) : (
         isClickable && status === "available" && (
@@ -78,28 +100,22 @@ export default function Slot({
           </span>
         )
       )}
-
-      {/* Ícono de pago */}
-      {paymentIcon && (
-        <span className={`slot-payment-icon slot-payment-icon--${paymentIcon.type}`}
-          title={paymentIcon.label}>
-          {paymentIcon.symbol}
-        </span>
-      )}
     </div>
   );
 }
 
-function resolvePaymentIcon(status, cajaStatus, gratuito, sobrecupo, sobrecupoConfirmado, sobrecupoAceptado) {
+function resolvePaymentIcon(status, cajaStatus, gratuito, sobrecupo, sobrecupoGratuito) {
   if (status !== "reserved" && status !== "confirmed") return null;
 
-  // Gratuito — cualquier tipo
-  if (gratuito) return { type: "gratuito", symbol: "★", label: "Gratuito" };
+  // Gratuito
+  if (gratuito || sobrecupoGratuito)
+    return { type: "gratuito", symbol: "★", label: "Gratuito" };
 
-  // Pago registrado
-  if (cajaStatus === "paid")    return { type: "paid",    symbol: "$", label: "Pagado" };
+  // Pagado
+  if (cajaStatus === "paid")
+    return { type: "paid", symbol: "$", label: "Pagado" };
 
-  // Pendiente — tiene reserva pero no ha pagado
+  // Cualquier reserva sin pago registrado → rojo
   return { type: "waiting", symbol: "$", label: "Pendiente de pago" };
 }
 
@@ -159,4 +175,4 @@ function resolveLabel(
   }
 
   return status;
-  }
+      }
