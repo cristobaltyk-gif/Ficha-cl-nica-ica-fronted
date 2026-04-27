@@ -93,18 +93,14 @@ export default function Slot({
 function resolvePaymentIcon(status, cajaStatus, gratuito, sobrecupo, sobrecupoConfirmado, sobrecupoAceptado) {
   if (status !== "reserved" && status !== "confirmed") return null;
 
-  // Gratuito
-  if (gratuito && !sobrecupo) return { type: "gratuito", symbol: "★", label: "Gratuito" };
-  if (sobrecupo) {
-    const esGratuito = /* sobrecupo_gratuito */ false; // se puede extender
-    if (esGratuito) return { type: "gratuito", symbol: "★", label: "Sobre cupo gratuito" };
-  }
+  // Gratuito — cualquier tipo
+  if (gratuito) return { type: "gratuito", symbol: "★", label: "Gratuito" };
 
-  // Pago
+  // Pago registrado
   if (cajaStatus === "paid")    return { type: "paid",    symbol: "$", label: "Pagado" };
-  if (cajaStatus === "waiting") return { type: "waiting", symbol: "$", label: "Pendiente de pago" };
 
-  return null;
+  // Pendiente — tiene reserva pero no ha pagado
+  return { type: "waiting", symbol: "$", label: "Pendiente de pago" };
 }
 
 function resolveSlotClass(
@@ -163,4 +159,4 @@ function resolveLabel(
   }
 
   return status;
-}
+  }
