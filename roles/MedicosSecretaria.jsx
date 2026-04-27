@@ -25,6 +25,7 @@ export default function MedicosSecretaria() {
   const [horSuccess,    setHorSuccess]    = useState(null);
   const [horError,      setHorError]      = useState(null);
   const [showBloqueo,   setShowBloqueo]   = useState(false);
+  const [bloqueoOk,     setBloqueoOk]     = useState(null); // mensaje confirmación
 
   useEffect(() => {
     async function load() {
@@ -41,10 +42,22 @@ export default function MedicosSecretaria() {
     load();
   }, []);
 
+  // Recargar profesional después de bloqueo para ver blocked_dates actualizado
+  async function recargarDetalle(profId) {
+    try {
+      const res = await fetch(`${API_URL}/professionals`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const prof = data.find(p => p.id === profId);
+      if (prof) setDetalle(prof);
+    } catch {}
+  }
+
   function handleSeleccionar(prof) {
     setDetalle(prof);
     setHorSuccess(null);
     setHorError(null);
+    setBloqueoOk(null);
     const dias = prof.schedule?.days || {};
     const init = {};
     DIAS.forEach(d => {
@@ -93,6 +106,9 @@ export default function MedicosSecretaria() {
     } catch { setHorError(dia); }
   }
 
+  // Fechas bloqueadas del profesional actual
+  const blockedDates = detalle?.blocked_dates || [];
+
   return (
     <div className="dp-root">
 
@@ -100,10 +116,10 @@ export default function MedicosSecretaria() {
         <div className="dp-header-left">
           <h1>{detalle ? detalle.name : "Profesionales"}</h1>
           {!detalle && <p>{professionals.length} profesionales activos</p>}
-          {detalle && <p>{detalle.specialty || detalle.id}</p>}
+          {detalle && <p>{detalle.specialty || ""}</p>}
         </div>
         {detalle && (
-          <button className="dp-btn-secondary" onClick={() => { setDetalle(null); setShowBloqueo(false); }}>
+          <button className="dp-btn-secondary" onClick={() => { setDetalle(null); setShowBloqueo(false); setBloqueoOk(null); }}>
             ← Volver
           </button>
         )}
@@ -142,18 +158,49 @@ export default function MedicosSecretaria() {
         {/* DETALLE */}
         {detalle && (
           <>
-            {/* INFO + botón bloqueo */}
+            {/* INFO */}
             <div className="dp-card">
+
               <div className="dp-field">
-                <p className="dp-field-label">ID</p>
-                <p className="dp-field-value">{detalle.id}</p>
+                <p className="dp-field-label">Nombre</p>
+                <p className="dp-field-value">{detalle.name}</p>
               </div>
+
               {detalle.specialty && (
                 <div className="dp-field">
                   <p className="dp-field-label">Especialidad</p>
                   <p className="dp-field-value">{detalle.specialty}</p>
                 </div>
               )}
+
+              {/* Confirmación bloqueo */}
+              {bloqueoOk && (
+                <div style={{
+                  background:"#f0fdf4", border:"1px solid #86efac", color:"#166534",
+                  padding:"10px 12px", borderRadius:8, fontSize:13, margin:"8px 0"
+                }}>
+                  {bloqueoOk}
+                </div>
+              )}
+
+              {/* Fechas bloqueadas */}
+              {blockedDates.length > 0 && (
+                <div className="dp-field">
+                  <p className="dp-field-label">Días bloqueados</p>
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginTop:4 }}>
+                    {blockedDates.sort().map(d => (
+                      <span key={d} style={{
+                        fontSize:11, fontWeight:700, padding:"3px 8px",
+                        background:"#fef2f2", border:"1px solid #fecaca",
+                        color:"#dc2626", borderRadius:4
+                      }}>
+                        🔒 {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <button
                 className="dp-btn-secondary"
                 style={{ width:"100%", marginTop:8, padding:"10px", fontSize:13, fontWeight:700 }}
@@ -205,9 +252,15 @@ export default function MedicosSecretaria() {
         professional={detalle?.id}
         internalUser={session?.usuario}
         onClose={() => setShowBloqueo(false)}
-        onSuccess={() => setShowBloqueo(false)}
+        onSuccess={() => {
+          setShowBloqueo(false);
+          recargarDetalle(detalle?.id);
+          setBloqueoOk("✅ Agenda actualizada correctamente");
+          setTimeout(() => setBloqueoOk(null), 4000);
+        }}
       />
 
     </div>
   );
-}
+                    }
+                        
