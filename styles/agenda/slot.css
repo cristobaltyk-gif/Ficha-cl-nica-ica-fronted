@@ -7,12 +7,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 13px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid transparent;
+  border-left: 4px solid transparent;
   cursor: default;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  min-height: 52px;
+  min-height: 58px;
   font-family: 'DM Sans', sans-serif;
 }
 
@@ -44,6 +45,7 @@
   align-items: flex-end;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .slot-patient-name {
@@ -77,6 +79,22 @@
 
 .slot:hover .slot-cta { opacity: 1; }
 
+/* Ícono de pago */
+.slot-payment-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+}
+.slot-payment-icon--waiting  { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
+.slot-payment-icon--paid     { background: #f0fdf4; color: #16a34a; border: 1.5px solid #86efac; }
+.slot-payment-icon--gratuito { background: #f5f3ff; color: #7c3aed; border: 1.5px solid #c4b5fd; }
+
 /* ============================================================
    ESTADOS CLÍNICOS
    ============================================================ */
@@ -84,6 +102,7 @@
 .slot-available {
   background: #f0fdf4;
   border-color: #bbf7d0;
+  border-left-color: #16a34a;
   color: #166534;
   cursor: pointer;
 }
@@ -96,6 +115,7 @@
 .slot-reserved {
   background: #fff7ed;
   border-color: #fed7aa;
+  border-left-color: #f97316;
   color: #9a3412;
   cursor: pointer;
 }
@@ -107,6 +127,7 @@
 .slot-confirmed {
   background: #eff6ff;
   border-color: #bfdbfe;
+  border-left-color: #3b82f6;
   color: #1e40af;
   cursor: pointer;
 }
@@ -115,96 +136,98 @@
   box-shadow: 0 4px 12px rgba(30,64,175,0.1);
 }
 
+.slot-evaluated {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  border-left-color: #1e40af;
+  color: #fff;
+  cursor: pointer;
+}
+.slot-evaluated .slot-label { opacity: 0.7; }
+.slot-evaluated:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(30,58,138,0.3);
+  background: #1e40af;
+}
+
 .slot-blocked {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #94a3b8;
-  opacity: 0.55;
-  cursor: not-allowed;
+  display: none;
 }
 
 .slot-cancelled {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #cbd5e1;
-  opacity: 0.45;
-  cursor: not-allowed;
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  border-left-color: #16a34a;
+  color: #166534;
+  cursor: pointer;
 }
 
 /* ============================================================
-   ESTADOS CAJA
+   ESTADOS CAJA — solo borde izquierdo, color en ícono
    ============================================================ */
 
 .slot-caja-waiting {
-  background: #fffbeb;
-  border-color: #fcd34d;
-  border-width: 2px;
-  color: #78350f;
+  background: #fff7ed;
+  border-color: #fed7aa;
+  border-left-color: #f97316;
+  color: #9a3412;
   cursor: pointer;
 }
-.slot-caja-waiting .slot-label { opacity: 1; }
 .slot-caja-waiting:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(245,158,11,0.2);
+  box-shadow: 0 4px 14px rgba(245,158,11,0.15);
 }
 
 .slot-caja-paid {
   background: #eff6ff;
-  border-color: #2563eb;
-  border-width: 2px;
-  color: #1e3a8a;
+  border-color: #bfdbfe;
+  border-left-color: #3b82f6;
+  color: #1e40af;
   cursor: pointer;
 }
-.slot-caja-paid .slot-label { opacity: 1; }
 .slot-caja-paid:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37,99,235,0.2);
+  box-shadow: 0 4px 14px rgba(37,99,235,0.15);
 }
 
 /* ============================================================
-   ESTADOS GRATUITO — púrpura
+   ESTADOS GRATUITO — borde izquierdo morado, color en ícono
    ============================================================ */
 
-/* Esperando confirmación del paciente */
 .slot-gratuito {
-  background: #faf5ff;
-  border-color: #c084fc;
-  border-width: 2px;
-  color: #6b21a8;
+  background: #fff7ed;
+  border-color: #fed7aa;
+  border-left-color: #7c3aed;
+  color: #9a3412;
   cursor: pointer;
 }
-.slot-gratuito .slot-label { opacity: 1; }
 .slot-gratuito:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(192,132,252,0.25);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.15);
 }
 
-/* Paciente confirmó — pendiente médico */
 .slot-gratuito-confirmado {
-  background: #f5f3ff;
-  border-color: #7c3aed;
-  border-width: 2px;
-  color: #4c1d95;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  border-left-color: #7c3aed;
+  color: #1e40af;
   cursor: pointer;
 }
-.slot-gratuito-confirmado .slot-label { opacity: 1; }
 .slot-gratuito-confirmado:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(124,58,237,0.25);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.15);
 }
 
-/* Médico aceptó */
 .slot-gratuito-aceptado {
-  background: #ede9fe;
-  border-color: #5b21b6;
-  border-width: 2px;
-  color: #3b0764;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  border-left-color: #5b21b6;
+  color: #1e40af;
   cursor: pointer;
 }
-.slot-gratuito-aceptado .slot-label { opacity: 1; }
 .slot-gratuito-aceptado:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(91,33,182,0.25);
+  box-shadow: 0 4px 14px rgba(91,33,182,0.2);
 }
 
 /* ── FOCUS ── */
@@ -215,6 +238,6 @@
 
 /* ── MOBILE ── */
 @media (max-width: 600px) {
-  .slot { min-height: 56px; }
+  .slot { min-height: 60px; }
   .slot-patient-name { max-width: 110px; }
 }
