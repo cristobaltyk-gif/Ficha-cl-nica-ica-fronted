@@ -1,11 +1,28 @@
 import Slot from "./Slot";
 
+const CHILE_TZ = "America/Santiago";
+
 export default function AgendaColumn({
   professional,
   slots = {},
-  onSelectSlot
+  onSelectSlot,
+  date,
 }) {
-  const times = Object.keys(slots).sort();
+  // Hora actual en Chile
+  const nowChile = new Date().toLocaleTimeString("en-US", {
+    timeZone: CHILE_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  // Si la fecha es hoy, filtrar slots pasados
+  const todayChile = new Date().toLocaleDateString("en-CA", { timeZone: CHILE_TZ });
+  const isToday    = date === todayChile;
+
+  const times = Object.keys(slots)
+    .filter(t => !isToday || t >= nowChile)
+    .sort();
 
   if (times.length === 0) return null;
 
@@ -52,6 +69,7 @@ export default function AgendaColumn({
               sobrecupo={slot.sobrecupo}
               sobrecupo_confirmado={slot.sobrecupo_confirmado}
               sobrecupo_aceptado={slot.sobrecupo_aceptado}
+              sobrecupo_gratuito={slot.sobrecupo_gratuito}
               onSelect={() => onSelectSlot?.(slot, time)}
             />
           );
