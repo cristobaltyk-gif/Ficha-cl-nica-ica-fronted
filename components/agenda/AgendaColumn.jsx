@@ -8,20 +8,28 @@ export default function AgendaColumn({
   onSelectSlot,
   date,
 }) {
-  // Hora actual en Chile
-  const nowChile = new Date().toLocaleTimeString("en-US", {
-    timeZone: CHILE_TZ,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  // Si la fecha es hoy, filtrar slots pasados
+  // Hora actual en Chile solo si es hoy
   const todayChile = new Date().toLocaleDateString("en-CA", { timeZone: CHILE_TZ });
   const isToday    = date === todayChile;
 
+  const nowChile = isToday
+    ? new Date().toLocaleTimeString("en-US", {
+        timeZone: CHILE_TZ,
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+    : null;
+
   const times = Object.keys(slots)
-    .filter(t => !isToday || t >= nowChile)
+    .filter(t => {
+      const s = slots[t];
+      // Siempre mostrar reservados y confirmados
+      if (s.status === "reserved" || s.status === "confirmed") return true;
+      // Para disponibles: ocultar si es hoy y ya pasó la hora
+      if (isToday && nowChile && t < nowChile) return false;
+      return true;
+    })
     .sort();
 
   if (times.length === 0) return null;
