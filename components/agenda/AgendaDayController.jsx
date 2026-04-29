@@ -128,8 +128,6 @@ export default function AgendaDayController({
 
         const cajaSlot = cajaMap[time] || null;
 
-        // Si el slot tiene pagado:true en agenda (ej: pago Flow directo),
-        // usar "paid" como cajaStatus aunque no esté en caja todavía
         const cajaStatus = cajaSlot?.arrival_status
           ?? (slot.pagado ? "paid" : null);
 
@@ -141,14 +139,13 @@ export default function AgendaDayController({
           professional,
           professionalName:     professionalsMap[professional]?.name || professional,
           cajaStatus,
+          hora_llegada:         cajaSlot?.hora_llegada ?? null,
           tipoCaja:             cajaSlot?.tipo_atencion     ?? null,
           pagado:               cajaSlot?.pagado            ?? slot.pagado ?? false,
           monto:                cajaSlot?.monto             ?? null,
-          // campos gratuito
           gratuito:             slot.gratuito              ?? false,
           gratuito_confirmado:  slot.gratuito_confirmado   ?? false,
           gratuito_aceptado:    slot.gratuito_aceptado     ?? false,
-          // campos sobrecupo
           sobrecupo:            slot.sobrecupo             ?? false,
           sobrecupo_gratuito:   slot.sobrecupo_gratuito    ?? false,
           sobrecupo_confirmado: slot.sobrecupo_confirmado  ?? false,
@@ -263,5 +260,4 @@ export default function AgendaDayController({
       />
     </>
   );
-  }
-      
+}
