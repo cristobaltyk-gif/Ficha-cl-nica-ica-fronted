@@ -76,7 +76,10 @@ export default function PagoModal({ open, slot, onClose, onSuccess, usuarioActua
       try {
         const res = await fetch(`${API_URL}/api/control/gratuito`, {
           method:  "POST",
-          headers: { "Content-Type": "application/json", "X-Internal-User": session?.usuario },
+          headers: {
+            "Content-Type":    "application/json",
+            "X-Internal-User": session?.usuario || ""
+          },
           body: JSON.stringify({ date, time, professional }),
         });
         const data = await res.json();
@@ -95,7 +98,10 @@ export default function PagoModal({ open, slot, onClose, onSuccess, usuarioActua
     try {
       const res = await fetch(`${API_URL}/api/caja/pago`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type":    "application/json",
+          "X-Internal-User": session?.usuario || ""
+        },
         body: JSON.stringify({
           date, professional, time,
           rut:              rut || patient?.rut,
@@ -103,7 +109,7 @@ export default function PagoModal({ open, slot, onClose, onSuccess, usuarioActua
           metodo_pago:      esGratuito ? null : metodo,
           numero_operacion: necesitaOp ? numOp.trim() : null,
           banco_origen:     necesitaOp && banco.trim() ? banco.trim() : null,
-          pagado_por:       usuarioActual || null,
+          pagado_por:       usuarioActual || session?.usuario || null,
         }),
       });
       if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Error al registrar pago"); }
@@ -246,4 +252,3 @@ const s = {
   btnCancel:     { flex:1, padding:"10px", border:"1px solid #e2e8f0", borderRadius:9, background:"#f8fafc", color:"#64748b", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"'DM Sans',system-ui,sans-serif" },
   btnPagar:      { flex:2, padding:"10px", border:"none", borderRadius:9, background:"#0f172a", color:"#fff", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"'DM Sans',system-ui,sans-serif" },
 };
-                          
