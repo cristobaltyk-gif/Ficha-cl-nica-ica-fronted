@@ -33,13 +33,11 @@ export default function SecretariaCerebro() {
 
   useEffect(() => {
     let cancelled = false;
-
     async function loadProfessionals() {
       setLoading(true);
       try {
         let region = null;
         const usuario = session?.usuario;
-
         if (usuario) {
           try {
             const sedeRes = await fetch(`${API_URL}/geo/sedes/${usuario}`);
@@ -51,24 +49,18 @@ export default function SecretariaCerebro() {
             }
           } catch {}
         }
-
         const params = new URLSearchParams({ public: "true" });
         if (region) params.set("region", region);
-
         const res = await fetch(`${API_URL}/professionals?${params.toString()}`);
         if (!res.ok) throw new Error("professionals");
         const data = await res.json();
-
-        if (!cancelled) {
-          setProfessionals(data.map(p => ({ id: p.id, name: p.name })));
-        }
+        if (!cancelled) setProfessionals(data.map(p => ({ id: p.id, name: p.name })));
       } catch {
         if (!cancelled) setProfessionals([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
     loadProfessionals();
     return () => { cancelled = true; };
   }, [session]);
@@ -164,12 +156,37 @@ export default function SecretariaCerebro() {
     setModalSlot(null);
   }
 
+  async function handleConfirmarLlegada() {
+    if (!modalSlot) return;
+    const horaLlegada = new Date().toLocaleTimeString("es-CL", {
+      timeZone: "America/Santiago",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    });
+    try {
+      await fetch(`${API_URL}/api/caja/slot`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-User": session?.usuario || ""
+        },
+        body: JSON.stringify({
+          date:           modalSlot.date,
+          time:           modalSlot.time,
+          professional:   modalSlot.professional,
+          arrival_status: "waiting",
+          hora_llegada:   horaLlegada
+        })
+      });
+    } catch {}
+    setPagoOpen(true);
+  }
+
   return (
     <>
       <Routes>
-
         <Route index element={<HomeSecretaria />} />
-
         <Route
           path="agenda"
           element={
@@ -183,7 +200,6 @@ export default function SecretariaCerebro() {
             )
           }
         />
-
         <Route
           path="agenda/dia"
           element={
@@ -200,16 +216,10 @@ export default function SecretariaCerebro() {
             )
           }
         />
-
-        <Route
-          path="caja"
-          element={<CajaResumenController professionals={professionals} />}
-        />
-
+        <Route path="caja"          element={<CajaResumenController professionals={professionals} />} />
         <Route path="pacientes"     element={<PacientesSecretaria />} />
         <Route path="medicos"       element={<MedicosSecretaria />} />
         <Route path="administracion" element={<ConfiguracionSecretaria />} />
-
       </Routes>
 
       <PatientForm
@@ -227,7 +237,7 @@ export default function SecretariaCerebro() {
         onCancel={handleCancelRequest}
         onReschedule={closeModal}
         onRefresh={() => setAgendaReloadKey(k => k + 1)}
-        onConfirmarLlegada={() => setPagoOpen(true)}
+        onConfirmarLlegada={handleConfirmarLlegada}
       />
 
       <PagoModal
