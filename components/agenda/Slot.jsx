@@ -7,6 +7,7 @@ export default function Slot({
   rut,
   onSelect,
   cajaStatus,
+  horaLlegada,
   gratuito,
   gratuito_confirmado,
   gratuito_aceptado,
@@ -37,12 +38,8 @@ export default function Slot({
   const slotLabel = resolveLabel(
     status, cajaStatus,
     gratuito, gratuito_confirmado, gratuito_aceptado,
-    sobrecupo, sobrecupo_confirmado, sobrecupo_aceptado
-  );
-
-  const paymentIcon = resolvePaymentIcon(
-    status, cajaStatus,
-    gratuito, sobrecupo, sobrecupo_confirmado, sobrecupo_aceptado
+    sobrecupo, sobrecupo_confirmado, sobrecupo_aceptado,
+    horaLlegada
   );
 
   return (
@@ -70,7 +67,6 @@ export default function Slot({
               <span className="slot-patient-rut">{patient?.rut || rut}</span>
             )}
           </div>
-          {/* Ícono de pago */}
           <span
             className={`slot-payment-icon slot-payment-icon--${
               (gratuito || sobrecupo_gratuito)
@@ -102,21 +98,6 @@ export default function Slot({
       )}
     </div>
   );
-}
-
-function resolvePaymentIcon(status, cajaStatus, gratuito, sobrecupo, sobrecupoGratuito) {
-  if (status !== "reserved" && status !== "confirmed") return null;
-
-  // Gratuito
-  if (gratuito || sobrecupoGratuito)
-    return { type: "gratuito", symbol: "★", label: "Gratuito" };
-
-  // Pagado
-  if (cajaStatus === "paid")
-    return { type: "paid", symbol: "$", label: "Pagado" };
-
-  // Cualquier reserva sin pago registrado → rojo
-  return { type: "waiting", symbol: "$", label: "Pendiente de pago" };
 }
 
 function resolveSlotClass(
@@ -151,7 +132,8 @@ function resolveSlotClass(
 function resolveLabel(
   status, cajaStatus,
   gratuito, gratuitoConfirmado, gratuitoAceptado,
-  sobrecupo, sobrecupoConfirmado, sobrecupoAceptado
+  sobrecupo, sobrecupoConfirmado, sobrecupoAceptado,
+  horaLlegada
 ) {
   if (status === "available") return "Disponible";
   if (status === "blocked")   return "Bloqueada";
@@ -170,9 +152,10 @@ function resolveLabel(
       return "Sobre cupo — pendiente paciente";
     }
     if (cajaStatus === "paid")    return "Pagado ✓";
-    if (cajaStatus === "waiting") return "En espera";
+    if (cajaStatus === "waiting") return horaLlegada ? `Llegó ${horaLlegada}` : "En espera";
     return status === "confirmed" ? "Confirmada" : "Reservada";
   }
 
   return status;
-      }
+  }
+        
