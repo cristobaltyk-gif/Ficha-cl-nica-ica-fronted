@@ -98,8 +98,9 @@ export default function AgendaDayController({
     try {
       const [agendaRes, cajaRes] = await Promise.all([
         fetch(`${API_URL}/agenda?date=${encodeURIComponent(date)}`),
-        fetch(`${API_URL}/api/caja/day?date=${encodeURIComponent(date)}&professional=${encodeURIComponent(professional)}`)
-          .catch(() => null)
+        fetch(`${API_URL}/api/caja/day?date=${encodeURIComponent(date)}&professional=${encodeURIComponent(professional)}`, {
+          headers: { "X-Internal-User": internalUser || "" }
+        }).catch(() => null)
       ]);
 
       if (!agendaRes.ok) throw new Error("agenda");
