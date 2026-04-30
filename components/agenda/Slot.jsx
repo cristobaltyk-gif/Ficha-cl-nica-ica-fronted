@@ -151,11 +151,10 @@ function resolveLabel(
       if (sobrecupoConfirmado) return "Sobre cupo — pendiente médico";
       return "Sobre cupo — pendiente paciente";
     }
-    if (cajaStatus === "paid")    return "Pagado ✓";
+    if (cajaStatus === "paid")    return horaLlegada ? `Pagado ✓ · Llegó ${horaLlegada}` : "Pagado ✓";
     if (cajaStatus === "waiting") return horaLlegada ? `Llegó ${horaLlegada}` : "En espera";
     return status === "confirmed" ? "Confirmada" : "Reservada";
   }
 
   return status;
-  }
-        
+}
