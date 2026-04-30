@@ -81,19 +81,20 @@
 
 /* Ícono de pago */
 .slot-payment-icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
 }
-.slot-payment-icon--waiting  { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
-.slot-payment-icon--paid     { background: #f0fdf4; color: #16a34a; border: 1.5px solid #86efac; }
-.slot-payment-icon--gratuito { background: #f5f3ff; color: #7c3aed; border: 1.5px solid #c4b5fd; }
+.slot-payment-icon--waiting  { background: #fef2f2; color: #dc2626; border: 2px solid #fecaca; }
+.slot-payment-icon--paid     { background: #f0fdf4; color: #16a34a; border: 2px solid #86efac; }
+.slot-payment-icon--gratuito { background: #f5f3ff; color: #7c3aed; border: 2px solid #c4b5fd; }
 
 /* ============================================================
    ESTADOS CLÍNICOS
@@ -150,9 +151,7 @@
   background: #1e40af;
 }
 
-.slot-blocked {
-  display: none;
-}
+.slot-blocked { display: none; }
 
 .slot-cancelled {
   background: #f0fdf4;
@@ -163,7 +162,7 @@
 }
 
 /* ============================================================
-   ESTADOS CAJA — solo borde izquierdo, color en ícono
+   ESTADOS CAJA
    ============================================================ */
 
 .slot-caja-waiting {
@@ -172,6 +171,11 @@
   border-left-color: #f97316;
   color: #9a3412;
   cursor: pointer;
+}
+.slot-caja-waiting .slot-label {
+  opacity: 1;
+  font-weight: 700;
+  font-size: 11px;
 }
 .slot-caja-waiting:hover {
   transform: translateY(-1px);
@@ -185,13 +189,18 @@
   color: #1e40af;
   cursor: pointer;
 }
+.slot-caja-paid .slot-label {
+  opacity: 1;
+  font-weight: 700;
+  font-size: 11px;
+}
 .slot-caja-paid:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(37,99,235,0.15);
 }
 
 /* ============================================================
-   ESTADOS GRATUITO — borde izquierdo morado, color en ícono
+   ESTADOS GRATUITO
    ============================================================ */
 
 .slot-gratuito {
@@ -201,6 +210,7 @@
   color: #9a3412;
   cursor: pointer;
 }
+.slot-gratuito .slot-label { opacity: 1; }
 .slot-gratuito:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(124,58,237,0.15);
@@ -213,6 +223,7 @@
   color: #1e40af;
   cursor: pointer;
 }
+.slot-gratuito-confirmado .slot-label { opacity: 1; }
 .slot-gratuito-confirmado:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(124,58,237,0.15);
@@ -225,6 +236,7 @@
   color: #1e40af;
   cursor: pointer;
 }
+.slot-gratuito-aceptado .slot-label { opacity: 1; }
 .slot-gratuito-aceptado:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(91,33,182,0.2);
