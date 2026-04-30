@@ -81,16 +81,17 @@
 
 /* Ícono de pago */
 .slot-payment-icon {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   letter-spacing: -0.5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 .slot-payment-icon--waiting  { background: #fef2f2; color: #dc2626; border: 2px solid #fecaca; }
 .slot-payment-icon--paid     { background: #f0fdf4; color: #16a34a; border: 2px solid #86efac; }
@@ -174,8 +175,10 @@
 }
 .slot-caja-waiting .slot-label {
   opacity: 1;
+  font-size: 12px;
   font-weight: 700;
-  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .slot-caja-waiting:hover {
   transform: translateY(-1px);
@@ -191,8 +194,10 @@
 }
 .slot-caja-paid .slot-label {
   opacity: 1;
+  font-size: 12px;
   font-weight: 700;
-  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .slot-caja-paid:hover {
   transform: translateY(-1px);
