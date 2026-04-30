@@ -22,7 +22,8 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
   const [isEditing,    setIsEditing]    = useState(false);
   const [loading,      setLoading]      = useState(false);
   const [error,        setError]        = useState(null);
-  const [consentimiento, setConsentimiento] = useState(false);
+  const [consentimiento,      setConsentimiento]      = useState(false);
+  const [yaConsentido,        setYaConsentido]        = useState(false);
 
   const [previsionTipo, setPrevisionTipo] = useState("");
   const [isapre,        setIsapre]        = useState("");
@@ -86,6 +87,8 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
           sexo: data.sexo ?? "",
         });
         parsePrevisionFromData(data.prevision);
+        setYaConsentido(data.consentimiento_datos === true);
+        setConsentimiento(data.consentimiento_datos === true);
         setMode("edit"); setIsEditing(false);
         return;
       }
@@ -95,6 +98,8 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
           fechaNacimiento: "", direccion: "", telefono: "", email: "", sexo: "",
         });
         parsePrevisionFromData("");
+        setYaConsentido(false);
+        setConsentimiento(false);
         setMode("create"); setIsEditing(true);
         return;
       }
@@ -104,13 +109,31 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
   }
 
   function handleConfirmExisting() {
-    onConfirm?.({
+    if (!yaConsentido && !consentimiento) {
+      setError("El paciente debe aceptar el consentimiento de datos para continuar");
+      return;
+    }
+    const base = {
       rut: form.rut, nombre: form.nombre,
       apellido_paterno: form.apellidoPaterno, apellido_materno: form.apellidoMaterno,
       fecha_nacimiento: form.fechaNacimiento, direccion: form.direccion,
       telefono: form.telefono, email: form.email,
       prevision: getPrevisionFinal(), sexo: form.sexo,
-    });
+    };
+    // Guardar consentimiento si es la primera vez
+    if (!yaConsentido && consentimiento) {
+      fetch(`${API_URL}/api/fichas/admin/${form.rut}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "X-Internal-User": internalUser },
+        body: JSON.stringify({
+          ...base,
+          consentimiento_datos: true,
+          consentimiento_fecha: new Date().toISOString().slice(0, 10),
+          consentimiento_registrado_por: internalUser,
+        })
+      }).catch(() => {});
+    }
+    onConfirm?.(base);
   }
 
   async function handleSubmit() {
@@ -242,8 +265,8 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
             <input placeholder="Email" value={form.email} readOnly={ro}
               onChange={e => update("email", e.target.value)} />
 
-            {/* CONSENTIMIENTO — solo al crear */}
-            {mode === "create" && (
+            {/* CONSENTIMIENTO — al crear o si no tiene consentimiento */}
+            {(mode === "create" || (mode === "edit" && !yaConsentido)) && (
               <div onClick={() => setConsentimiento(c => !c)} style={{
                 display:"flex", alignItems:"flex-start", gap:10,
                 padding:"12px 14px", marginTop:8,
@@ -289,5 +312,4 @@ export default function PatientForm({ open = true, onConfirm, onCreate, onCancel
       </div>
     </div>
   );
-            }
-                                                                              
+                }
