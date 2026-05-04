@@ -266,7 +266,7 @@ export default function EquipoAdmin() {
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
-              }
+            }
 
       await loadMiembros();
 
@@ -310,13 +310,12 @@ export default function EquipoAdmin() {
 
   async function handleEliminar(m) {
     try {
-      if (m._tipo === "profesional") {
-        await fetch(`${API_URL}/professionals/${m.id}`, { method: "DELETE" });
-        await fetch(`${API_URL}/geo/sedes/${m.id}`, { method: "DELETE" }).catch(() => {});
-      } else {
-        await fetch(`${API_URL}/admin/users/${m.username}`, { method: "DELETE" });
-        await fetch(`${API_URL}/geo/sedes/${m.username}`, { method: "DELETE" }).catch(() => {});
-      }
+      const id = m.id || m.username;
+      const username = m.username || m.id;
+      // Borrar de ambas tablas siempre — el backend ignora si no existe
+      await fetch(`${API_URL}/professionals/${id}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/admin/users/${username}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/geo/sedes/${id}`, { method: "DELETE" }).catch(() => {});
       setConfirmBorrar(null);
       setVista("lista");
       await loadMiembros();
@@ -550,5 +549,5 @@ export default function EquipoAdmin() {
 
     </div>
   );
-                    }
-                                                                                                             
+                  }
+        
