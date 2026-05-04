@@ -3,6 +3,7 @@ import "../styles/admin/equipo-admin.css";
 import HorariosAdmin from "./HorariosAdmin.jsx";
 import ValoresProfesionalForm from "./ValoresProfesionalForm.jsx";
 import ComisionProfesionalForm from "./ComisionProfesionalForm.jsx";
+import SuscripcionForm from "./SuscripcionForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -21,6 +22,10 @@ function getTabsForMiembro(m) {
     base.push({ key: "horarios",   label: "Horarios" });
     base.push({ key: "valores",    label: "Valores" });
     base.push({ key: "comisiones", label: "Comisión" });
+  }
+  // Pestaña suscripción para externos
+  if (m.role?.scope === "externo") {
+    base.push({ key: "suscripcion", label: "Suscripción" });
   }
   return base;
 }
@@ -182,6 +187,9 @@ export default function EquipoAdmin() {
   const [saving,        setSaving]        = useState(false);
   const [confirmBorrar, setConfirmBorrar] = useState(null);
 
+  // Datos del nuevo miembro recién creado para pre-llenar suscripción
+  const [nuevoExterno,  setNuevoExterno]  = useState(null);
+
   const [form, setForm] = useState({
     rol: "medico", nombre: "", apellido: "",
     rut: "", especialidad: "", username: "", password: "",
@@ -226,6 +234,7 @@ export default function EquipoAdmin() {
   function handleNuevo() {
     setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", username: "", password: "", scope: "ica" });
     setError(null); setSuccess(null);
+    setNuevoExterno(null);
     setVista("nuevo");
   }
 
@@ -248,7 +257,7 @@ export default function EquipoAdmin() {
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       } else {
-                const res = await fetch(`${API_URL}/admin/users`, {
+        const res = await fetch(`${API_URL}/admin/users`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: form.username, password: form.password,
@@ -257,9 +266,22 @@ export default function EquipoAdmin() {
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
-      }
-      setSuccess("✓ Creado correctamente");
+              }
+
       await loadMiembros();
+
+      // Si es externo → ir a paso 2: suscripción
+      if (form.scope === "externo") {
+        setNuevoExterno({
+          centroId: form.username,
+          nombre:   `${form.nombre} ${form.apellido}`.trim(),
+          rol:      form.rol,
+        });
+        setVista("suscripcion");
+        return;
+      }
+
+      setSuccess("✓ Creado correctamente");
       setTimeout(() => { setSuccess(null); setVista("lista"); }, 1500);
     } catch (e) {
       setError(e.message);
@@ -314,8 +336,9 @@ export default function EquipoAdmin() {
       <div className="ea-header">
         <div>
           <h1>
-            {vista === "nuevo"   ? "Nuevo miembro" :
-             vista === "detalle" ? seleccionado?.name || seleccionado?.username :
+            {vista === "nuevo"        ? "Nuevo miembro" :
+             vista === "suscripcion"  ? "Configurar suscripción" :
+             vista === "detalle"      ? seleccionado?.name || seleccionado?.username :
              "Equipo"}
           </h1>
           {vista === "lista" && <p>{miembros.length} miembros registrados</p>}
@@ -415,10 +438,18 @@ export default function EquipoAdmin() {
                 </div>
               </div>
             )}
-            {tabDetalle === "sedes"      && sedesPid && <SedesForm pid={sedesPid} />}
-            {tabDetalle === "horarios"   && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
-            {tabDetalle === "valores"    && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
-            {tabDetalle === "comisiones" && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "sedes"       && sedesPid && <SedesForm pid={sedesPid} />}
+            {tabDetalle === "horarios"    && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
+            {tabDetalle === "valores"     && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "comisiones"  && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "suscripcion" && (
+              <SuscripcionForm
+                centroId={seleccionado.id || seleccionado.username}
+                nombre={seleccionado.name || seleccionado.username}
+                rol={seleccionado.role?.name}
+                onDone={() => {}}
+              />
+            )}
           </div>
         </div>
       )}
@@ -472,9 +503,32 @@ export default function EquipoAdmin() {
             <p className="ea-field-label">Contraseña inicial *</p>
             <input className="ea-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
           </div>
+          {form.scope === "externo" && (
+            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10,
+              padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#1e40af" }}>
+              🔔 Al crear este miembro externo, configurarás su suscripción en el paso siguiente.
+            </div>
+          )}
           <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
-            {saving ? "Guardando…" : "Crear miembro"}
+            {saving ? "Guardando…" : form.scope === "externo" ? "Crear y configurar suscripción →" : "Crear miembro"}
           </button>
+        </div>
+      )}
+
+      {/* PASO 2 — SUSCRIPCIÓN EXTERNO */}
+      {vista === "suscripcion" && nuevoExterno && (
+        <div className="ea-card" style={{ padding: 16 }}>
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: "#475569" }}>
+            ✅ <strong>{nuevoExterno.nombre}</strong> creado correctamente.
+            Ahora configura su suscripción mensual:
+          </p>
+          <SuscripcionForm
+            centroId={nuevoExterno.centroId}
+            nombre={nuevoExterno.nombre}
+            rol={nuevoExterno.rol}
+            onDone={() => setVista("lista")}
+            onSkip={() => setVista("lista")}
+          />
         </div>
       )}
 
@@ -496,5 +550,5 @@ export default function EquipoAdmin() {
 
     </div>
   );
-                }
-          
+                    }
+                                                                                                             
