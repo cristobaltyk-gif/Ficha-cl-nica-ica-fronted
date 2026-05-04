@@ -8,6 +8,7 @@ import AgendaSlotModalMedico from "../components/agenda/AgendaSlotModalMedico";
 import AtencionPsicologiaCerebro from "./AtencionPsicologiaCerebro.jsx";
 import BusquedaCerebroPaciente from "./BusquedaCerebroPaciente.jsx";
 import ConfiguracionMedico from "./ConfiguracionMedico.jsx";
+import HomePsicologo from "../pages/home/HomePsicologo.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -75,16 +76,7 @@ export default function PsicologoCerebro() {
   return (
     <>
       <Routes>
-        <Route index element={
-          <div className="agenda-placeholder" style={{ textAlign:"center", padding:"40px 20px" }}>
-            <p style={{ fontSize:18, fontWeight:700, color:"#0f172a", marginBottom:8 }}>
-              Bienvenido/a
-            </p>
-            <p style={{ color:"#64748b", fontSize:14 }}>
-              Usa el menú para acceder a tu agenda o pacientes.
-            </p>
-          </div>
-        } />
+        <Route index element={<HomePsicologo />} />
 
         <Route
           path="agenda"
@@ -149,4 +141,4 @@ export default function PsicologoCerebro() {
       />
     </>
   );
-}
+            }
