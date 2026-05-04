@@ -6,6 +6,7 @@ import ContableController from "../components/caja/ContableController";
 import CajaResumenController from "../components/caja/CajaResumenController";
 import EquipoAdmin from "./EquipoAdmin.jsx";
 import RRHHController from "../components/rrhh/RRHHController.jsx";
+import SuscripcionesAdmin from "./SuscripcionesAdmin.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -51,6 +52,11 @@ export default function AdminCerebro() {
       <Route
         path="rrhh"
         element={<RRHHController />}
+      />
+
+      <Route
+        path="suscripciones"
+        element={<SuscripcionesAdmin />}
       />
 
       <Route
