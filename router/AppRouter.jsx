@@ -8,10 +8,11 @@ import Login from "../pages/Login";
 
 import AppLayout from "./AppLayout";
 
-import SecretariaCerebro from "../roles/SecretariaCerebro.jsx";
-import MedicoCerebro from "../roles/MedicoCerebro.jsx";
-import KineCerebro from "../roles/KineCerebro.jsx";
-import AdminCerebro from "../roles/AdminCerebro.jsx";
+import SecretariaCerebro      from "../roles/SecretariaCerebro.jsx";
+import MedicoCerebro          from "../roles/MedicoCerebro.jsx";
+import KineCerebro            from "../roles/KineCerebro.jsx";
+import AdminCerebro           from "../roles/AdminCerebro.jsx";
+import PsicologoCerebro       from "../roles/PsicologoCerebro.jsx";
 
 function resolveHome(session, role) {
   if (session && role?.entry) return role.entry;
@@ -53,12 +54,12 @@ export default function AppRouter() {
             </AuthGuard>
           }
         >
-          <Route path="/atencion" element={<AtencionClinicaCerebro />} />
-
-          <Route path="/secretaria/*" element={<SecretariaCerebro />} />
-          <Route path="/medico/*"     element={<MedicoCerebro />} />
-          <Route path="/kine/*"       element={<KineCerebro />} />
-          <Route path="/admin/*"      element={<AdminCerebro />} />
+          <Route path="/atencion"      element={<AtencionClinicaCerebro />} />
+          <Route path="/secretaria/*"  element={<SecretariaCerebro />} />
+          <Route path="/medico/*"      element={<MedicoCerebro />} />
+          <Route path="/kine/*"        element={<KineCerebro />} />
+          <Route path="/admin/*"       element={<AdminCerebro />} />
+          <Route path="/psicologo/*"   element={<PsicologoCerebro />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
