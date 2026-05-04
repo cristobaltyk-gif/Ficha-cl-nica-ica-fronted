@@ -6,13 +6,13 @@ import ComisionProfesionalForm from "./ComisionProfesionalForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const ROLES_PROFESIONAL = ["medico", "kine"];
+const ROLES_PROFESIONAL = ["medico", "kine", "psicologo"];
 const ROLES_USUARIO     = ["secretaria", "admin"];
 const TODOS_ROLES       = [...ROLES_PROFESIONAL, ...ROLES_USUARIO];
 
 const ESPECIALIDADES = [
   "Cadera", "Rodilla", "Hombro", "Columna", "Tobillo",
-  "Kinesiología", "Traumatología", "Cirugía Articular"
+  "Kinesiología", "Traumatología", "Cirugía Articular", "Psicología"
 ];
 
 function getTabsForMiembro(m) {
@@ -171,7 +171,6 @@ function SedesForm({ pid }) {
   );
 }
 
-// ── Componente principal ─────────────────────────────────────
 export default function EquipoAdmin() {
   const [vista,         setVista]         = useState("lista");
   const [miembros,      setMiembros]      = useState([]);
@@ -186,6 +185,7 @@ export default function EquipoAdmin() {
   const [form, setForm] = useState({
     rol: "medico", nombre: "", apellido: "",
     rut: "", especialidad: "", username: "", password: "",
+    scope: "ica",
   });
 
   useEffect(() => { loadMiembros(); }, []);
@@ -224,7 +224,7 @@ export default function EquipoAdmin() {
   }
 
   function handleNuevo() {
-    setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", username: "", password: "" });
+    setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", username: "", password: "", scope: "ica" });
     setError(null); setSuccess(null);
     setVista("nuevo");
   }
@@ -242,16 +242,18 @@ export default function EquipoAdmin() {
           body: JSON.stringify({
             id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
             rut: form.rut, specialty: form.especialidad,
-            active: true, username: form.username, password: form.password, role: form.rol,
+            active: true, username: form.username, password: form.password,
+            role: form.rol, scope: form.scope,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       } else {
-        const res = await fetch(`${API_URL}/admin/users`, {
+                const res = await fetch(`${API_URL}/admin/users`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: form.username, password: form.password,
-            nombre: `${form.nombre} ${form.apellido}`.trim(), role: form.rol, active: true,
+            nombre: `${form.nombre} ${form.apellido}`.trim(),
+            role: form.rol, scope: form.scope, active: true,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
@@ -341,8 +343,8 @@ export default function EquipoAdmin() {
                 </p>
                 <p className="ea-member-meta">
                   {m._tipo === "profesional"
-                    ? `${m.specialty || ""} · ${m.role?.name || "médico"}`
-                    : m.role?.name || "usuario"}
+                    ? `${m.specialty || ""} · ${m.role?.name || "médico"} · ${m.role?.scope || "ica"}`
+                    : `${m.role?.name || "usuario"} · ${m.role?.scope || "ica"}`}
                 </p>
               </div>
               <div className="ea-member-actions" onClick={e => e.stopPropagation()}>
@@ -370,7 +372,6 @@ export default function EquipoAdmin() {
             ))}
           </div>
           <div className="ea-card" style={{ padding: 16 }}>
-
             {tabDetalle === "info" && (
               <div>
                 <div className="ea-field">
@@ -392,6 +393,12 @@ export default function EquipoAdmin() {
                   </div>
                 )}
                 <div className="ea-field">
+                  <p className="ea-field-label">Scope</p>
+                  <p style={{ margin: 0, fontSize: 14, color: "#475569" }}>
+                    {seleccionado.role?.scope === "externo" ? "Externo" : "ICA"}
+                  </p>
+                </div>
+                <div className="ea-field">
                   <p className="ea-field-label">Estado</p>
                   <p style={{ margin: 0, fontSize: 14, color: seleccionado.active === false ? "#dc2626" : "#16a34a" }}>
                     {seleccionado.active === false ? "Inactivo" : "Activo"}
@@ -408,12 +415,10 @@ export default function EquipoAdmin() {
                 </div>
               </div>
             )}
-
             {tabDetalle === "sedes"      && sedesPid && <SedesForm pid={sedesPid} />}
             {tabDetalle === "horarios"   && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
             {tabDetalle === "valores"    && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
             {tabDetalle === "comisiones" && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
-
           </div>
         </div>
       )}
@@ -427,6 +432,13 @@ export default function EquipoAdmin() {
             <p className="ea-field-label">Rol</p>
             <select className="ea-input" value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value }))}>
               {TODOS_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+            </select>
+          </div>
+          <div className="ea-field">
+            <p className="ea-field-label">Scope</p>
+            <select className="ea-input" value={form.scope} onChange={e => setForm(p => ({ ...p, scope: e.target.value }))}>
+              <option value="ica">ICA — acceso a todos los pacientes</option>
+              <option value="externo">Externo — solo sus propios pacientes</option>
             </select>
           </div>
           <div className="ea-field">
@@ -475,8 +487,8 @@ export default function EquipoAdmin() {
               Esta acción no se puede deshacer. Se eliminará <strong>{confirmBorrar.name || confirmBorrar.username}</strong> del sistema.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="ea-btn-danger"    style={{ flex: 1 }} onClick={() => handleEliminar(confirmBorrar)}>Sí, eliminar</button>
               <button className="ea-btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmBorrar(null)}>Cancelar</button>
+              <button className="ea-btn-danger"    style={{ flex: 1 }} onClick={() => handleEliminar(confirmBorrar)}>Sí, eliminar</button>
             </div>
           </div>
         </div>
@@ -484,4 +496,5 @@ export default function EquipoAdmin() {
 
     </div>
   );
-}
+                }
+          
