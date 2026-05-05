@@ -4,7 +4,6 @@ import "../styles/admin/equipo-admin.css";
 import HorariosAdmin from "./HorariosAdmin.jsx";
 import ValoresProfesionalForm from "./ValoresProfesionalForm.jsx";
 import ComisionProfesionalForm from "./ComisionProfesionalForm.jsx";
-import SuscripcionForm from "./SuscripcionForm.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -24,10 +23,7 @@ function getTabsForMiembro(m) {
     base.push({ key: "valores",    label: "Valores" });
     base.push({ key: "comisiones", label: "Comisión" });
   }
-  // Pestaña suscripción para externos
-  if (m.role?.scope === "externo") {
-    base.push({ key: "suscripcion", label: "Suscripción" });
-  }
+
   return base;
 }
 
@@ -189,7 +185,6 @@ export default function EquipoAdmin() {
   const [confirmBorrar, setConfirmBorrar] = useState(null);
 
   // Datos del nuevo miembro recién creado para pre-llenar suscripción
-  const [nuevoExterno,  setNuevoExterno]  = useState(null);
   const [capacidad,     setCapacidad]     = useState({});
 
   const { session } = useAuth();
@@ -273,7 +268,7 @@ export default function EquipoAdmin() {
         const res = await fetch(`${API_URL}/professionals`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
+                  id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
             rut: form.rut, specialty: form.especialidad,
             active: true, username: form.username, password: form.password,
             role: form.rol, scope: form.scope,
@@ -294,16 +289,7 @@ export default function EquipoAdmin() {
 
       await loadMiembros();
 
-      // Si es externo → ir a paso 2: suscripción
-      if (form.scope === "externo") {
-        setNuevoExterno({
-          centroId: form.username,
-          nombre:   `${form.nombre} ${form.apellido}`.trim(),
-          rol:      form.rol,
-        });
-        setVista("suscripcion");
-        return;
-      }
+
 
       setSuccess("✓ Creado correctamente");
       setTimeout(() => { setSuccess(null); setVista("lista"); }, 1500);
@@ -465,14 +451,7 @@ export default function EquipoAdmin() {
             {tabDetalle === "horarios"    && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
             {tabDetalle === "valores"     && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
             {tabDetalle === "comisiones"  && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
-            {tabDetalle === "suscripcion" && (
-              <SuscripcionForm
-                centroId={seleccionado.id || seleccionado.username}
-                nombre={seleccionado.name || seleccionado.username}
-                rol={seleccionado.role?.name}
-                onDone={() => {}}
-              />
-            )}
+
           </div>
         </div>
       )}
@@ -505,7 +484,7 @@ export default function EquipoAdmin() {
               </p>
             )}
           </div>
-          {/* Scope fijo ICA — el admin de centro no puede crear externos */}
+
           <div className="ea-field">
             <p className="ea-field-label">Nombre *</p>
             <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
@@ -537,34 +516,14 @@ export default function EquipoAdmin() {
             <p className="ea-field-label">Contraseña inicial *</p>
             <input className="ea-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
           </div>
-          {form.scope === "externo" && (
-            <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10,
-              padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#1e40af" }}>
-              🔔 Al crear este miembro externo, configurarás su suscripción en el paso siguiente.
-            </div>
-          )}
+
           <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
-            {saving ? "Guardando…" : form.scope === "externo" ? "Crear y configurar suscripción →" : "Crear miembro"}
+            {saving ? "Guardando…" : "Crear miembro"}
           </button>
         </div>
       )}
 
-      {/* PASO 2 — SUSCRIPCIÓN EXTERNO */}
-      {vista === "suscripcion" && nuevoExterno && (
-        <div className="ea-card" style={{ padding: 16 }}>
-          <p style={{ margin: "0 0 16px", fontSize: 13, color: "#475569" }}>
-            ✅ <strong>{nuevoExterno.nombre}</strong> creado correctamente.
-            Ahora configura su suscripción mensual:
-          </p>
-          <SuscripcionForm
-            centroId={nuevoExterno.centroId}
-            nombre={nuevoExterno.nombre}
-            rol={nuevoExterno.rol}
-            onDone={() => setVista("lista")}
-            onSkip={() => setVista("lista")}
-          />
-        </div>
-      )}
+
 
       {/* MODAL CONFIRMAR BORRAR */}
       {confirmBorrar && (
@@ -586,3 +545,4 @@ export default function EquipoAdmin() {
   );
                   }
 
+                
