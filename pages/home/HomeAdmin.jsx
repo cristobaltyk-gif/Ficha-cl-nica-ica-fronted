@@ -2,13 +2,12 @@ import "../../styles/home/home-secretaria.css";
 import { useNavigate } from "react-router-dom";
 
 const MODULOS = [
-  { id: "contable",       icon: "📊", title: "Contable",        desc: "Resumen mensual, ingresos, exportar PDF" },
-  { id: "caja",           icon: "💰", title: "Caja del día",    desc: "Pagos del día por profesional" },
-  { id: "equipo",         icon: "👥", title: "Equipo",          desc: "Profesionales, sedes, horarios y valores" },
-  { id: "rrhh",           icon: "🧾", title: "Remuneraciones",  desc: "Sueldos, leyes sociales y liquidaciones" },
-  { id: "suscripciones",  icon: "🔔", title: "Suscripciones",   desc: "Centros, planes, cobros y descuentos" },
-  { id: "informes",       icon: "📋", title: "Informes",        desc: "Informes clínicos del centro" },
-  { id: "configuracion",  icon: "⚙️", title: "Configuración",   desc: "Parámetros del sistema" },
+  { id: "contable",      icon: "📊", title: "Contable",       desc: "Resumen mensual, ingresos, exportar PDF" },
+  { id: "caja",          icon: "💰", title: "Caja del día",   desc: "Pagos del día por profesional" },
+  { id: "equipo",        icon: "👥", title: "Equipo",         desc: "Profesionales, sedes, horarios y valores" },
+  { id: "rrhh",          icon: "🧾", title: "Remuneraciones", desc: "Sueldos, leyes sociales y liquidaciones" },
+  { id: "informes",      icon: "📋", title: "Informes",       desc: "Informes clínicos del centro" },
+  { id: "configuracion", icon: "⚙️", title: "Configuración",  desc: "Parámetros del sistema" },
 ];
 
 export default function HomeAdmin() {
