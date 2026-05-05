@@ -1,10 +1,8 @@
 /**
  * roles/SuscripcionForm.jsx
- * Subcomponente reutilizable para crear/ver suscripción de un miembro externo.
- * Usado dentro de EquipoAdmin como paso 2 al crear externo,
- * y como pestaña "Suscripción" en el detalle.
  */
 import { useState, useEffect } from "react";
+import { useAuth } from "../auth/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,10 +27,12 @@ function estadoBadge(estado) {
 }
 
 export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip }) {
+  const { session } = useAuth();
+  const internalUser = session?.usuario;
+
   const [suscripcion, setSuscripcion] = useState(null);
   const [loadingSus,  setLoadingSus]  = useState(true);
 
-  // Form nueva suscripción
   const [plan,       setPlan]       = useState("externo_base");
   const [email,      setEmail]      = useState("");
   const [metodo,     setMetodo]     = useState("manual");
@@ -40,7 +40,6 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
   const [descMotivo, setDescMotivo] = useState("");
   const [descHasta,  setDescHasta]  = useState("");
 
-  // Form descuento existente
   const [editDesc,   setEditDesc]   = useState(false);
   const [dPct,       setDPct]       = useState(0);
   const [dMotivo,    setDMotivo]    = useState("");
@@ -52,14 +51,18 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
   const [success,  setSuccess]  = useState(null);
   const [linkPago, setLinkPago] = useState(null);
 
-  useEffect(() => {
-    cargarSuscripcion();
-  }, [centroId]);
+  const authHeaders = {
+    "Content-Type": "application/json",
+    "X-Internal-User": internalUser,
+  };
+
+  useEffect(() => { cargarSuscripcion(); }, [centroId]);
 
   async function cargarSuscripcion() {
     setLoadingSus(true);
     try {
-      const res = await fetch(`${API_URL}/api/suscripciones/${centroId}`);
+      const res = await fetch(`${API_URL}/api/suscripciones/${centroId}`,
+        { headers: { "X-Internal-User": internalUser } });
       if (res.ok) setSuscripcion(await res.json());
       else setSuscripcion(null);
     } catch { setSuscripcion(null); }
@@ -80,7 +83,7 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
       if (!email) { setError("Email obligatorio"); return; }
       const res = await fetch(`${API_URL}/api/suscripciones`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({
           centro_id: centroId, nombre_centro: nombre, plan,
           roles: {}, email_contacto: email,
@@ -99,7 +102,10 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
   async function handleCobrar() {
     setCobrando(true); setError(null); setSuccess(null);
     try {
-      const res = await fetch(`${API_URL}/api/suscripciones/${centroId}/cobrar`, { method: "POST" });
+      const res = await fetch(`${API_URL}/api/suscripciones/${centroId}/cobrar`, {
+        method: "POST",
+        headers: { "X-Internal-User": internalUser }
+      });
       const data = await res.json();
       if (data.link_pago) {
         setLinkPago(data.link_pago);
@@ -116,7 +122,7 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
     try {
       const res = await fetch(`${API_URL}/api/suscripciones/${centroId}/descuento`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders,
         body: JSON.stringify({ descuento_pct: dPct, descuento_motivo: dMotivo, descuento_hasta: dHasta || null })
       });
       if (!res.ok) throw new Error((await res.json()).detail || "Error");
@@ -127,15 +133,11 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
     finally { setSaving(false); }
   }
 
-  // Mostrar link de pago
   if (linkPago) return (
     <div>
-      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 12,
-        padding: 16, marginBottom: 16 }}>
+      <div style={{ background: "#f0fdf4", border: "1px solid #86efac", borderRadius: 12, padding: 16, marginBottom: 16 }}>
         <p style={{ margin: "0 0 8px", fontWeight: 700, color: "#166534" }}>✅ Link de pago generado</p>
-        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#475569" }}>
-          Comparte este link con {nombre}:
-        </p>
+        <p style={{ margin: "0 0 12px", fontSize: 12, color: "#475569" }}>Comparte este link con {nombre}:</p>
         <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8,
           padding: "8px 10px", fontSize: 11, wordBreak: "break-all", marginBottom: 12 }}>
           {linkPago}
@@ -145,17 +147,12 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
           Copiar link
         </button>
       </div>
-      {onDone && (
-        <button className="ea-btn-secondary" style={{ width: "100%" }} onClick={onDone}>
-          Finalizar
-        </button>
-      )}
+      {onDone && <button className="ea-btn-secondary" style={{ width: "100%" }} onClick={onDone}>Finalizar</button>}
     </div>
   );
 
   if (loadingSus) return <p className="ea-empty">Cargando suscripción…</p>;
 
-  // Suscripción existente
   if (suscripcion) {
     const diasRestantes = suscripcion.fecha_vencimiento
       ? Math.ceil((new Date(suscripcion.fecha_vencimiento) - new Date()) / 86400000)
@@ -166,7 +163,6 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
         {error   && <div className="ea-error">{error}</div>}
         {success && <div className="ea-success">{success}</div>}
 
-        {/* Estado */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{suscripcion.plan}</span>
           {estadoBadge(suscripcion.estado)}
@@ -177,9 +173,7 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
           <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1e3a8a" }}>
             {fmt(suscripcion.precio_final)}/mes
             {suscripcion.descuento_pct > 0 && (
-              <span style={{ fontSize: 11, color: "#16a34a", marginLeft: 6 }}>
-                ({suscripcion.descuento_pct}% dto)
-              </span>
+              <span style={{ fontSize: 11, color: "#16a34a", marginLeft: 6 }}>({suscripcion.descuento_pct}% dto)</span>
             )}
           </p>
         </div>
@@ -204,7 +198,6 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
 
         <hr className="ea-divider" />
 
-        {/* Editar descuento */}
         {editDesc ? (
           <div>
             <div className="ea-field">
@@ -225,8 +218,7 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
                 onClick={handleGuardarDescuento} disabled={saving}>
                 {saving ? "Guardando…" : "Guardar descuento"}
               </button>
-              <button className="ea-btn-secondary" style={{ fontSize: 12 }}
-                onClick={() => setEditDesc(false)}>Cancelar</button>
+              <button className="ea-btn-secondary" style={{ fontSize: 12 }} onClick={() => setEditDesc(false)}>Cancelar</button>
             </div>
           </div>
         ) : (
@@ -250,7 +242,6 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
     );
   }
 
-  // Sin suscripción — formulario de creación
   return (
     <div>
       {error && <div className="ea-error">{error}</div>}
@@ -296,7 +287,6 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
         </select>
       </div>
 
-      {/* Resumen precio */}
       <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 10,
         padding: "10px 14px", marginBottom: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
@@ -320,13 +310,8 @@ export default function SuscripcionForm({ centroId, nombre, rol, onDone, onSkip 
         <button className="ea-btn-primary" style={{ flex: 1 }} onClick={handleCrear} disabled={saving}>
           {saving ? "Creando…" : "Activar suscripción"}
         </button>
-        {onSkip && (
-          <button className="ea-btn-secondary" onClick={onSkip}>
-            Omitir
-          </button>
-        )}
+        {onSkip && <button className="ea-btn-secondary" onClick={onSkip}>Omitir</button>}
       </div>
     </div>
   );
-  }
-        
+}
