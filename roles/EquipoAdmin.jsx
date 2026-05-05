@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../auth/AuthContext";
 import "../styles/admin/equipo-admin.css";
 import HorariosAdmin from "./HorariosAdmin.jsx";
 import ValoresProfesionalForm from "./ValoresProfesionalForm.jsx";
@@ -189,6 +190,10 @@ export default function EquipoAdmin() {
 
   // Datos del nuevo miembro recién creado para pre-llenar suscripción
   const [nuevoExterno,  setNuevoExterno]  = useState(null);
+  const [capacidad,     setCapacidad]     = useState({});
+
+  const { session } = useAuth();
+  const internalUser = session?.usuario;
 
   const [form, setForm] = useState({
     rol: "medico", nombre: "", apellido: "",
@@ -196,7 +201,20 @@ export default function EquipoAdmin() {
     scope: "ica",
   });
 
-  useEffect(() => { loadMiembros(); }, []);
+  useEffect(() => { loadMiembros(); cargarCapacidad(); }, []);
+
+  async function cargarCapacidad() {
+    try {
+      const res = await fetch(`${API_URL}/api/superadmin/centros/ica/capacidad`);
+      if (res.ok) setCapacidad((await res.json()).capacidad || {});
+    } catch {}
+  }
+
+  function puedeAgregar(rol) {
+    const cap = capacidad[rol];
+    if (!cap) return true; // sin restricción
+    return cap.disponible > 0;
+  }
 
   async function loadMiembros() {
     setLoading(true);
@@ -244,6 +262,12 @@ export default function EquipoAdmin() {
       const esProfesional = ROLES_PROFESIONAL.includes(form.rol);
       if (!form.nombre || !form.username || !form.password) {
         setError("Nombre, usuario y contraseña son obligatorios"); return;
+      }
+      // Verificar límite de suscripción
+      if (!puedeAgregar(form.rol)) {
+        const cap = capacidad[form.rol];
+                setError(`Límite alcanzado para ${form.rol}: ${cap.actual}/${cap.maximo} usuarios`);
+        setSaving(false); return;
       }
       if (esProfesional) {
         const res = await fetch(`${API_URL}/professionals`, {
@@ -461,16 +485,27 @@ export default function EquipoAdmin() {
           <div className="ea-field">
             <p className="ea-field-label">Rol</p>
             <select className="ea-input" value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value }))}>
-              {TODOS_ROLES.map(r => <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+              {TODOS_ROLES.map(r => {
+                const cap = capacidad[r];
+                const agotado = cap && cap.disponible <= 0;
+                return (
+                  <option key={r} value={r} disabled={agotado}>
+                    {r.charAt(0).toUpperCase() + r.slice(1)}
+                    {cap ? ` (${cap.actual}/${cap.maximo})` : ""}
+                    {agotado ? " — sin cupos" : ""}
+                  </option>
+                );
+              })}
             </select>
+            {capacidad[form.rol] && (
+              <p style={{ fontSize: 11, color: capacidad[form.rol].disponible <= 0 ? "#dc2626" : "#16a34a", marginTop: 4 }}>
+                {capacidad[form.rol].disponible > 0
+                  ? `${capacidad[form.rol].disponible} cupo(s) disponible(s)`
+                  : "Sin cupos disponibles para este rol"}
+              </p>
+            )}
           </div>
-          <div className="ea-field">
-            <p className="ea-field-label">Scope</p>
-            <select className="ea-input" value={form.scope} onChange={e => setForm(p => ({ ...p, scope: e.target.value }))}>
-              <option value="ica">ICA — acceso a todos los pacientes</option>
-              <option value="externo">Externo — solo sus propios pacientes</option>
-            </select>
-          </div>
+          {/* Scope fijo ICA — el admin de centro no puede crear externos */}
           <div className="ea-field">
             <p className="ea-field-label">Nombre *</p>
             <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
@@ -550,4 +585,4 @@ export default function EquipoAdmin() {
     </div>
   );
                   }
-        
+
