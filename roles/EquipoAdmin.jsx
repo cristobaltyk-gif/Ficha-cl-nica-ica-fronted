@@ -23,7 +23,6 @@ function getTabsForMiembro(m) {
     base.push({ key: "valores",    label: "Valores" });
     base.push({ key: "comisiones", label: "Comisión" });
   }
-
   return base;
 }
 
@@ -183,8 +182,6 @@ export default function EquipoAdmin() {
   const [success,       setSuccess]       = useState(null);
   const [saving,        setSaving]        = useState(false);
   const [confirmBorrar, setConfirmBorrar] = useState(null);
-
-  // Datos del nuevo miembro recién creado para pre-llenar suscripción
   const [capacidad,     setCapacidad]     = useState({});
 
   const { session } = useAuth();
@@ -198,16 +195,19 @@ export default function EquipoAdmin() {
 
   useEffect(() => { loadMiembros(); cargarCapacidad(); }, []);
 
+  // ── FIX: agrega X-Internal-User para que el endpoint lo acepte ──
   async function cargarCapacidad() {
     try {
-      const res = await fetch(`${API_URL}/api/superadmin/centros/ica/capacidad`);
+      const res = await fetch(`${API_URL}/api/superadmin/centros/ica/capacidad`, {
+        headers: { "X-Internal-User": internalUser }
+      });
       if (res.ok) setCapacidad((await res.json()).capacidad || {});
     } catch {}
   }
 
   function puedeAgregar(rol) {
     const cap = capacidad[rol];
-    if (!cap) return true; // sin restricción
+    if (!cap) return true;
     return cap.disponible > 0;
   }
 
@@ -247,28 +247,24 @@ export default function EquipoAdmin() {
   function handleNuevo() {
     setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", username: "", password: "", scope: "ica" });
     setError(null); setSuccess(null);
-    setNuevoExterno(null);
     setVista("nuevo");
-  }
-
-  async function handleGuardar() {
+  }async function handleGuardar() {
     setError(null); setSuccess(null); setSaving(true);
     try {
       const esProfesional = ROLES_PROFESIONAL.includes(form.rol);
       if (!form.nombre || !form.username || !form.password) {
         setError("Nombre, usuario y contraseña son obligatorios"); return;
       }
-      // Verificar límite de suscripción
       if (!puedeAgregar(form.rol)) {
         const cap = capacidad[form.rol];
-                setError(`Límite alcanzado para ${form.rol}: ${cap.actual}/${cap.maximo} usuarios`);
+        setError(`Límite alcanzado para ${form.rol}: ${cap.actual}/${cap.maximo} usuarios`);
         setSaving(false); return;
       }
       if (esProfesional) {
         const res = await fetch(`${API_URL}/professionals`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-                  id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
+            id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
             rut: form.rut, specialty: form.especialidad,
             active: true, username: form.username, password: form.password,
             role: form.rol, scope: form.scope,
@@ -285,12 +281,9 @@ export default function EquipoAdmin() {
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
-            }
-
+      }
       await loadMiembros();
-
-
-
+      await cargarCapacidad();
       setSuccess("✓ Creado correctamente");
       setTimeout(() => { setSuccess(null); setVista("lista"); }, 1500);
     } catch (e) {
@@ -320,15 +313,15 @@ export default function EquipoAdmin() {
 
   async function handleEliminar(m) {
     try {
-      const id = m.id || m.username;
+      const id       = m.id || m.username;
       const username = m.username || m.id;
-      // Borrar de ambas tablas siempre — el backend ignora si no existe
-      await fetch(`${API_URL}/professionals/${id}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/professionals/${id}`,    { method: "DELETE" }).catch(() => {});
       await fetch(`${API_URL}/admin/users/${username}`, { method: "DELETE" }).catch(() => {});
-      await fetch(`${API_URL}/geo/sedes/${id}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/geo/sedes/${id}`,         { method: "DELETE" }).catch(() => {});
       setConfirmBorrar(null);
       setVista("lista");
       await loadMiembros();
+      await cargarCapacidad();
     } catch {}
   }
 
@@ -341,13 +334,11 @@ export default function EquipoAdmin() {
 
   return (
     <div className="ea-root">
-
       <div className="ea-header">
         <div>
           <h1>
-            {vista === "nuevo"        ? "Nuevo miembro" :
-             vista === "suscripcion"  ? "Configurar suscripción" :
-             vista === "detalle"      ? seleccionado?.name || seleccionado?.username :
+            {vista === "nuevo"   ? "Nuevo miembro" :
+             vista === "detalle" ? seleccionado?.name || seleccionado?.username :
              "Equipo"}
           </h1>
           {vista === "lista" && <p>{miembros.length} miembros registrados</p>}
@@ -394,11 +385,8 @@ export default function EquipoAdmin() {
         <div>
           <div className="ea-tabs">
             {tabs.map(t => (
-              <button
-                key={t.key}
-                className={`ea-tab ${tabDetalle === t.key ? "active" : ""}`}
-                onClick={() => setTabDetalle(t.key)}
-              >
+              <button key={t.key} className={`ea-tab ${tabDetalle === t.key ? "active" : ""}`}
+                onClick={() => setTabDetalle(t.key)}>
                 {t.label}
               </button>
             ))}
@@ -438,7 +426,8 @@ export default function EquipoAdmin() {
                 </div>
                 <hr className="ea-divider" />
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button className="ea-btn-secondary" onClick={e => handleToggleActivo(seleccionado, { ...e, stopPropagation: () => {} })}>
+                  <button className="ea-btn-secondary"
+                    onClick={e => handleToggleActivo(seleccionado, { ...e, stopPropagation: () => {} })}>
                     {seleccionado.active === false ? "Activar" : "Desactivar"}
                   </button>
                   <button className="ea-btn-danger" onClick={() => setConfirmBorrar(seleccionado)}>
@@ -447,11 +436,10 @@ export default function EquipoAdmin() {
                 </div>
               </div>
             )}
-            {tabDetalle === "sedes"       && sedesPid && <SedesForm pid={sedesPid} />}
-            {tabDetalle === "horarios"    && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
-            {tabDetalle === "valores"     && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
-            {tabDetalle === "comisiones"  && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
-
+            {tabDetalle === "sedes"      && sedesPid && <SedesForm pid={sedesPid} />}
+            {tabDetalle === "horarios"   && seleccionado._tipo === "profesional" && <HorariosAdmin professional={seleccionado} />}
+            {tabDetalle === "valores"    && seleccionado._tipo === "profesional" && <ValoresProfesionalForm professional={seleccionado} />}
+            {tabDetalle === "comisiones" && seleccionado._tipo === "profesional" && <ComisionProfesionalForm professional={seleccionado} />}
           </div>
         </div>
       )}
@@ -465,7 +453,7 @@ export default function EquipoAdmin() {
             <p className="ea-field-label">Rol</p>
             <select className="ea-input" value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value }))}>
               {TODOS_ROLES.map(r => {
-                const cap = capacidad[r];
+                const cap     = capacidad[r];
                 const agotado = cap && cap.disponible <= 0;
                 return (
                   <option key={r} value={r} disabled={agotado}>
@@ -484,7 +472,6 @@ export default function EquipoAdmin() {
               </p>
             )}
           </div>
-
           <div className="ea-field">
             <p className="ea-field-label">Nombre *</p>
             <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
@@ -493,41 +480,41 @@ export default function EquipoAdmin() {
             <p className="ea-field-label">Apellido</p>
             <input className="ea-input" value={form.apellido} onChange={e => setForm(p => ({ ...p, apellido: e.target.value }))} />
           </div>
-          {esProf && (
-            <>
-              <div className="ea-field">
-                <p className="ea-field-label">RUT</p>
-                <input className="ea-input" value={form.rut} placeholder="12345678-9" onChange={e => setForm(p => ({ ...p, rut: e.target.value }))} />
-              </div>
-              <div className="ea-field">
-                <p className="ea-field-label">Especialidad</p>
-                <select className="ea-input" value={form.especialidad} onChange={e => setForm(p => ({ ...p, especialidad: e.target.value }))}>
-                  <option value="">Seleccionar…</option>
-                  {ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}
-                </select>
-              </div>
-            </>
-          )}
+          {esProf && (<>
+            <div className="ea-field">
+              <p className="ea-field-label">RUT</p>
+              <input className="ea-input" value={form.rut} placeholder="12345678-9"
+                onChange={e => setForm(p => ({ ...p, rut: e.target.value }))} />
+            </div>
+            <div className="ea-field">
+              <p className="ea-field-label">Especialidad</p>
+              <select className="ea-input" value={form.especialidad}
+                onChange={e => setForm(p => ({ ...p, especialidad: e.target.value }))}>
+                <option value="">Seleccionar…</option>
+                {ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+            </div>
+          </>)}
           <div className="ea-field">
             <p className="ea-field-label">Usuario *</p>
-            <input className="ea-input" value={form.username} placeholder="ej: jperez" onChange={e => setForm(p => ({ ...p, username: e.target.value }))} />
+            <input className="ea-input" value={form.username} placeholder="ej: jperez"
+              onChange={e => setForm(p => ({ ...p, username: e.target.value }))} />
           </div>
           <div className="ea-field">
             <p className="ea-field-label">Contraseña inicial *</p>
-            <input className="ea-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+            <input className="ea-input" type="password" value={form.password}
+              onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
           </div>
-
           <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
             {saving ? "Guardando…" : "Crear miembro"}
           </button>
         </div>
       )}
 
-
-
       {/* MODAL CONFIRMAR BORRAR */}
       {confirmBorrar && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex",
+          alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%" }}>
             <p style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>¿Eliminar miembro?</p>
             <p style={{ margin: "0 0 20px", fontSize: 13, color: "#64748b" }}>
@@ -540,9 +527,6 @@ export default function EquipoAdmin() {
           </div>
         </div>
       )}
-
     </div>
   );
                   }
-
-                
