@@ -11,10 +11,20 @@ const ROLES_PROFESIONAL = ["medico", "kine", "psicologo"];
 const ROLES_USUARIO     = ["secretaria", "admin"];
 const TODOS_ROLES       = [...ROLES_PROFESIONAL, ...ROLES_USUARIO];
 
-const ESPECIALIDADES = [
-  "Cadera", "Rodilla", "Hombro", "Columna", "Tobillo",
-  "Kinesiología", "Traumatología", "Cirugía Articular", "Psicología"
-];
+const ESPECIALIDADES_POR_ROL = {
+  medico:    ["Cadera", "Rodilla", "Hombro", "Columna", "Tobillo", "Cirugía Articular", "Traumatología"],
+  kine:      ["Kinesiología"],
+  psicologo: ["Psicología"],
+};
+
+function generarUsername(nombre, apellido) {
+  return `${nombre.toLowerCase().replace(/\s+/g, "").slice(0, 6)}${apellido.toLowerCase().replace(/\s+/g, "").slice(0, 4)}`.replace(/[^a-z0-9]/g, "") || "usuario";
+}
+
+function generarPassword() {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  return Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
 
 function getTabsForMiembro(m) {
   const base = [{ key: "info", label: "Información" }, { key: "sedes", label: "Sedes" }];
@@ -45,11 +55,8 @@ function SedesForm({ pid }) {
         const sedes = sedeRes.ok ? await sedeRes.json() : { regiones: {} };
         setRegiones(regs);
         setSedesActuales(sedes.regiones || {});
-      } catch {
-        setError("Error cargando datos");
-      } finally {
-        setLoading(false);
-      }
+      } catch { setError("Error cargando datos"); }
+      finally  { setLoading(false); }
     }
     load();
   }, [pid]);
@@ -83,9 +90,7 @@ function SedesForm({ pid }) {
   function removeCentro(regionId, idx) {
     setSedesActuales(prev => {
       const lista = (prev[regionId] || []).filter((_, i) => i !== idx);
-      if (lista.length === 0) {
-        const next = { ...prev }; delete next[regionId]; return next;
-      }
+      if (lista.length === 0) { const next = { ...prev }; delete next[regionId]; return next; }
       return { ...prev, [regionId]: lista };
     });
   }
@@ -94,18 +99,14 @@ function SedesForm({ pid }) {
     setSaving(true); setError(null); setSuccess(null);
     try {
       const res = await fetch(`${API_URL}/geo/sedes/${pid}`, {
-        method:  "PUT",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ regiones: sedesActuales }),
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ regiones: sedesActuales }),
       });
       if (!res.ok) throw new Error("Error al guardar");
       setSuccess("✓ Sedes guardadas correctamente");
       setTimeout(() => setSuccess(null), 2000);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (e) { setError(e.message); }
+    finally { setSaving(false); }
   }
 
   if (loading) return <p className="ea-empty">Cargando…</p>;
@@ -123,15 +124,8 @@ function SedesForm({ pid }) {
         return (
           <div key={r.id} className="ea-region-block">
             <div className="ea-region-header" onClick={() => toggleRegion(r.id)}>
-              <h4>
-                <span style={{ marginRight: 8 }}>{activa ? "✓" : "○"}</span>
-                {r.nombre}
-              </h4>
-              {activa && (
-                <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>
-                  {centros.length} centro{centros.length !== 1 ? "s" : ""}
-                </span>
-              )}
+              <h4><span style={{ marginRight: 8 }}>{activa ? "✓" : "○"}</span>{r.nombre}</h4>
+              {activa && <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>{centros.length} centro{centros.length !== 1 ? "s" : ""}</span>}
             </div>
             {activa && (
               <div className="ea-region-body">
@@ -139,21 +133,15 @@ function SedesForm({ pid }) {
                   <div key={idx} className="ea-centro-block">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>Centro {idx + 1}</span>
-                      {centros.length > 1 && (
-                        <button className="ea-btn-danger" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => removeCentro(r.id, idx)}>
-                          Quitar
-                        </button>
-                      )}
+                      {centros.length > 1 && <button className="ea-btn-danger" style={{ padding: "2px 8px", fontSize: 11 }} onClick={() => removeCentro(r.id, idx)}>Quitar</button>}
                     </div>
                     <div className="ea-field">
                       <p className="ea-field-label">Nombre del centro</p>
-                      <input className="ea-input" value={c.centro} placeholder="Ej: Instituto de Cirugía Articular"
-                        onChange={e => updateCentro(r.id, idx, "centro", e.target.value)} />
+                      <input className="ea-input" value={c.centro} placeholder="Ej: Instituto de Cirugía Articular" onChange={e => updateCentro(r.id, idx, "centro", e.target.value)} />
                     </div>
                     <div className="ea-field" style={{ marginBottom: 0 }}>
                       <p className="ea-field-label">Dirección</p>
-                      <input className="ea-input" value={c.direccion} placeholder="Ej: Avenida España 998, Curicó"
-                        onChange={e => updateCentro(r.id, idx, "direccion", e.target.value)} />
+                      <input className="ea-input" value={c.direccion} placeholder="Ej: Avenida España 998, Curicó" onChange={e => updateCentro(r.id, idx, "direccion", e.target.value)} />
                     </div>
                   </div>
                 ))}
@@ -189,16 +177,14 @@ export default function EquipoAdmin() {
 
   const [form, setForm] = useState({
     rol: "medico", nombre: "", apellido: "",
-    rut: "", especialidad: "", username: "", password: "",
-    scope: "ica",
+    rut: "", especialidad: "", email: "", scope: "ica",
   });
 
   useEffect(() => { loadMiembros(); cargarCapacidad(); }, []);
 
-  // ── FIX: agrega X-Internal-User para que el endpoint lo acepte ──
   async function cargarCapacidad() {
     try {
-      const res = await fetch(`${API_URL}/api/superadmin/centros/ica/capacidad`, {
+      const res = await fetch(`${API_URL}/api/centros/ica/capacidad`, {
         headers: { "X-Internal-User": internalUser }
       });
       if (res.ok) setCapacidad((await res.json()).capacidad || {});
@@ -213,10 +199,11 @@ export default function EquipoAdmin() {
 
   async function loadMiembros() {
     setLoading(true);
+    const headers = { "X-Internal-User": internalUser };
     try {
       const [profRes, userRes] = await Promise.all([
-        fetch(`${API_URL}/professionals`),
-        fetch(`${API_URL}/admin/users`)
+        fetch(`${API_URL}/professionals`, { headers }),
+        fetch(`${API_URL}/admin/users`,   { headers })
       ]);
       const profs = profRes.ok ? await profRes.json() : [];
       const users = userRes.ok ? await userRes.json() : [];
@@ -230,44 +217,46 @@ export default function EquipoAdmin() {
         ...profs.map(p => ({ ...p, _tipo: "profesional" })),
         ...soloUsuarios.map(u => ({ ...u, _tipo: "usuario" }))
       ]);
-    } catch {
-      setMiembros([]);
-    } finally {
-      setLoading(false);
-    }
+    } catch { setMiembros([]); }
+    finally  { setLoading(false); }
   }
 
   function abrirDetalle(m) {
-    setSeleccionado(m);
-    setTabDetalle("info");
+    setSeleccionado(m); setTabDetalle("info");
     setError(null); setSuccess(null);
     setVista("detalle");
   }
 
   function handleNuevo() {
-    setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", username: "", password: "", scope: "ica" });
+    setForm({ rol: "medico", nombre: "", apellido: "", rut: "", especialidad: "", email: "", scope: "ica" });
     setError(null); setSuccess(null);
     setVista("nuevo");
-  }async function handleGuardar() {
+  }
+
+  async function handleGuardar() {
     setError(null); setSuccess(null); setSaving(true);
     try {
       const esProfesional = ROLES_PROFESIONAL.includes(form.rol);
-      if (!form.nombre || !form.username || !form.password) {
-        setError("Nombre, usuario y contraseña son obligatorios"); return;
-      }
+      if (!form.nombre || !form.email) { setError("Nombre y email son obligatorios"); return; }
+      if (esProfesional && !form.rut)  { setError("RUT es obligatorio para profesionales"); return; }
+
       if (!puedeAgregar(form.rol)) {
         const cap = capacidad[form.rol];
         setError(`Límite alcanzado para ${form.rol}: ${cap.actual}/${cap.maximo} usuarios`);
         setSaving(false); return;
       }
+
+      const username = generarUsername(form.nombre, form.apellido);
+      const password = generarPassword();
+
       if (esProfesional) {
         const res = await fetch(`${API_URL}/professionals`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            id: form.username, name: `${form.nombre} ${form.apellido}`.trim(),
+            id: username, name: `${form.nombre} ${form.apellido}`.trim(),
             rut: form.rut, specialty: form.especialidad,
-            active: true, username: form.username, password: form.password,
-            role: form.rol, scope: form.scope,
+            active: true, username, password,
+            role: form.rol, scope: form.scope, email: form.email,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
@@ -275,24 +264,22 @@ export default function EquipoAdmin() {
         const res = await fetch(`${API_URL}/admin/users`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username: form.username, password: form.password,
+            username, password,
             nombre: `${form.nombre} ${form.apellido}`.trim(),
-            role: form.rol, scope: form.scope, active: true,
+            role: form.rol, scope: form.scope,
+            email: form.email, active: true,
           })
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || "Error"); }
       }
+
       await loadMiembros();
       await cargarCapacidad();
-      setSuccess("✓ Creado correctamente");
-      setTimeout(() => { setSuccess(null); setVista("lista"); }, 1500);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(false);
-    }
+      setSuccess("✓ Creado — credenciales enviadas al email");
+      setTimeout(() => { setSuccess(null); setVista("lista"); }, 2000);
+    } catch (e) { setError(e.message); }
+    finally { setSaving(false); }
   }
-
   async function handleToggleActivo(m, e) {
     e.stopPropagation();
     try {
@@ -313,40 +300,30 @@ export default function EquipoAdmin() {
 
   async function handleEliminar(m) {
     try {
-      const id       = m.id || m.username;
-      const username = m.username || m.id;
-      await fetch(`${API_URL}/professionals/${id}`,    { method: "DELETE" }).catch(() => {});
-      await fetch(`${API_URL}/admin/users/${username}`, { method: "DELETE" }).catch(() => {});
-      await fetch(`${API_URL}/geo/sedes/${id}`,         { method: "DELETE" }).catch(() => {});
-      setConfirmBorrar(null);
-      setVista("lista");
-      await loadMiembros();
-      await cargarCapacidad();
+      const id = m.id || m.username;
+      await fetch(`${API_URL}/professionals/${id}`, { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/admin/users/${id}`,   { method: "DELETE" }).catch(() => {});
+      await fetch(`${API_URL}/geo/sedes/${id}`,      { method: "DELETE" }).catch(() => {});
+      setConfirmBorrar(null); setVista("lista");
+      await loadMiembros(); await cargarCapacidad();
     } catch {}
   }
 
-  const sedesPid = seleccionado
-    ? (seleccionado._tipo === "profesional" ? seleccionado.id : seleccionado.username)
-    : null;
-
-  const esProf = ROLES_PROFESIONAL.includes(form.rol);
-  const tabs   = seleccionado ? getTabsForMiembro(seleccionado) : [];
+  const sedesPid     = seleccionado ? (seleccionado._tipo === "profesional" ? seleccionado.id : seleccionado.username) : null;
+  const esProf       = ROLES_PROFESIONAL.includes(form.rol);
+  const tabs         = seleccionado ? getTabsForMiembro(seleccionado) : [];
+  const especialidades = ESPECIALIDADES_POR_ROL[form.rol] || [];
 
   return (
     <div className="ea-root">
       <div className="ea-header">
         <div>
-          <h1>
-            {vista === "nuevo"   ? "Nuevo miembro" :
-             vista === "detalle" ? seleccionado?.name || seleccionado?.username :
-             "Equipo"}
-          </h1>
+          <h1>{vista === "nuevo" ? "Nuevo miembro" : vista === "detalle" ? seleccionado?.name || seleccionado?.username : "Equipo"}</h1>
           {vista === "lista" && <p>{miembros.length} miembros registrados</p>}
         </div>
         {vista === "lista"
           ? <button className="ea-btn-primary" onClick={handleNuevo}>+ Nuevo</button>
-          : <button className="ea-btn-secondary" onClick={() => setVista("lista")}>← Volver</button>
-        }
+          : <button className="ea-btn-secondary" onClick={() => setVista("lista")}>← Volver</button>}
       </div>
 
       {/* LISTA */}
@@ -385,8 +362,7 @@ export default function EquipoAdmin() {
         <div>
           <div className="ea-tabs">
             {tabs.map(t => (
-              <button key={t.key} className={`ea-tab ${tabDetalle === t.key ? "active" : ""}`}
-                onClick={() => setTabDetalle(t.key)}>
+              <button key={t.key} className={`ea-tab ${tabDetalle === t.key ? "active" : ""}`} onClick={() => setTabDetalle(t.key)}>
                 {t.label}
               </button>
             ))}
@@ -396,9 +372,7 @@ export default function EquipoAdmin() {
               <div>
                 <div className="ea-field">
                   <p className="ea-field-label">Nombre</p>
-                  <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#0f172a" }}>
-                    {seleccionado.name || seleccionado.username}
-                  </p>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#0f172a" }}>{seleccionado.name || seleccionado.username}</p>
                 </div>
                 {seleccionado.specialty && (
                   <div className="ea-field">
@@ -413,12 +387,6 @@ export default function EquipoAdmin() {
                   </div>
                 )}
                 <div className="ea-field">
-                  <p className="ea-field-label">Scope</p>
-                  <p style={{ margin: 0, fontSize: 14, color: "#475569" }}>
-                    {seleccionado.role?.scope === "externo" ? "Externo" : "ICA"}
-                  </p>
-                </div>
-                <div className="ea-field">
                   <p className="ea-field-label">Estado</p>
                   <p style={{ margin: 0, fontSize: 14, color: seleccionado.active === false ? "#dc2626" : "#16a34a" }}>
                     {seleccionado.active === false ? "Inactivo" : "Activo"}
@@ -426,13 +394,10 @@ export default function EquipoAdmin() {
                 </div>
                 <hr className="ea-divider" />
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <button className="ea-btn-secondary"
-                    onClick={e => handleToggleActivo(seleccionado, { ...e, stopPropagation: () => {} })}>
+                  <button className="ea-btn-secondary" onClick={e => handleToggleActivo(seleccionado, { ...e, stopPropagation: () => {} })}>
                     {seleccionado.active === false ? "Activar" : "Desactivar"}
                   </button>
-                  <button className="ea-btn-danger" onClick={() => setConfirmBorrar(seleccionado)}>
-                    Eliminar
-                  </button>
+                  <button className="ea-btn-danger" onClick={() => setConfirmBorrar(seleccionado)}>Eliminar</button>
                 </div>
               </div>
             )}
@@ -449,9 +414,10 @@ export default function EquipoAdmin() {
         <div className="ea-card" style={{ padding: 16 }}>
           {error   && <div className="ea-error">{error}</div>}
           {success && <div className="ea-success">{success}</div>}
+
           <div className="ea-field">
             <p className="ea-field-label">Rol</p>
-            <select className="ea-input" value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value }))}>
+            <select className="ea-input" value={form.rol} onChange={e => setForm(p => ({ ...p, rol: e.target.value, especialidad: "" }))}>
               {TODOS_ROLES.map(r => {
                 const cap     = capacidad[r];
                 const agotado = cap && cap.disponible <= 0;
@@ -466,59 +432,62 @@ export default function EquipoAdmin() {
             </select>
             {capacidad[form.rol] && (
               <p style={{ fontSize: 11, color: capacidad[form.rol].disponible <= 0 ? "#dc2626" : "#16a34a", marginTop: 4 }}>
-                {capacidad[form.rol].disponible > 0
-                  ? `${capacidad[form.rol].disponible} cupo(s) disponible(s)`
-                  : "Sin cupos disponibles para este rol"}
+                {capacidad[form.rol].disponible > 0 ? `${capacidad[form.rol].disponible} cupo(s) disponible(s)` : "Sin cupos disponibles"}
               </p>
             )}
           </div>
-          <div className="ea-field">
-            <p className="ea-field-label">Nombre *</p>
-            <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
-          </div>
-          <div className="ea-field">
-            <p className="ea-field-label">Apellido</p>
-            <input className="ea-input" value={form.apellido} onChange={e => setForm(p => ({ ...p, apellido: e.target.value }))} />
-          </div>
-          {esProf && (<>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div className="ea-field">
-              <p className="ea-field-label">RUT</p>
-              <input className="ea-input" value={form.rut} placeholder="12345678-9"
-                onChange={e => setForm(p => ({ ...p, rut: e.target.value }))} />
+              <p className="ea-field-label">Nombre *</p>
+              <input className="ea-input" value={form.nombre} onChange={e => setForm(p => ({ ...p, nombre: e.target.value }))} />
             </div>
+            <div className="ea-field">
+              <p className="ea-field-label">Apellido</p>
+              <input className="ea-input" value={form.apellido} onChange={e => setForm(p => ({ ...p, apellido: e.target.value }))} />
+            </div>
+          </div>
+
+          {esProf && (
+            <div className="ea-field">
+              <p className="ea-field-label">RUT *</p>
+              <input className="ea-input" value={form.rut} placeholder="12345678-9" onChange={e => setForm(p => ({ ...p, rut: e.target.value }))} />
+            </div>
+          )}
+
+          <div className="ea-field">
+            <p className="ea-field-label">Email *</p>
+            <input className="ea-input" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+          </div>
+
+          {esProf && especialidades.length > 0 && (
             <div className="ea-field">
               <p className="ea-field-label">Especialidad</p>
-              <select className="ea-input" value={form.especialidad}
-                onChange={e => setForm(p => ({ ...p, especialidad: e.target.value }))}>
+              <select className="ea-input" value={form.especialidad} onChange={e => setForm(p => ({ ...p, especialidad: e.target.value }))}>
                 <option value="">Seleccionar…</option>
-                {ESPECIALIDADES.map(e => <option key={e} value={e}>{e}</option>)}
+                {especialidades.map(e => <option key={e} value={e}>{e}</option>)}
               </select>
             </div>
-          </>)}
-          <div className="ea-field">
-            <p className="ea-field-label">Usuario *</p>
-            <input className="ea-input" value={form.username} placeholder="ej: jperez"
-              onChange={e => setForm(p => ({ ...p, username: e.target.value }))} />
-          </div>
-          <div className="ea-field">
-            <p className="ea-field-label">Contraseña inicial *</p>
-            <input className="ea-input" type="password" value={form.password}
-              onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
-          </div>
+          )}
+
+          {form.nombre && (
+            <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "8px 12px", marginBottom: 8, fontSize: 12, color: "#475569" }}>
+              Usuario que se creará: <strong>{generarUsername(form.nombre, form.apellido)}</strong>
+            </div>
+          )}
+
           <button className="ea-btn-primary" onClick={handleGuardar} disabled={saving} style={{ width: "100%", marginTop: 8 }}>
-            {saving ? "Guardando…" : "Crear miembro"}
+            {saving ? "Creando…" : "Crear miembro"}
           </button>
         </div>
       )}
 
-      {/* MODAL CONFIRMAR BORRAR */}
       {confirmBorrar && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex",
-          alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 300, padding: 16 }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 24, maxWidth: 360, width: "100%" }}>
             <p style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "#0f172a" }}>¿Eliminar miembro?</p>
             <p style={{ margin: "0 0 20px", fontSize: 13, color: "#64748b" }}>
-              Esta acción no se puede deshacer. Se eliminará <strong>{confirmBorrar.name || confirmBorrar.username}</strong> del sistema.
+              Esta acción no se puede deshacer. Se eliminará <strong>{confirmBorrar.name || confirmBorrar.username}</strong>.
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <button className="ea-btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmBorrar(null)}>Cancelar</button>
@@ -529,4 +498,4 @@ export default function EquipoAdmin() {
       )}
     </div>
   );
-                  }
+}
