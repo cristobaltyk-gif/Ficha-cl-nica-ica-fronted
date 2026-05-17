@@ -3,6 +3,8 @@ import { useAuth } from "../auth/AuthContext.jsx";
 import AtencionClinicaCerebro from "../roles/AtencionClinicaCerebro";
 
 import BookingCerebro from "../roles/BookingCerebro.jsx";
+import BookingExterno from "../pages/reservas/BookingExterno.jsx";
+import BookingCentro  from "../pages/reservas/BookingCentro.jsx";
 
 import Login from "../pages/Login";
 
@@ -28,10 +30,24 @@ export default function AppRouter() {
   const { session, role } = useAuth();
   const home = resolveHome(session, role);
 
-  const host = window.location.hostname;
+  const host       = window.location.hostname;
+  const subdominio = host.split(".")[0];
 
   if (host.startsWith("reservas.")) {
     return <BookingCerebro />;
+  }
+
+  if (subdominio === "externo") {
+    return <BookingExterno />;
+  }
+
+  if (
+    subdominio !== "clinica" &&
+    subdominio !== "reservas" &&
+    subdominio !== "localhost" &&
+    subdominio !== "admin"
+  ) {
+    return <BookingCentro />;
   }
 
   return (
