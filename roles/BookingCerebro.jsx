@@ -9,7 +9,12 @@ import { resolverRegion } from "../utils/geo";
 const API_URL       = import.meta.env.VITE_API_URL;
 const PREDIAG_FRONT = "https://app.icarticular.cl";
 
-// ── Leer ?dr= de la URL ──────────────────────────────────────
+function getScope() {
+  const parts = window.location.hostname.split(".");
+  if (parts.length >= 4) return parts[0];
+  return "ica";
+}
+
 function getDrFromURL() {
   try {
     return new URLSearchParams(window.location.search).get("dr") || null;
@@ -18,7 +23,6 @@ function getDrFromURL() {
   }
 }
 
-// ── Arma link al prediagnóstico ──────────────────────────────
 function prediagLink(nombre, rut, edad, genero) {
   const params = new URLSearchParams({ origen: "reserva", nombre: nombre || "", rut: rut || "" });
   if (edad)   params.set("edad",   String(edad));
@@ -26,7 +30,6 @@ function prediagLink(nombre, rut, edad, genero) {
   return `${PREDIAG_FRONT}?${params.toString()}`;
 }
 
-// ── Banner 1: publicitario estático ─────────────────────────
 function BannerPrediagnostico() {
   return (
     <div style={{
@@ -68,7 +71,6 @@ function BannerPrediagnostico() {
   );
 }
 
-// ── Banner GPS requerido ─────────────────────────────────────
 function BannerGPS({ onReintentar }) {
   return (
     <div style={{
@@ -101,10 +103,8 @@ function BannerGPS({ onReintentar }) {
   );
 }
 
-// ── Modal post-reserva ───────────────────────────────────────
 function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
   const url = prediagLink(nombre, rut, edad, genero);
-
   return (
     <div
       style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 16 }}
@@ -148,7 +148,6 @@ function ModalPrediagnostico({ nombre, rut, edad, genero, onClose }) {
   );
 }
 
-// ── Componente principal ─────────────────────────────────────
 export default function BookingCerebro() {
   const { session, login } = useAuth();
 
@@ -208,7 +207,8 @@ export default function BookingCerebro() {
         return;
       }
       try {
-        const params = new URLSearchParams({ public: "true" });
+        const scope  = getScope();
+        const params = new URLSearchParams({ public: "true", scope });
         if (region) params.set("region", region);
 
         const res  = await fetch(`${API_URL}/professionals?${params.toString()}`);
@@ -217,7 +217,6 @@ export default function BookingCerebro() {
 
         if (!cancelled) {
           const list = Array.isArray(data) ? data : Array.isArray(data?.professionals) ? data.professionals : [];
-          // ← Incluir role y specialty para agrupación en selector
           setProfessionals(list.map((p) => ({
             id:        p.id,
             name:      p.name,
@@ -284,7 +283,6 @@ export default function BookingCerebro() {
 
   return (
     <PublicLayout>
-
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>Reservas</div>
@@ -313,7 +311,6 @@ export default function BookingCerebro() {
       {!selectedDay ? (
         <>
           <BannerPrediagnostico />
-
           {gpsRequerido ? (
             <BannerGPS onReintentar={() => setGeoKey(k => k + 1)} />
           ) : region === undefined || loading ? (
@@ -359,7 +356,6 @@ export default function BookingCerebro() {
           onClose={() => setShowPrediag(false)}
         />
       )}
-
     </PublicLayout>
   );
-      }
+}
